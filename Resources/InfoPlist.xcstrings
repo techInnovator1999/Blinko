@@ -48,6 +48,53 @@
         }
       }
     },
+    "NSAudioCaptureUsageDescription" : {
+      "comment" : "Info.plist NSAudioCaptureUsageDescription",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko hört die gerade laufende Musik, um die Balken des Visualisierers zu zeichnen. Audio wird nie aufgenommen oder irgendwohin gesendet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko listens to the music that is playing to draw the visualizer bars. Audio is never recorded or sent anywhere."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko escucha la música que se está reproduciendo para dibujar las barras del visualizador. El audio nunca se graba ni se envía a ningún sitio."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko écoute la musique en cours de lecture pour dessiner les barres du visualiseur. L’audio n’est jamais enregistré ni envoyé nulle part."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko は、ビジュアライザのバーを描画するために再生中の音楽を聴き取ります。音声が録音されたり、どこかに送信されたりすることはありません。"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko ویژولائزر کی بارز بنانے کے لیے چلنے والا میوزک سنتا ہے۔ آڈیو کبھی ریکارڈ یا کہیں بھیجا نہیں جاتا۔"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko 会聆听正在播放的音乐以绘制可视化效果的频谱条。音频绝不会被录制或发送到任何地方。"
+          }
+        }
+      }
+    },
     "NSBluetoothAlwaysUsageDescription" : {
       "comment" : "Info.plist NSBluetoothAlwaysUsageDescription",
       "localizations" : {
