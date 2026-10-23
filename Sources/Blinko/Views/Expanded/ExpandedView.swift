@@ -73,7 +73,7 @@ private struct TabContent: View {
     var body: some View {
         ZStack(alignment: .top) {
             switch tab {
-            case .home: HomeView()
+            case .home: HomeView(vm: vm)
             case .shelf: ShelfView()
             case .clipboard: ClipboardView()
             case .stats: StatsView()
@@ -110,6 +110,7 @@ private struct ExpandedHeader: View {
                     TabButton(tab: tab, selected: vm.tab == tab, namespace: tabNS, width: tabWidth) {
                         withAnimation(Motion.micro) { vm.tab = tab }
                     }
+                    .homeLayoutMenu(enabled: tab == .home, vm: vm)
                 }
             }
             .padding(2)
@@ -133,11 +134,13 @@ private struct ExpandedHeader: View {
     }
 
     private func statusItems(weather: Bool, time: Bool) -> some View {
-        // Home shows the clock and weather in its own layout already.
-        let homeClock = vm.tab == .home && Preferences.shared.showClock
+        // Home shows the clock and weather in its own layout already (when its widgets do).
+        let home = vm.tab == .home ? HomeLayouts.current : nil
+        let homeClock = home?.showsClock ?? false
+        let homeWeather = home?.showsWeather ?? false
         return HStack(spacing: 4) {
             KeepAwakeIndicator { withAnimation(Motion.micro) { vm.tab = .tools } }
-            if weather, !homeClock {
+            if weather, !homeWeather {
                 HeaderWeather()
             }
             if time, Preferences.shared.showClockInHeader, !homeClock {

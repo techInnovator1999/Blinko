@@ -1,550 +1,466 @@
-import AVFoundation
 import SwiftUI
 
+/// Home: the widgets of the selected layout (Core/HomeLayout.swift), side by side in
+/// fixed-width columns. Only the widgets on the layout exist as views, so a widget that is
+/// not placed starts no work (stats sampling, camera, timelines). Each widget observes its
+/// own service at the leaf; this view only reads the layout.
 struct HomeView: View {
+    let vm: NotchViewModel
+
     var body: some View {
-        let prefs = Preferences.shared
-        HStack(alignment: .top, spacing: 14) {
-            HomePrimaryView() // media player, or the meeting card during a call
-                .frame(maxWidth: .infinity, alignment: .leading)
-            if prefs.showCalendar || prefs.showClock || prefs.weatherEnabled {
-                Divider().overlay(Color.hairline).frame(height: 120).padding(.top, 8)
-                AgendaView().frame(width: 176)
-            }
-            if prefs.showMirror {
-                MirrorTile().frame(width: 112, height: 112).padding(.top, 8)
-            }
+        HomeGrid(layout: HomeLayouts.current, vm: vm)
+    }
+}
+
+/// While true, Home draws its edit chrome (Settings → Home Layout preview): slots can be
+/// dragged, resized and removed, and widgets dropped in. Widgets stop taking clicks.
+private struct HomeLayoutEditingKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var homeLayoutEditing: Bool {
+        get { self[HomeLayoutEditingKey.self] }
+        set { self[HomeLayoutEditingKey.self] = newValue }
+    }
+}
+
+// MARK: - Layout switching
+
+/// Right-click menu on the Home tab button: switch layouts, or edit them in Settings.
+private struct HomeLayoutMenu: ViewModifier {
+    let enabled: Bool
+    let vm: NotchViewModel
+
+    func body(content: Content) -> some View {
+        if enabled {
+            content.contextMenu { HomeLayoutMenuItems(vm: vm) }
+        } else {
+            content
         }
     }
 }
 
-// MARK: - Media
+extension View {
+    func homeLayoutMenu(enabled: Bool, vm: NotchViewModel) -> some View {
+        modifier(HomeLayoutMenu(enabled: enabled, vm: vm))
+    }
+}
 
-struct MediaPlayerView: View {
+struct HomeLayoutMenuItems: View {
+    let vm: NotchViewModel
+
     var body: some View {
-        let np = NowPlayingService.shared
-        let accent = Preferences.shared.artworkTint && np.hasTrack ? Color(nsColor: np.accent) : Theme.shared.accent
+        let current = HomeLayouts.current.id
+        Picker("Home Layout", selection: Binding(get: { current }, set: { id in
+            withAnimation(Motion.micro) {
+                HomeLayouts.select(id)
+                vm.tab = .home
+            }
+        })) {
+            ForEach(HomeLayouts.all) { layout in
+                Text(verbatim: layout.name).tag(layout.id)
+            }
+        }
+        .pickerStyle(.inline)
+        Divider()
+        Button("Edit Home Layout…") { WidgetActions.openSettings(.homeLayout, vm: vm) }
+    }
+}
 
-        HStack(alignment: .center, spacing: 14) {
-            ZStack(alignment: .bottomTrailing) {
-                // Ambient glow from the artwork itself.
-                ArtworkView(image: np.artwork, cornerRadius: 16)
-                    .frame(width: 112, height: 112)
-                    .background {
-                        // Ambient glow: pre-blurred once per track. In a background so it never
-                        // affects layout. 96px art + 2×28px padding → scale to match the cover.
-                        if let glow = np.artworkGlow {
-                            Image(nsImage: glow)
-                                .resizable()
-                                .frame(width: 112 * 152 / 96, height: 112 * 152 / 96)
-                                .opacity(0.55)
-                                .allowsHitTesting(false)
-                        }
+// MARK: - Grid
+
+struct HomeGrid: View {
+    let layout: HomeLayout
+    let vm: NotchViewModel
+    @Environment(\.homeLayoutEditing) private var editing
+
+    var body: some View {
+        if layout.slots.isEmpty, !editing {
+            EmptyHome(vm: vm)
+        } else {
+            HomeColumns(spacing: 14) {
+                ForEach(columns) { column in
+                    switch column.kind {
+                    case .divider:
+                        HStack { Divider() } // vertical, as in an HStack
+                            .overlay(Color.hairline)
+                            .frame(height: 120)
+                            .padding(.top, 8)
+                            .layoutValue(key: HomeColumnKey.self, value: .divider)
+                    case .slot(let slot, let index):
+                        HomeSlotView(slot: slot, index: index, vm: vm)
+                            .layoutValue(key: HomeColumnKey.self, value: slot.size.fixedWidth.map(HomeColumnWidth.fixed) ?? .flex)
+                    case .add(let free):
+                        HomeAddZone(free: free)
+                            .layoutValue(key: HomeColumnKey.self, value: HomeAddZone.width(free: free))
                     }
-                    .overlay { if np.hasTrack { ArtworkSeekOverlay() } }
-                    .scaleEffect(np.isPlaying || !np.hasTrack ? 1 : 0.9)
-                    .shadow(color: .black.opacity(0.4), radius: 8, y: 4)
-                if let icon = np.appIcon {
-                    Image(nsImage: icon)
-                        .resizable()
-                        .frame(width: 26, height: 26)
-                        .offset(x: 6, y: 6)
-                        .onTapGesture { np.openSourceApp() }
-                        .help("Open source app")
-                        .shadow(color: .black.opacity(0.5), radius: 3)
                 }
             }
-            .padding(.top, 8)
-            .animation(Motion.open, value: np.isPlaying)
+            .animation(Motion.micro, value: layout.slots)
+        }
+    }
 
-            VStack(alignment: .leading, spacing: 0) {
-                Text(np.hasTrack ? np.title : "Nothing Playing")
-                    .font(Theme.shared.font(15))
-                    .foregroundStyle(Color.primaryText)
-                    .lineLimit(1)
-                Text(np.hasTrack ? np.artist : "Play something to see it here")
-                    .font(.system(size: 12.5, weight: .medium))
-                    .foregroundStyle(accent.opacity(np.hasTrack ? 0.9 : 0.5))
-                    .lineLimit(1)
-                    .padding(.top, 2)
+    private struct Column: Identifiable {
+        enum Kind { case divider, slot(HomeSlot, Int), add(Int) }
+        let id: String
+        let kind: Kind
+    }
 
-                if Preferences.shared.showLyrics, np.hasTrack {
-                    PlayerLyricLine()
-                }
+    /// Slots in order, a hairline between two adjacent bare widgets, and (while editing) a
+    /// drop zone for the room that is left.
+    private var columns: [Column] {
+        var out: [Column] = []
+        var previousBare = false
+        for (i, slot) in layout.slots.enumerated() {
+            let bare = slot.widget.isBare(slot.size)
+            if bare, previousBare { out.append(Column(id: "divider-\(slot.id)", kind: .divider)) }
+            out.append(Column(id: slot.id.uuidString, kind: .slot(slot, i)))
+            previousBare = bare
+        }
+        if editing, layout.freeUnits >= HomeWidgetSize.small.units {
+            out.append(Column(id: "add", kind: .add(layout.freeUnits)))
+        }
+        return out
+    }
+}
 
-                Scrubber(accent: accent)
-                    .padding(.top, LyricsService.shared.hasLyrics(for: LyricsService.key(title: np.title, artist: np.artist)) ? 7 : 12)
-                    .opacity(np.hasTrack ? 1 : 0.35)
-                    .disabled(!np.hasTrack)
+/// How wide a Home column is: a fixed design width, a share of what is left, or a hairline.
+enum HomeColumnWidth: Equatable {
+    case fixed(CGFloat)
+    case flex
+    case divider
+}
 
-                HStack(spacing: 0) {
-                    IslandIconButton(symbol: "shuffle", size: 11, plate: 26,
-                                     tint: np.shuffle == .on ? accent : .tertiaryText, help: "Shuffle") {
-                        np.toggleShuffle()
-                    }
-                    Spacer(minLength: 2)
-                    IslandIconButton(symbol: "backward.fill", size: 15, plate: 32, help: "Previous") { np.previous() }
-                    Spacer(minLength: 2)
-                    IslandIconButton(symbol: np.isPlaying ? "pause.fill" : "play.fill", size: 22, plate: 40) {
-                        np.togglePlayPause()
-                    }
-                    Spacer(minLength: 2)
-                    IslandIconButton(symbol: "forward.fill", size: 15, plate: 32, help: "Next") { np.next() }
-                    Spacer(minLength: 2)
-                    IslandIconButton(symbol: np.repeatMode.symbol, size: 11, plate: 26,
-                                     tint: np.repeatMode == .one || np.repeatMode == .all ? accent : .tertiaryText,
-                                     help: "Repeat") {
-                        np.cycleRepeat()
-                    }
-                }
-                .padding(.top, 6)
+private struct HomeColumnKey: LayoutValueKey {
+    static let defaultValue = HomeColumnWidth.flex
+}
+
+/// Lays Home's columns out left to right. Fixed columns keep their width and flexible
+/// (Large) columns share the rest. Without a Large column the fixed ones stretch a little
+/// (at most 1.5×) to fill the row and the group is centered. If the island is narrower than
+/// the design (custom widths), fixed columns give way before Large ones drop under 240 pt.
+struct HomeColumns: Layout {
+    var spacing: CGFloat = 14
+    static let minFlex: CGFloat = 240
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? 638
+        let (widths, _) = columnWidths(width, subviews)
+        var height: CGFloat = 0
+        for (view, w) in zip(subviews, widths) {
+            height = max(height, view.sizeThatFits(ProposedViewSize(width: w, height: proposal.height)).height)
+        }
+        return CGSize(width: width, height: min(height, proposal.height ?? height))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let (widths, inset) = columnWidths(bounds.width, subviews)
+        var x = bounds.minX + inset
+        for (view, w) in zip(subviews, widths) {
+            view.place(at: CGPoint(x: x + w / 2, y: bounds.minY), anchor: .top,
+                       proposal: ProposedViewSize(width: w, height: proposal.height ?? bounds.height))
+            x += w + spacing
+        }
+    }
+
+    /// Column widths and the leading inset that centers them.
+    private func columnWidths(_ width: CGFloat, _ subviews: Subviews) -> ([CGFloat], CGFloat) {
+        let kinds = subviews.map { $0[HomeColumnKey.self] }
+        guard !kinds.isEmpty else { return ([], 0) }
+        let available = max(0, width - spacing * CGFloat(kinds.count - 1))
+        var fixedTotal: CGFloat = 0, dividers: CGFloat = 0, flexCount: CGFloat = 0
+        for kind in kinds {
+            switch kind {
+            case .fixed(let w): fixedTotal += w
+            case .divider: dividers += 1
+            case .flex: flexCount += 1
             }
-            .padding(.top, 8)
+        }
+        let room = available - dividers
+        var scale: CGFloat = 1
+        var flex: CGFloat = 0
+        var inset: CGFloat = 0
+        if flexCount > 0 {
+            flex = (room - fixedTotal) / flexCount
+            if flex < Self.minFlex, fixedTotal > 0 {
+                scale = max(0.6, (room - Self.minFlex * flexCount) / fixedTotal)
+                flex = max(0, (room - fixedTotal * scale) / flexCount)
+            }
+        } else if fixedTotal > 0 {
+            scale = min(room / fixedTotal, 1.5)
+            inset = max(0, (room - fixedTotal * scale) / 2)
+        }
+        let widths = kinds.map { kind -> CGFloat in
+            switch kind {
+            case .fixed(let w): w * scale
+            case .divider: 1
+            case .flex: flex
+            }
+        }
+        return (widths, inset)
+    }
+}
+
+// MARK: - Slot
+
+/// One widget in its column, plus the edit chrome while the layout is being edited.
+private struct HomeSlotView: View {
+    let slot: HomeSlot
+    let index: Int
+    let vm: NotchViewModel
+    @Environment(\.homeLayoutEditing) private var editing
+
+    var body: some View {
+        if editing {
+            HomeWidgetContent(slot: slot, vm: vm)
+                .allowsHitTesting(false)
+                .opacity(0.5)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .overlay { HomeSlotEditor(slot: slot, index: index) }
+        } else {
+            HomeWidgetContent(slot: slot, vm: vm)
         }
     }
 }
 
-/// The current synced-lyrics line under the artist, cross-fading line to line. Loads on
-/// track change while visible; redraws only at line boundaries (LyricsSchedule).
-private struct PlayerLyricLine: View {
-    var body: some View {
-        let np = NowPlayingService.shared
-        let lyrics = LyricsService.shared
-        let key = LyricsService.key(title: np.title, artist: np.artist)
-        ZStack(alignment: .leading) {
-            if lyrics.hasLyrics(for: key) {
-                TimelineView(LyricsSchedule(lines: lyrics.lines, player: np)) { ctx in
-                    LyricText(index: lyrics.lineIndex(at: np.elapsed(at: ctx.date)), size: 11.5)
-                }
-                .padding(.top, 5)
-                .transition(.opacity)
-            }
-        }
-        .animation(Motion.content, value: lyrics.hasLyrics(for: key))
-        .task(id: key) {
-            await lyrics.load(title: np.title, artist: np.artist, album: np.album, duration: np.duration)
-        }
-    }
-}
-
-/// One lyric line; a new line slides up and fades in while the old one fades out.
-struct LyricText: View {
-    let index: Int?
-    let size: CGFloat
-    var alignment: Alignment = .leading
+/// The widget view for a slot. Cards get the shared card frame; bare widgets lay out as Home
+/// always has (player fills its column leading, the agenda column is centered in its width).
+struct HomeWidgetContent: View {
+    let slot: HomeSlot
+    let vm: NotchViewModel
 
     var body: some View {
-        let lines = LyricsService.shared.lines
-        let text = index.flatMap { lines.indices.contains($0) ? lines[$0].text : nil } ?? ""
-        ZStack(alignment: alignment) {
-            Text(text.isEmpty ? "♪" : text)
-                .font(.system(size: size, weight: .medium))
-                .foregroundStyle(Color.white.opacity(0.78))
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .id(index ?? -1)
-                .transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: 5)),
-                                        removal: .opacity.combined(with: .offset(y: -5))))
-        }
-        .frame(maxWidth: .infinity, alignment: alignment)
-        .frame(height: size + 4)
-        .clipped()
-        .animation(Motion.content, value: index)
-    }
-}
-
-/// Hovering the artwork reveals ±10 s seek zones; clicking the centre opens the source app.
-private struct ArtworkSeekOverlay: View {
-    @State private var hovering = false
-
-    var body: some View {
-        let np = NowPlayingService.shared
-        ZStack {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.black.opacity(hovering ? 0.45 : 0))
-            HStack(spacing: 0) {
-                seekZone(symbol: "gobackward.10") { np.skip(by: -10) }
-                seekZone(symbol: "goforward.10") { np.skip(by: 10) }
-            }
-            .opacity(hovering ? 1 : 0)
-        }
-        .contentShape(Rectangle())
-        .onHover { hovering = $0 }
-        .animation(Motion.micro, value: hovering)
-    }
-
-    private func seekZone(symbol: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(PressableStyle(scale: 0.85))
-    }
-}
-
-private struct Scrubber: View {
-    let accent: Color
-    @State private var dragFraction: Double?
-    @State private var hovering = false
-
-    var body: some View {
-        let np = NowPlayingService.shared
-        // Ticks once a second, and only while playing and on screen.
-        TimelineView(.periodic(from: .now, by: np.isPlaying ? 1 : 3600)) { context in
-            let elapsed = np.elapsed(at: context.date)
-            let fraction = dragFraction ?? (np.duration > 0 ? elapsed / np.duration : 0)
-            VStack(spacing: 4) {
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(Color.white.opacity(0.15))
-                        Capsule().fill(accent)
-                            .frame(width: max(0, geo.size.width * fraction))
-                    }
-                    .frame(height: hovering || dragFraction != nil ? 7 : 4)
-                    .frame(maxHeight: .infinity)
-                    .contentShape(Rectangle())
-                    .gesture(DragGesture(minimumDistance: 0)
-                        .onChanged { v in dragFraction = min(max(v.location.x / geo.size.width, 0), 1) }
-                        .onEnded { _ in
-                            if let f = dragFraction { np.seek(to: f * np.duration) }
-                            dragFraction = nil
-                        })
-                }
-                .frame(height: 10)
-                .onHover { hovering = $0 }
-                .animation(Motion.micro, value: hovering)
-
-                HStack {
-                    Text(Format.time(dragFraction.map { $0 * np.duration } ?? elapsed))
-                    Spacer()
-                    Text("-" + Format.time(max(0, np.duration - (dragFraction.map { $0 * np.duration } ?? elapsed))))
-                }
-                .font(.system(size: 10, weight: .medium).monospacedDigit())
-                .foregroundStyle(Color.tertiaryText)
-            }
-        }
-    }
-}
-
-// MARK: - Agenda
-
-private struct AgendaView: View {
-    /// nil = automatic: the forecast shows when there is no agenda to show.
-    @State private var forecastPinned: Bool?
-
-    var body: some View {
-        let cal = CalendarService.shared
-        let prefs = Preferences.shared
-        let weather = prefs.weatherEnabled && WeatherService.shared.report != nil
-        let agendaEmpty = !prefs.showCalendar || !cal.authorized || cal.items.isEmpty
-        let showForecast = weather && (forecastPinned ?? agendaEmpty)
-
-        VStack(alignment: .leading, spacing: 6) {
-            if prefs.showClock {
-                HStack(alignment: .top, spacing: 4) {
-                    ClockWidget()
-                    Spacer(minLength: 0)
-                    if weather {
-                        WeatherChip(active: showForecast) {
-                            withAnimation(Motion.micro) { forecastPinned = !showForecast }
-                        }
-                    }
-                }
-                .padding(.top, 4)
-                if !prefs.worldClocks.isEmpty { WorldClocksRow() }
-            } else {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(Date.now, format: .dateTime.weekday(.wide))
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Color.red.opacity(0.9))
-                    Text(Date.now, format: .dateTime.day())
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Color.primaryText)
-                }
-                .padding(.top, 8)
-            }
-
-            if showForecast {
-                ForecastStrip()
-                    .transition(.opacity)
-            } else if !prefs.showCalendar {
-                EmptyView()
-            } else if !cal.authorized {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("See your next events here.")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color.secondaryText)
-                    PillButton(title: cal.denied ? "Open Settings" : "Allow Calendar", symbol: "calendar") {
-                        if cal.denied {
-                            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars")!)
-                        } else {
-                            cal.requestAccess()
-                        }
-                    }
-                }
-            } else if cal.items.isEmpty {
-                Text("No more events today")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Color.tertiaryText)
-                    .padding(.top, 4)
-            } else {
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 5) {
-                        ForEach(cal.items.prefix(6)) { item in AgendaRow(item: item) }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/// Large clock + date. Redraws once a minute, and only while the island is open.
-private struct ClockWidget: View {
-    var body: some View {
-        TimelineView(.everyMinute) { ctx in
-            VStack(alignment: .leading, spacing: 0) {
-                Text(ctx.date, format: .dateTime.hour().minute())
-                    .font(Theme.shared.font(30).monospacedDigit())
-                    .foregroundStyle(Color.primaryText)
-                    .contentTransition(.numericText())
-                    .animation(Motion.micro, value: ctx.date)
-                HStack(spacing: 4) {
-                    Text(ctx.date, format: .dateTime.weekday(.wide))
-                        .foregroundStyle(Color.red.opacity(0.9))
-                    Text(ctx.date, format: .dateTime.day().month(.abbreviated))
-                        .foregroundStyle(Color.secondaryText)
-                }
-                .font(.system(size: 11.5, weight: .semibold))
-            }
-        }
-    }
-}
-
-/// Up to three extra time zones: city, time and day offset. Once a minute, only while visible.
-private struct WorldClocksRow: View {
-    var body: some View {
-        let zones = Preferences.shared.worldClocks.compactMap(TimeZone.init(identifier:))
-        TimelineView(.everyMinute) { ctx in
-            HStack(alignment: .top, spacing: 0) {
-                ForEach(zones, id: \.identifier) { zone in
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(WorldClock.city(zone))
-                            .font(.system(size: 9.5, weight: .semibold))
-                            .foregroundStyle(Color.tertiaryText)
-                            .lineLimit(1)
-                        HStack(alignment: .firstTextBaseline, spacing: 2) {
-                            Text(WorldClock.time(ctx.date, in: zone))
-                                .font(.system(size: 12, weight: .semibold).monospacedDigit())
-                                .foregroundStyle(Color.primaryText)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-                            if let offset = WorldClock.dayOffset(ctx.date, in: zone) {
-                                Text(offset)
-                                    .font(.system(size: 8.5, weight: .bold))
-                                    .foregroundStyle(Color.orange.opacity(0.9))
-                            }
-                        }
-                    }
+        let size = slot.size
+        switch slot.widget {
+        case .nowPlaying:
+            if size == .large {
+                HomePrimaryView() // media player, or the meeting card during a call
                     .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
-        }
-    }
-}
-
-enum WorldClock {
-    /// "America/Los_Angeles" → "Los Angeles".
-    static func city(_ zone: TimeZone) -> String {
-        (zone.identifier.split(separator: "/").last.map(String.init) ?? zone.identifier)
-            .replacingOccurrences(of: "_", with: " ")
-    }
-
-    static func time(_ date: Date, in zone: TimeZone) -> String {
-        var style = Date.FormatStyle.dateTime.hour().minute()
-        style.timeZone = zone
-        return date.formatted(style)
-    }
-
-    /// "+1" / "−1" when the zone is on another calendar day than here.
-    static func dayOffset(_ date: Date, in zone: TimeZone) -> String? {
-        var there = Calendar.current
-        there.timeZone = zone
-        let a = Calendar.current.dateComponents([.year, .month, .day], from: date)
-        let b = there.dateComponents([.year, .month, .day], from: date)
-        guard let da = Calendar.current.date(from: a), let db = Calendar.current.date(from: b) else { return nil }
-        let days = Calendar.current.dateComponents([.day], from: da, to: db).day ?? 0
-        return days == 0 ? nil : (days > 0 ? "+\(days)" : "−\(-days)")
-    }
-}
-
-// MARK: - Weather
-
-/// Current conditions next to the clock; tapping flips the column to the hourly forecast.
-private struct WeatherChip: View {
-    let active: Bool
-    let action: () -> Void
-    @State private var hovering = false
-
-    var body: some View {
-        if let report = WeatherService.shared.report {
-            Button(action: action) {
-                VStack(spacing: 1) {
-                    Image(systemName: WeatherCode.symbol(report.code, isDay: report.isDay))
-                        .symbolRenderingMode(.multicolor)
-                        .font(.system(size: 15))
-                        .frame(height: 18)
-                    Text(Temperature.format(report.temperature))
-                        .font(.system(size: 12.5, weight: .semibold).monospacedDigit())
-                        .foregroundStyle(Color.primaryText)
-                }
-                .padding(.horizontal, 6)
-                .padding(.vertical, 4)
-                .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(active ? Color.fillHover : (hovering ? Color.fillSubtle : .clear)))
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(PressableStyle(scale: 0.94))
-            .onHover { hovering = $0 }
-            .help(WeatherCode.description(report.code))
-        }
-    }
-}
-
-/// Next five hours: time, symbol, temperature.
-private struct ForecastStrip: View {
-    var body: some View {
-        let weather = WeatherService.shared
-        if let report = weather.report {
-            HStack(spacing: 0) {
-                ForEach(weather.upcomingHours) { hour in
-                    VStack(spacing: 2) {
-                        Text(hour.date, format: .dateTime.hour())
-                            .font(.system(size: 8.5, weight: .semibold))
-                            .foregroundStyle(Color.tertiaryText)
-                            .lineLimit(1)
-                            .fixedSize()
-                        Image(systemName: WeatherCode.symbol(hour.code, isDay: hour.isDay))
-                            .symbolRenderingMode(.multicolor)
-                            .font(.system(size: 11))
-                            .frame(height: 13)
-                        Text(Temperature.format(hour.temperature))
-                            .font(.system(size: 10.5, weight: .semibold).monospacedDigit())
-                            .foregroundStyle(Color.primaryText)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            }
-            .padding(.vertical, 4)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.fillSubtle))
-            .help("\(WeatherCode.description(report.code)) · H \(Temperature.format(report.high)) L \(Temperature.format(report.low))")
-        }
-    }
-}
-
-enum Temperature {
-    /// Values arrive in the locale's unit already; just round and add a degree sign.
-    static func format(_ value: Double) -> String { "\(Int(value.rounded()))°" }
-}
-
-private struct AgendaRow: View {
-    let item: AgendaItem
-    @State private var hovering = false
-
-    var body: some View {
-        HStack(spacing: 7) {
-            if item.isReminder {
-                Circle().stroke(Color(nsColor: item.color), lineWidth: 1.5).frame(width: 8, height: 8)
             } else {
-                Capsule().fill(Color(nsColor: item.color)).frame(width: 3, height: 24)
+                NowPlayingCard().widgetCardFrame()
             }
-            VStack(alignment: .leading, spacing: 1) {
-                Text(item.title)
+        case .today:
+            AgendaView()
+        case .clock:
+            if size == .small {
+                ClockCard().widgetCardFrame()
+            } else {
+                ClockColumn().frame(maxWidth: .infinity, alignment: .leading)
+            }
+        case .agenda:
+            AgendaListWidget(size: size).frame(maxWidth: .infinity, alignment: .leading)
+        case .weather:
+            WeatherWidget(size: size, vm: vm).widgetCardFrame()
+        case .timers:
+            TimersWidget(size: size).widgetCardFrame()
+        case .stats:
+            StatsWidget(size: size).widgetCardFrame()
+        case .agents:
+            AgentsWidget(size: size, vm: vm).widgetCardFrame()
+        case .notes:
+            NotesWidget(vm: vm).widgetCardFrame()
+        case .mirror:
+            MirrorTile().widgetCardFrame()
+        case .battery:
+            BatteryWidget().widgetCardFrame()
+        case .shelf:
+            ShelfWidget(size: size, vm: vm).widgetCardFrame()
+        case .clipboard:
+            ClipboardWidget(size: size).widgetCardFrame()
+        }
+    }
+}
+
+/// A layout with no widgets.
+private struct EmptyHome: View {
+    let vm: NotchViewModel
+
+    var body: some View {
+        VStack(spacing: 8) {
+            EmptyState(symbol: "square.grid.3x2", title: "Home is empty",
+                       subtitle: "Add widgets in Settings → Home Layout")
+                .frame(height: 90)
+            PillButton(title: "Edit Layout…", symbol: "square.grid.3x2.fill") {
+                WidgetActions.openSettings(.homeLayout, vm: vm)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// MARK: - Edit chrome
+
+/// Drag payloads between the palette, the slots and the drop zone.
+enum HomeDragItem {
+    static func widget(_ kind: HomeWidgetKind) -> String { "blinko-widget:" + kind.rawValue }
+    static func slot(_ id: UUID) -> String { "blinko-slot:" + id.uuidString }
+
+    enum Parsed { case widget(HomeWidgetKind), slot(UUID) }
+
+    static func parse(_ string: String) -> Parsed? {
+        if string.hasPrefix("blinko-widget:") {
+            return HomeWidgetKind(rawValue: String(string.dropFirst("blinko-widget:".count))).map(Parsed.widget)
+        }
+        if string.hasPrefix("blinko-slot:") {
+            return UUID(uuidString: String(string.dropFirst("blinko-slot:".count))).map(Parsed.slot)
+        }
+        return nil
+    }
+}
+
+/// Outline, title, size switch and remove button over a slot. The whole slot drags to
+/// reorder; dropping a widget on it inserts it there (or replaces it when Home is full).
+private struct HomeSlotEditor: View {
+    let slot: HomeSlot
+    let index: Int
+    @State private var targeted = false
+    @State private var hovering = false
+
+    var body: some View {
+        let accent = Theme.shared.accent
+        let layout = HomeLayouts.current
+        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        ZStack {
+            shape.fill(Color.black.opacity(targeted ? 0.4 : 0.62))
+            shape.strokeBorder(targeted ? accent : Color.white.opacity(hovering ? 0.5 : 0.28),
+                               style: StrokeStyle(lineWidth: targeted ? 2.5 : 1.5, dash: targeted ? [] : [6, 4]))
+            VStack(spacing: 4) {
+                Image(systemName: slot.widget.symbol)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(slot.widget.tint)
+                Text(slot.widget.title)
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(Color.primaryText)
                     .lineLimit(1)
-                Text(timeLabel)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(Color.tertiaryText)
-            }
-            Spacer(minLength: 0)
-            if let url = item.meetingURL {
-                Button { NSWorkspace.shared.open(url) } label: {
-                    Image(systemName: "video.fill")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 22, height: 18)
-                        .background(Capsule().fill(Color.green.opacity(0.85)))
+                    .minimumScaleFactor(0.7)
+                if targeted {
+                    Text(layout.freeUnits >= HomeWidgetSize.small.units ? "Drop to insert" : "Drop to replace")
+                        .font(.system(size: 9.5, weight: .semibold))
+                        .foregroundStyle(accent)
                 }
-                .buttonStyle(PressableStyle())
-                .help("Join meeting")
             }
+            .padding(.horizontal, 6)
         }
-        .padding(.horizontal, 4)
-        .padding(.vertical, 2)
-        .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(hovering ? Color.fillSubtle : .clear))
+        .overlay(alignment: .topTrailing) {
+            Button {
+                withAnimation(Motion.micro) { HomeLayouts.remove(slot.id) }
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 22, height: 22)
+                    .background(Circle().fill(Color(white: 0.28)))
+                    .overlay(Circle().strokeBorder(Color.black.opacity(0.5)))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(PressableStyle())
+            .help("Remove \(slot.widget.title)")
+            .offset(x: 6, y: -6)
+        }
+        .overlay(alignment: .bottom) {
+            SizeSwitch(slot: slot, layout: layout).padding(.bottom, 8)
+        }
+        .padding(.top, 4)
+        .contentShape(shape)
         .onHover { hovering = $0 }
-    }
-
-    private var timeLabel: String {
-        if item.isAllDay { return "All day" }
-        let f = Date.FormatStyle.dateTime.hour().minute()
-        if !Calendar.current.isDateInToday(item.start) { return "Tomorrow " + item.start.formatted(f) }
-        return item.isReminder ? item.start.formatted(f) : "\(item.start.formatted(f)) – \(item.end.formatted(f))"
+        .draggable(HomeDragItem.slot(slot.id)) {
+            Label(slot.widget.title, systemImage: slot.widget.symbol)
+                .font(.system(size: 12, weight: .semibold))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Capsule().fill(.regularMaterial))
+        }
+        .dropDestination(for: String.self) { items, _ in
+            guard let item = items.first.flatMap(HomeDragItem.parse) else { return false }
+            withAnimation(Motion.micro) {
+                switch item {
+                case .widget(let kind):
+                    if !HomeLayouts.add(kind, at: index) { HomeLayouts.replace(slot.id, with: kind) }
+                case .slot(let id):
+                    HomeLayouts.move(id, to: index)
+                }
+            }
+            return true
+        } isTargeted: { targeted = $0 }
+        .animation(Motion.micro, value: targeted)
     }
 }
 
-// MARK: - Mirror
-
-private struct MirrorTile: View {
-    @State private var active = false
-    @State private var hovering = false
+/// S / M / L capsule: the sizes this widget supports; sizes that don't fit are dimmed.
+private struct SizeSwitch: View {
+    let slot: HomeSlot
+    let layout: HomeLayout
 
     var body: some View {
-        let camera = CameraService.shared
-        ZStack {
-            RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.fillSubtle)
-            if active, camera.status == .authorized {
-                CameraPreview(session: camera.session)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .transition(.opacity)
-            } else {
-                VStack(spacing: 6) {
-                    Image(systemName: camera.status == .denied ? "video.slash.fill" : "camera.fill")
-                        .font(.system(size: 18, weight: .semibold))
-                    Text(camera.status == .denied ? "No Access" : "Mirror")
-                        .font(.system(size: 11, weight: .semibold))
+        let accent = Theme.shared.accent
+        HStack(spacing: 1) {
+            ForEach(slot.widget.sizes) { size in
+                let selected = size == slot.size
+                let fits = layout.canResize(slot, to: size)
+                Button {
+                    withAnimation(Motion.micro) { HomeLayouts.resize(slot.id, to: size) }
+                } label: {
+                    Text(verbatim: size.letter)
+                        .font(.system(size: 10.5, weight: .bold))
+                        .foregroundStyle(selected ? Theme.shared.onAccent : (fits ? .primaryText : .tertiaryText))
+                        .frame(width: 22, height: 18)
+                        .background(Capsule().fill(selected ? accent : .clear))
+                        .contentShape(Capsule())
                 }
-                .foregroundStyle(hovering ? Color.primaryText : .secondaryText)
+                .buttonStyle(PressableStyle(scale: 0.9))
+                .disabled(!fits && !selected)
+                .help(size.title)
             }
         }
-        .contentShape(Rectangle())
-        .onHover { hovering = $0 }
-        .onTapGesture {
-            withAnimation(Motion.content) { active.toggle() }
-            active ? camera.start() : camera.stop()
-        }
-        .onDisappear {
-            if active { camera.stop() }
-        }
+        .padding(2)
+        .background(Capsule().fill(Color(white: 0.16)))
+        .overlay(Capsule().strokeBorder(Color.white.opacity(0.1)))
     }
 }
 
-private struct CameraPreview: NSViewRepresentable {
-    let session: AVCaptureSession
+/// Free room at the end of the row while editing: drop a widget (or a slot) here to append it.
+private struct HomeAddZone: View {
+    let free: Int
+    @State private var targeted = false
 
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView()
-        view.wantsLayer = true
-        let layer = AVCaptureVideoPreviewLayer(session: session)
-        layer.videoGravity = .resizeAspectFill
-        layer.connection?.automaticallyAdjustsVideoMirroring = false
-        layer.connection?.isVideoMirrored = true
-        view.layer = layer
-        return view
+    static func width(free: Int) -> HomeColumnWidth {
+        if free >= HomeWidgetSize.large.units { return .flex }
+        return .fixed(free >= HomeWidgetSize.medium.units ? HomeWidgetSize.medium.fixedWidth! : HomeWidgetSize.small.fixedWidth!)
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {}
+    var body: some View {
+        let accent = Theme.shared.accent
+        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        ZStack {
+            shape.fill(targeted ? accent.opacity(0.14) : Color.white.opacity(0.03))
+            shape.strokeBorder(targeted ? accent : Color.white.opacity(0.22),
+                               style: StrokeStyle(lineWidth: targeted ? 2 : 1.5, dash: [6, 4]))
+            VStack(spacing: 4) {
+                Image(systemName: "plus")
+                    .font(.system(size: 16, weight: .semibold))
+                Text("Drop a widget")
+                    .font(.system(size: 10.5, weight: .semibold))
+                Text("\(free) of \(HomeLayout.capacity) units free")
+                    .font(.system(size: 9.5, weight: .medium))
+                    .foregroundStyle(Color.tertiaryText)
+            }
+            .foregroundStyle(targeted ? accent : .secondaryText)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 6)
+        }
+        .padding(.top, 4)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .dropDestination(for: String.self) { items, _ in
+            guard let item = items.first.flatMap(HomeDragItem.parse) else { return false }
+            withAnimation(Motion.micro) {
+                switch item {
+                case .widget(let kind): HomeLayouts.add(kind)
+                case .slot(let id): HomeLayouts.move(id, to: .max)
+                }
+            }
+            return true
+        } isTargeted: { targeted = $0 }
+        .animation(Motion.micro, value: targeted)
+    }
 }
