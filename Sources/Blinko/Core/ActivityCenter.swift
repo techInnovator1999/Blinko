@@ -40,6 +40,17 @@ enum NetworkEvent: Equatable {
     case hotspot(name: String?)
 }
 
+/// A transient activity defined by the user (blinko://alert, `blinko alert`) or an agent.
+struct CustomAlert: Equatable {
+    var title: String
+    var body: String?
+    /// SF Symbol name.
+    var symbol: String
+    /// Colour name ("orange", "green"…) or "#RRGGBB".
+    var color: String
+    var duration: TimeInterval
+}
+
 /// Short-lived events that briefly take over the closed island.
 enum TransientActivity: Equatable {
     case volume(level: Float, muted: Bool)
@@ -60,9 +71,10 @@ enum TransientActivity: Equatable {
     case downloadFinished(name: String, url: URL)
     /// Speaking while muted in a call (Meeting mode).
     case mutedWarning
+    case custom(CustomAlert)
 
     /// Updates of the same kind morph in place instead of re-running the entrance transition.
-    enum Kind: Equatable { case hud, capsLock, power, lowBattery, bluetooth, shelf, timer, nowPlaying, focusMode, privacy, network, download, meeting }
+    enum Kind: Equatable { case hud, capsLock, power, lowBattery, bluetooth, shelf, timer, nowPlaying, focusMode, privacy, network, download, meeting, custom }
 
     var kind: Kind {
         switch self {
@@ -80,11 +92,13 @@ enum TransientActivity: Equatable {
         case .network: .network
         case .downloadFinished: .download
         case .mutedWarning: .meeting
+        case .custom: .custom
         }
     }
 
     var duration: TimeInterval {
-        switch kind {
+        if case .custom(let alert) = self { return alert.duration }
+        return switch kind {
         case .hud: 1.6
         case .capsLock: 1.3
         case .power, .focusMode, .privacy, .network: 2.6
@@ -95,6 +109,7 @@ enum TransientActivity: Equatable {
         case .nowPlaying: 2.2
         case .download: 5
         case .meeting: 4
+        case .custom: 3
         }
     }
 }

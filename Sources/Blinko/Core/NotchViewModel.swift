@@ -6,6 +6,7 @@ private let log = Logger(subsystem: "app.blinko.Blinko", category: "island")
 
 enum NotchTab: String, CaseIterable, Identifiable {
     case home, shelf, clipboard, stats, timer, notes, tools
+    case agents
     var id: String { rawValue }
 
     var symbol: String {
@@ -17,6 +18,7 @@ enum NotchTab: String, CaseIterable, Identifiable {
         case .timer: "timer"
         case .notes: "note.text"
         case .tools: "eyedropper.halffull"
+        case .agents: "sparkles.rectangle.stack.fill"
         }
     }
 
@@ -29,6 +31,7 @@ enum NotchTab: String, CaseIterable, Identifiable {
         case .timer: String(localized: "Timer")
         case .notes: String(localized: "Notes")
         case .tools: String(localized: "Tools")
+        case .agents: String(localized: "Agents")
         }
     }
 }
@@ -43,6 +46,7 @@ enum CompactContent: Equatable {
     case privacy
     case clock
     case meeting
+    case agent
 
     var key: String {
         switch self {
@@ -54,6 +58,7 @@ enum CompactContent: Equatable {
         case .privacy: "privacy"
         case .clock: "clock"
         case .meeting: "meeting"
+        case .agent: "agent"
         }
     }
 }
@@ -102,6 +107,7 @@ final class NotchViewModel {
         if let compactOverride { return compactOverride }
         if let activity = ActivityCenter.shared.current { return .activity(activity) }
         if prefs.meetingMode, MeetingService.shared.isInCall { return .meeting }
+        if prefs.agentCompact, AgentHubService.shared.hasActivity { return .agent }
         if DownloadsService.shared.active != nil { return .download }
         if TimerService.shared.hasRunning { return .timer }
         if prefs.musicActivity, NowPlayingService.shared.isPlaying { return .music }
@@ -140,6 +146,7 @@ final class NotchViewModel {
         case .privacy: return 40
         case .clock: return 76
         case .meeting: return PrivacyService.shared.cameraInUse ? 102 : 86
+        case .agent: return AgentHubService.shared.approvals.isEmpty ? 118 : 124
         case .activity(let a):
             switch a {
             case .volume, .brightness, .keyboardBacklight, .microphone: return 108
@@ -155,6 +162,7 @@ final class NotchViewModel {
             case .network: return 124
             case .downloadFinished: return 128
             case .mutedWarning: return 128
+            case .custom(let alert): return alert.body == nil ? 120 : 150
             }
         }
     }
@@ -227,6 +235,8 @@ final class NotchViewModel {
         } else if phase == .closed, case .activity(.downloadFinished) = compact, prefs.visibleTabs.contains(.shelf) {
             // Opening on a finished download lands on the shelf, where it can be added.
             self.tab = .shelf
+        } else if phase == .closed, compact == .agent {
+            self.tab = .agents
         }
         guard phase != .open else { return }
         phase = .open

@@ -130,6 +130,15 @@ final class Preferences {
     var commandHotkeyKeyCode: Int { didSet { store.set(commandHotkeyKeyCode, forKey: "commandHotkeyKeyCode") } }
     var commandHotkeyModifiers: Int { didSet { store.set(commandHotkeyModifiers, forKey: "commandHotkeyModifiers") } }
     var commandHotkeyKeyName: String { didSet { store.set(commandHotkeyKeyName, forKey: "commandHotkeyKeyName") } }
+    // Agent Hub (AI coding agents over the local socket)
+    var agentHubEnabled: Bool { didSet { store.set(agentHubEnabled, forKey: "agentHubEnabled") } }
+    var agentApprovals: Bool { didSet { store.set(agentApprovals, forKey: "agentApprovals") } }
+    var agentAutoOpen: Bool { didSet { store.set(agentAutoOpen, forKey: "agentAutoOpen") } }
+    /// Seconds an approval waits in the island before the agent shows its own prompt.
+    var agentApprovalTimeout: Double { didSet { store.set(agentApprovalTimeout, forKey: "agentApprovalTimeout") } }
+    var agentCompact: Bool { didSet { store.set(agentCompact, forKey: "agentCompact") } }
+    var agentFinishedAlert: Bool { didSet { store.set(agentFinishedAlert, forKey: "agentFinishedAlert") } }
+    var agentNotifications: Bool { didSet { store.set(agentNotifications, forKey: "agentNotifications") } }
 
     private init() {
         store.register(defaults: [
@@ -200,6 +209,13 @@ final class Preferences {
             "commandHotkeyKeyCode": 49,        // kVK_Space
             "commandHotkeyModifiers": 0x0800,  // optionKey
             "commandHotkeyKeyName": "Space",
+            "agentHubEnabled": true,
+            "agentApprovals": true,
+            "agentAutoOpen": true,
+            "agentApprovalTimeout": 90.0,
+            "agentCompact": true,
+            "agentFinishedAlert": true,
+            "agentNotifications": true,
         ])
         hasCompletedOnboarding = store.bool(forKey: "hasCompletedOnboarding")
         displayMode = DisplayMode(rawValue: store.string(forKey: "displayMode") ?? "") ?? .notchedOnly
@@ -272,5 +288,12 @@ final class Preferences {
         commandHotkeyKeyCode = store.integer(forKey: "commandHotkeyKeyCode")
         commandHotkeyModifiers = store.integer(forKey: "commandHotkeyModifiers")
         commandHotkeyKeyName = store.string(forKey: "commandHotkeyKeyName") ?? "Space"
+        agentHubEnabled = store.bool(forKey: "agentHubEnabled")
+        agentApprovals = store.bool(forKey: "agentApprovals")
+        agentAutoOpen = store.bool(forKey: "agentAutoOpen")
+        agentApprovalTimeout = store.double(forKey: "agentApprovalTimeout")
+        agentCompact = store.bool(forKey: "agentCompact")
+        agentFinishedAlert = store.bool(forKey: "agentFinishedAlert")
+        agentNotifications = store.bool(forKey: "agentNotifications")
     }
 }

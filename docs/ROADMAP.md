@@ -75,7 +75,7 @@ Legend: ✅ shipped in v0.1 · ✅ v0.x shipped in that version · 🟡 partial 
 | Camera / microphone in use | ✅ v0.3 | CoreMediaIO + CoreAudio `DeviceIsRunningSomewhere` listeners (default input re-attached on change, old listeners removed). Green / orange dots at the wing edge (or a small privacy wing when nothing else shows) + a transient activity on start. Blinko's own mirror is ignored |
 | Screen-recording indicator | ⏭ | **Skipped:** no public, reliable "screen is being captured" signal (ScreenCaptureKit only reports your own streams). Revisit if macOS adds one |
 | App notifications in the island | ⏭ v0.5 (no public API; research) | |
-| AI coding-agent status + approvals (Claude Code hooks → socket) | ⏭ v0.4 | |
+| AI coding-agent status + approvals (Claude Code hooks → socket) | ✅ v0.4 | **Agent Hub.** Unix socket in Application Support (0600, same-uid peers only, `DispatchSource` accept/read, nothing received is executed), NDJSON protocol in [AGENT_PROTOCOL.md](AGENT_PROTOCOL.md) so Codex/Cursor/scripts can report too. Claude Code via hooks (SessionStart, UserPromptSubmit, Pre/PostToolUse, PermissionRequest, Notification, Stop, SubagentStop, SessionEnd) installed from Settings → Agents: read → `settings.json.blinko-backup` → merge → atomic write; uninstall removes only Blinko's entries. Closed island: render-server spinner + project + tool, pulsing hand + "Approve?" when asked. Approval card auto-opens on the Agents tab (Approve ⌘↩ / Deny esc once clicked, "Answer in Terminal"); unanswered requests fall back to Claude Code's own prompt after 30 s–5 min (default 90 s), as does a missing Blinko. Agents tab lists sessions (state, last action, elapsed, cost). One work item flags sessions silent for 10 min |
 
 ### Display, interaction, app
 | Feature | Status | Notes |
@@ -108,6 +108,12 @@ Legend: ✅ shipped in v0.1 · ✅ v0.x shipped in that version · 🟡 partial 
 | Corner style, number font | ✅ v0.4 | Open bottom radius 16–36 pt, closed bottom radius 8–20 pt. SF Pro / SF Pro Rounded for clock, timers, stats, player title, compact clock and timer |
 | Appearance pane + live preview | ✅ v0.4 | `Views/Settings/AppearancePane.swift`: the real `NotchRootView` with its own preview view model (open / now playing / HUD, any tab) over your desktop picture, updating instantly; theme cards, accent swatches, style cards, size / corners / font, reset to defaults |
 | Themes: built-ins, JSON import / export | ✅ v0.4 | Midnight, Aurora (Glass), Paper (Minimal, Compact, Mono), Neon (Glow). `ThemeFile` JSON (`"format": "blinko-theme"`); unknown keys ignored, values clamped |
+### Automation
+| Feature | Status | Notes |
+|---|---|---|
+| `blinko://` URL scheme | ✅ v0.4 | `CFBundleURLTypes` + `kAEGetURL` handler registered in `applicationWillFinishLaunching` (a URL that launches Blinko is queued until the islands exist). `open?tab=`, `alert?title=&body=&icon=&color=&duration=` (custom transient activity: SF Symbol, colour name or `#RRGGBB`, 1–30 s), `timer?minutes=&label=`, `focus/start`, `focus/stop`, `shelf/add?path=` (repeatable, existing files only), `keepawake?minutes=` / `?off=1`. Parameters are data only |
+| `blinko` CLI | ✅ v0.4 | Separate SwiftPM target bundled as `Contents/Helpers/blinko` (not `MacOS/`: "blinko" and "Blinko" collide on case-insensitive volumes). Automation commands open `blinko://` URLs via `open -g -b app.blinko.Blinko` (launches Blinko if needed); `hook` / `send` talk to the Agent Hub; `claude install|uninstall|status [--settings]`. Settings → Automation symlinks it into /usr/local/bin when writable, else ~/.local/bin (never sudo) |
+| Shortcuts actions (App Intents) | 🟡 v0.4 | **Best-effort.** Show Alert, Start Timer, Start Focus, Open Island, Add to Shelf, Keep Awake (+ two App Shortcuts). SwiftPM doesn't run Xcode's metadata step, but the swift-build backend already emits `.swiftconstvalues`, so `scripts/appintents-metadata.sh` runs `xcrun appintentsmetadataprocessor` on them and bundles `Metadata.appintents` (validated: all six actions present). Not verified in the Shortcuts UI (no UI access during development); the script warns and skips without Xcode. Shortcuts' "Open URLs" and "Run Shell Script" with the URL scheme / CLI work regardless |
 
 ## 2. Performance budget
 
@@ -117,6 +123,7 @@ Legend: ✅ shipped in v0.1 · ✅ v0.x shipped in that version · 🟡 partial 
 | Open island, idle | < 1 % | ~0.7 % (v0.1) |
 | Media bridge (perl) idle | 0 % | 0.0 %, ~5 MB |
 | RSS | < 80 MB | v0.3: ~63–66 MB idle; v0.4: ~64 MB idle |
+| Agent Hub (socket listening, no session) | ≈ 0 % | v0.4: 0.01–0.04 s CPU per 30 s, ~65 MB; an agent working (render-server spinner) 0.14 s per 30 s; a pending approval in the closed island uses a CALayer pulse (the SwiftUI `symbolEffect(.pulse)` it replaced cost ~16 %) |
 
 Rules every feature must follow:
 1. **Event-driven first.** IOKit / CoreAudio / CoreMediaIO / EventKit / IOBluetooth / NWPathMonitor / DispatchSource, never polling when an event exists. The only v0.3 polls: download sizes (2 Hz, only while a partial file exists) and the Focus Status fallback (20 s, only when no database access).
@@ -131,6 +138,6 @@ Rules every feature must follow:
 
 - **v0.2 — Polish (shipped).** Shuffle/repeat, ±10 s seek, swipe for tracks, Caps Lock + mic HUD, shortcut recorder, tab reordering, size tuning, Pomodoro, clock widget, DMG/notarization script, pointer monitors that only run near the island, pre-blurred artwork glow, Sparkle.
 - **v0.3 — Awareness (shipped).** Focus/DND, camera/mic indicators, downloads activity, Wi-Fi/VPN/Hotspot alerts, AirPods battery, weather, synced lyrics, multiple timers, world clocks, Notes and Tools tabs (colour picker, Keep Awake), shelf expiry + multi-select drag-out, localisation infrastructure, reduced motion. Best-effort: AirPods levels, Focus without Full Disk Access; skipped: screen-recording indicator; postponed: LocalSend.
-- **v0.4 — Power user.** Shipped: themes & island styles (accent, Classic/Minimal/Glass/Glow, size presets, corners, font, Appearance preview, theme import/export), Meeting mode (call detection, mute / leave card, best-effort "You're muted" warning), the ⌥Space command bar (calculator, units, currency, apps, Shortcuts, clipboard, shelf, Blinko actions, web). In progress: AI agent status and approvals (Claude Code / Codex hooks), URL scheme + CLI. Later: real FFT visualizer, AirPlay routing, DDC brightness for external displays, per-app volume, first translations.
+- **v0.4 — Power user (shipped).** Themes & island styles (accent, Classic/Minimal/Glass/Glow, size presets, corners, font, Appearance preview, theme import/export); Meeting mode (call detection, mute / leave card, best-effort "You're muted" warning); the ⌥Space command bar (calculator, units, currency, apps, Shortcuts, clipboard, shelf, Blinko actions, web); Agent Hub (Claude Code hooks with approvals, open socket protocol for Codex/Cursor/scripts); `blinko://` URL scheme, `blinko` CLI and Shortcuts actions. Later: real FFT visualizer, AirPlay routing, DDC brightness for external displays, per-app volume, first translations.
 - **v0.5 — Lock screen and notifications.** SkyLight lock-screen widgets; notification mirroring research.
 - **v0.6 — Platform.** JavaScriptCore extension API and an extension gallery.

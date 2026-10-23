@@ -63,6 +63,8 @@ struct CompactView: View {
             MeetingCompactLeading()
         case .activity(let a):
             ActivityLeading(activity: a)
+        case .agent:
+            AgentCompactLeading()
         }
     }
 
@@ -96,6 +98,8 @@ struct CompactView: View {
             MeetingCompactTrailing()
         case .activity(let a):
             ActivityTrailing(activity: a)
+        case .agent:
+            AgentCompactTrailing()
         }
     }
 }
@@ -438,6 +442,8 @@ private struct ActivityLeading: View {
             EmptyView()
         case .mutedWarning:
             MutedWarningLeading()
+        case .custom(let alert):
+            CustomAlertLeading(alert: alert)
         }
     }
 
@@ -520,6 +526,8 @@ private struct ActivityTrailing: View {
             EmptyView()
         case .mutedWarning:
             MutedWarningTrailing()
+        case .custom(let alert):
+            CustomAlertTrailing(alert: alert)
         }
     }
 }

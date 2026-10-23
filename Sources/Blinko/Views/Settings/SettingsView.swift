@@ -1,7 +1,9 @@
 import SwiftUI
 
 enum SettingsPane: String, CaseIterable, Identifiable {
-    case welcome, general, activities, modules, layout, appearance, meetings, commandBar, about
+    case welcome, general, activities, modules, layout, appearance, meetings, commandBar
+    case agents, automation
+    case about
     var id: String { rawValue }
 
     var title: String {
@@ -15,6 +17,8 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .meetings: String(localized: "Meetings")
         case .commandBar: String(localized: "Command Bar")
         case .about: String(localized: "About")
+        case .agents: String(localized: "Agents")
+        case .automation: String(localized: "Automation")
         }
     }
 
@@ -29,6 +33,8 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .meetings: "video.fill"
         case .commandBar: "command"
         case .about: String(localized: "info.circle.fill")
+        case .agents: "sparkles.rectangle.stack.fill"
+        case .automation: "bolt.horizontal.fill"
         }
     }
 
@@ -43,6 +49,8 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .meetings: .green
         case .commandBar: .pink
         case .about: .teal
+        case .agents: .agentAccent
+        case .automation: .green
         }
     }
 }
@@ -107,6 +115,8 @@ struct SettingsView: View {
                 case .meetings: MeetingsPane()
                 case .commandBar: CommandBarPane()
                 case .about: AboutPane()
+                case .agents: AgentsSettingsPane()
+                case .automation: AutomationSettingsPane()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

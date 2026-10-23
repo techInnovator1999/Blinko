@@ -5,12 +5,12 @@ import CoreAudio
 import Observation
 
 /// A keyboard shortcut posted to a meeting app (only when Accessibility is already granted).
-struct AppShortcut: Equatable {
+struct KeyChord: Equatable {
     let key: Int
     let flags: CGEventFlags
 
-    static func cmd(_ key: Int) -> AppShortcut { AppShortcut(key: key, flags: .maskCommand) }
-    static func cmdShift(_ key: Int) -> AppShortcut { AppShortcut(key: key, flags: [.maskCommand, .maskShift]) }
+    static func cmd(_ key: Int) -> KeyChord { KeyChord(key: key, flags: .maskCommand) }
+    static func cmdShift(_ key: Int) -> KeyChord { KeyChord(key: key, flags: [.maskCommand, .maskShift]) }
 }
 
 /// An app whose microphone use counts as "in a call".
@@ -23,9 +23,9 @@ struct MeetingApp: Identifiable, Equatable {
     let audioPrefixes: [String]
     var isBrowser = false
     /// Leaves the call (Zoom asks to confirm). nil: Leave just brings the app to front.
-    var leave: AppShortcut?
+    var leave: KeyChord?
     /// Toggles the app's own microphone mute.
-    var toggleMute: AppShortcut?
+    var toggleMute: KeyChord?
 
     static let catalog: [MeetingApp] = [
         MeetingApp(id: "zoom", name: "Zoom", bundleIDs: ["us.zoom.xos"], audioPrefixes: ["us.zoom."],
@@ -492,7 +492,7 @@ final class MeetingService {
         }
     }
 
-    private func post(_ shortcut: AppShortcut, to call: ActiveCall) {
+    private func post(_ shortcut: KeyChord, to call: ActiveCall) {
         bringToFront()
         let pid = call.pid
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {

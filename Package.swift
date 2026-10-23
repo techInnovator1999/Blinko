@@ -10,7 +10,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "Blinko",
-            dependencies: [.product(name: "Sparkle", package: "Sparkle")],
+            dependencies: [.product(name: "Sparkle", package: "Sparkle"), "BlinkoKit"],
             path: "Sources/Blinko",
             swiftSettings: [
                 .unsafeFlags(["-enforce-exclusivity=unchecked"], .when(configuration: .release)),
@@ -33,6 +33,10 @@ let package = Package(
                 .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"]),
             ]
         ),
+        // Shared by the app and the CLI: Agent Hub protocol, Claude Code hook installer.
+        .target(name: "BlinkoKit", path: "Sources/BlinkoKit"),
+        // `blinko` command-line tool (Contents/Helpers/blinko): automation + Claude Code hook client.
+        .executableTarget(name: "blinko-cli", dependencies: ["BlinkoKit"], path: "Sources/BlinkoCLI"),
     ],
     swiftLanguageModes: [.v5]
 )
