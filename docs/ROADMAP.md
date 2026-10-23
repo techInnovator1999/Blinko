@@ -110,6 +110,7 @@ Legend: ✅ shipped in v0.1 · ✅ v0.x shipped in that version · 🟡 partial 
 | Open island, idle | < 1 % | ~0.7 % (v0.1) |
 | Media bridge (perl) idle | 0 % | 0.0 %, ~5 MB |
 | RSS | < 80 MB | v0.3: ~63–66 MB idle |
+| Agent Hub (socket listening, no session) | ≈ 0 % | v0.4: 0.01–0.04 s CPU per 30 s, ~65 MB; an agent working (render-server spinner) 0.14 s per 30 s; a pending approval in the closed island uses a CALayer pulse (the SwiftUI `symbolEffect(.pulse)` it replaced cost ~16 %) |
 
 Rules every feature must follow:
 1. **Event-driven first.** IOKit / CoreAudio / CoreMediaIO / EventKit / IOBluetooth / NWPathMonitor / DispatchSource, never polling when an event exists. The only v0.3 polls: download sizes (2 Hz, only while a partial file exists) and the Focus Status fallback (20 s, only when no database access).
