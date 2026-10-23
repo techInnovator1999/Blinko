@@ -31,7 +31,7 @@ enum PrivacySensor: Equatable {
     case camera, microphone
 
     var symbol: String { self == .camera ? "video.fill" : "mic.fill" }
-    var title: String { self == .camera ? "Camera" : "Microphone" }
+    var title: String { self == .camera ? String(localized: "Camera") : String(localized: "Microphone") }
 }
 
 enum NetworkEvent: Equatable {

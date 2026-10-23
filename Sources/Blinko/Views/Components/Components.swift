@@ -10,7 +10,7 @@ struct IslandIconButton: View {
     var size: CGFloat = 13
     var plate: CGFloat = 28
     var tint: Color = .primaryText
-    var help: String = ""
+    var help: LocalizedStringKey = ""
     let action: () -> Void
 
     @State private var hovering = false
@@ -44,7 +44,7 @@ struct PressableStyle: ButtonStyle {
 
 /// Rounded "pill" button for text actions.
 struct PillButton: View {
-    let title: String
+    let title: LocalizedStringKey
     var symbol: String?
     var prominent = false
     let action: () -> Void

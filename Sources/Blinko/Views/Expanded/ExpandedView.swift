@@ -157,7 +157,7 @@ private struct KeepAwakeIndicator: View {
     var body: some View {
         if KeepAwakeService.shared.isActive {
             IslandIconButton(symbol: "cup.and.saucer.fill", size: 11, plate: 24, tint: .orange,
-                             help: String(localized: "Keep Awake is on"), action: action)
+                             help: "Keep Awake is on", action: action)
                 .transition(.opacity.combined(with: .scale(scale: 0.8)))
         }
     }

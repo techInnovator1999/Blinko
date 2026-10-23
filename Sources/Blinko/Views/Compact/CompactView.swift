@@ -385,7 +385,7 @@ private struct ActivityLeading: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(on ? Color.indigo : .secondaryText)
                     .symbolEffect(.bounce, value: on)
-                Text(on ? (name ?? "Focus") : "Focus")
+                ((on ? name.map { Text(verbatim: $0) } : nil) ?? Text("Focus"))
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
@@ -598,17 +598,17 @@ extension NetworkEvent {
 
     var title: String {
         switch self {
-        case .wifi(let connected, let ssid): connected ? (ssid ?? "Wi-Fi") : "Wi-Fi"
-        case .vpn: "VPN"
-        case .hotspot(let name): name ?? "Hotspot"
+        case .wifi(let connected, let ssid): connected ? (ssid ?? String(localized: "Wi-Fi")) : String(localized: "Wi-Fi")
+        case .vpn: String(localized: "VPN")
+        case .hotspot(let name): name ?? String(localized: "Hotspot")
         }
     }
 
     var detail: String {
         switch self {
-        case .wifi(let connected, _): connected ? "Connected" : "Disconnected"
-        case .vpn(let on): on ? "Connected" : "Disconnected"
-        case .hotspot: "Hotspot"
+        case .wifi(let connected, _), .vpn(let connected):
+            connected ? String(localized: "Connected") : String(localized: "Disconnected")
+        case .hotspot: String(localized: "Hotspot")
         }
     }
 }

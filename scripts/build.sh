@@ -27,6 +27,17 @@ ditto "$SPARKLE_FW" "$APP/Contents/Frameworks/Sparkle.framework"
 [ -f Resources/AppIcon.icns ] && cp Resources/AppIcon.icns "$APP/Contents/Resources/"
 cp Resources/optimageeks-mark.png "$APP/Contents/Resources/"
 
+# Localisation: compile the String Catalog into <lang>.lproj/Localizable.strings in the main
+# bundle, where SwiftUI's Text("…") and String(localized:) look by default. English is the
+# source language (keys are the English text), so it needs no table of its own.
+# Refresh the catalog from the code with scripts/extract-strings.sh.
+mkdir -p "$APP/Contents/Resources/en.lproj"
+if xcrun --find xcstringstool >/dev/null 2>&1; then
+  xcrun xcstringstool compile Resources/Localizable.xcstrings --output-directory "$APP/Contents/Resources" >/dev/null
+else
+  echo "warning: xcstringstool not found (needs Xcode); shipping English only" >&2
+fi
+
 # MediaRemote bridge: a dylib loaded by Apple's platform perl (see Helper/BlinkoMedia.m).
 clang -dynamiclib -fobjc-arc -O2 -arch arm64 -arch arm64e -arch x86_64 -mmacosx-version-min=14.0 \
   -framework Foundation -o "$APP/Contents/Resources/BlinkoMedia.dylib" Helper/BlinkoMedia.m 2>/dev/null

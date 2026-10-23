@@ -193,7 +193,7 @@ private struct ColorPickerCard: View {
                 }
                 .buttonStyle(PressableStyle(scale: 0.95))
                 .help("Pick a colour from the screen")
-                PillButton(title: String(localized: "Pick"), symbol: "eyedropper", prominent: true) {
+                PillButton(title: "Pick", symbol: "eyedropper", prominent: true) {
                     vm.isSampling = true
                     picker.pick { vm.isSampling = false }
                 }
@@ -314,7 +314,7 @@ private struct KeepAwakeCard: View {
                 }
             }
             if awake.isActive {
-                PillButton(title: String(localized: "Turn Off"), symbol: "xmark") {
+                PillButton(title: "Turn Off", symbol: "xmark") {
                     withAnimation(Motion.micro) { awake.stop() }
                 }
                 .transition(.opacity)

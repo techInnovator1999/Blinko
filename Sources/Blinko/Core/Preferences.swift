@@ -6,9 +6,9 @@ enum DisplayMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .notchedOnly: "Built-in display"
-        case .mainOnly: "Main display"
-        case .allDisplays: "All displays"
+        case .notchedOnly: String(localized: "Built-in display")
+        case .mainOnly: String(localized: "Main display")
+        case .allDisplays: String(localized: "All displays")
         }
     }
 }

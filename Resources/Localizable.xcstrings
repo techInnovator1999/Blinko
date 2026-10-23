@@ -1,0 +1,753 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%@ · H %@ L %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · H %2$@ L %3$@"
+          }
+        }
+      }
+    },
+    "%@ · Paused" : {
+
+    },
+    "%lld" : {
+
+    },
+    "%lld pt" : {
+
+    },
+    "%lld%%" : {
+
+    },
+    "%lldm focus · %lldm break · %lldm long" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lldm focus · %2$lldm break · %3$lldm long"
+          }
+        }
+      }
+    },
+    "+%lld" : {
+
+    },
+    "0.6s" : {
+
+    },
+    "A fast, native Dynamic Island for the Mac." : {
+
+    },
+    "A long break follows every fourth focus session." : {
+
+    },
+    "About" : {
+
+    },
+    "Accessibility" : {
+
+    },
+    "Accessibility permission required" : {
+
+    },
+    "Add" : {
+
+    },
+    "Add 1 Minute" : {
+
+    },
+    "Add Time Zone…" : {
+
+    },
+    "Add the downloaded file to the shelf" : {
+
+    },
+    "Add to Shelf" : {
+
+    },
+    "After 1 day" : {
+
+    },
+    "After 1 week" : {
+
+    },
+    "AirDrop" : {
+
+    },
+    "AirPods battery levels" : {
+
+    },
+    "All displays" : {
+
+    },
+    "Allow Calendar" : {
+
+    },
+    "Allow…" : {
+
+    },
+    "Appearance" : {
+
+    },
+    "Automatically check for updates" : {
+
+    },
+    "Awareness" : {
+
+    },
+    "BATTERY" : {
+
+    },
+    "Battery & charging" : {
+
+    },
+    "Battery in island header" : {
+
+    },
+    "Blinko" : {
+
+    },
+    "Bluetooth devices" : {
+
+    },
+    "Built-in display" : {
+
+    },
+    "CPU" : {
+
+    },
+    "Calendar & Reminders" : {
+
+    },
+    "Calendar & reminders" : {
+
+    },
+    "Camera" : {
+
+    },
+    "Camera & microphone in use" : {
+
+    },
+    "Camera and microphone show a green or orange dot at the edge of the island while in use. Downloads from Safari, Chrome and Firefox are followed in ~/Downloads; macOS asks for access to that folder the first time. AirPods levels use undocumented Bluetooth properties and may not appear for every model." : {
+
+    },
+    "Camera mirror" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Cancel All Timers" : {
+
+    },
+    "Cancel Timer" : {
+
+    },
+    "Caps Lock" : {
+
+    },
+    "Caps Lock indicator" : {
+
+    },
+    "Charging" : {
+
+    },
+    "Check for Updates…" : {
+
+    },
+    "City" : {
+
+    },
+    "Clear" : {
+
+    },
+    "Clear History" : {
+
+    },
+    "Clear colour history" : {
+
+    },
+    "Clear shelf" : {
+
+    },
+    "Click files to select several, then drag any selected file to move them all. Only the shelf entries expire — your files stay where they are." : {
+
+    },
+    "Clipboard" : {
+
+    },
+    "Clipboard history is off" : {
+
+    },
+    "Clock" : {
+
+    },
+    "Clock on Home" : {
+
+    },
+    "Close when the pointer leaves" : {
+
+    },
+    "Closed width fine-tune" : {
+
+    },
+    "Cloudy" : {
+
+    },
+    "Connected" : {
+
+    },
+    "Copied" : {
+
+    },
+    "Copy" : {
+
+    },
+    "Copy %@" : {
+
+    },
+    "Copy text, images or files — they'll show up here" : {
+
+    },
+    "Couldn't load the weather. Blinko retries every 30 minutes." : {
+
+    },
+    "Current location" : {
+
+    },
+    "Delete" : {
+
+    },
+    "Delete snippet" : {
+
+    },
+    "Designed by" : {
+
+    },
+    "Disconnected" : {
+
+    },
+    "Display sleeps normally" : {
+
+    },
+    "Displays" : {
+
+    },
+    "Done" : {
+
+    },
+    "Download progress" : {
+
+    },
+    "Drag to reorder. At least one tab stays visible." : {
+
+    },
+    "Drizzle" : {
+
+    },
+    "Drop files here" : {
+
+    },
+    "Fine-tune makes the closed island exactly cover your notch — handy for scaled display resolutions." : {
+
+    },
+    "Focus" : {
+
+    },
+    "Focus & Do Not Disturb" : {
+
+    },
+    "Focus (Pomodoro)" : {
+
+    },
+    "Focus Status access needed" : {
+
+    },
+    "Focus: %lld min" : {
+
+    },
+    "Fog" : {
+
+    },
+    "Forecasts from Open-Meteo, refreshed every 30 minutes while Blinko runs. Your location is used once per session and only sent to Open-Meteo as rounded coordinates." : {
+
+    },
+    "General" : {
+
+    },
+    "Get Started" : {
+
+    },
+    "Global shortcut" : {
+
+    },
+    "Grant Full Disk Access to Blinko to show the Focus mode's name" : {
+
+    },
+    "Granted" : {
+
+    },
+    "Grant…" : {
+
+    },
+    "HUD" : {
+
+    },
+    "Haptic feedback" : {
+
+    },
+    "Heavy Rain" : {
+
+    },
+    "Hide when an app is fullscreen" : {
+
+    },
+    "History stays in memory only. Items marked as passwords by password managers are never recorded." : {
+
+    },
+    "Hold ⌥⇧ while pressing a key for fine-grained steps. ⌥ alone opens the related System Settings pane." : {
+
+    },
+    "Home" : {
+
+    },
+    "Hotspot" : {
+
+    },
+    "Hover delay" : {
+
+    },
+    "In Use" : {
+
+    },
+    "Instant" : {
+
+    },
+    "Interaction" : {
+
+    },
+    "Island size" : {
+
+    },
+    "Join meeting" : {
+
+    },
+    "Jot something down…" : {
+
+    },
+    "Keep %lld items" : {
+
+    },
+    "Keep Awake" : {
+
+    },
+    "Keep Awake is on" : {
+
+    },
+    "Keep clipboard history" : {
+
+    },
+    "Keep open" : {
+
+    },
+    "Launch at login" : {
+
+    },
+    "Layout" : {
+
+    },
+    "Live Activities" : {
+
+    },
+    "Location" : {
+
+    },
+    "Location access is off — the city below is used instead." : {
+
+    },
+    "Long Break" : {
+
+    },
+    "Long break: %lld min" : {
+
+    },
+    "Low Battery" : {
+
+    },
+    "Lyrics" : {
+
+    },
+    "Lyrics in the closed island" : {
+
+    },
+    "Main display" : {
+
+    },
+    "Memory" : {
+
+    },
+    "Microphone" : {
+
+    },
+    "Microphone volume & mute" : {
+
+    },
+    "Mirror" : {
+
+    },
+    "Mode names available" : {
+
+    },
+    "Modules" : {
+
+    },
+    "Mostly Clear" : {
+
+    },
+    "Motion" : {
+
+    },
+    "Music visualizer" : {
+
+    },
+    "Needed to replace the volume & brightness HUD." : {
+
+    },
+    "Network" : {
+
+    },
+    "Never" : {
+
+    },
+    "New snippet" : {
+
+    },
+    "Next" : {
+
+    },
+    "No Access" : {
+
+    },
+    "No more events today" : {
+
+    },
+    "Notes" : {
+
+    },
+    "Notes & Tools" : {
+
+    },
+    "Notes and snippets are saved in ~/Library/Application Support/Blinko. Keep Awake stops when Blinko quits." : {
+
+    },
+    "Notes tab" : {
+
+    },
+    "Nothing copied yet" : {
+
+    },
+    "Now" : {
+
+    },
+    "Now Playing" : {
+
+    },
+    "Off" : {
+
+    },
+    "On" : {
+
+    },
+    "On / off only" : {
+
+    },
+    "On Battery" : {
+
+    },
+    "Open" : {
+
+    },
+    "Open Settings" : {
+
+    },
+    "Open on hover" : {
+
+    },
+    "Open shelf when dragging files onto the notch" : {
+
+    },
+    "Open source app" : {
+
+    },
+    "Open width" : {
+
+    },
+    "OptimaGeeks" : {
+
+    },
+    "Partly Cloudy" : {
+
+    },
+    "Pause" : {
+
+    },
+    "Paused" : {
+
+    },
+    "Pick" : {
+
+    },
+    "Pick a colour from the screen" : {
+
+    },
+    "Pick any pixel on screen, then click a value to copy it." : {
+
+    },
+    "Plugged In" : {
+
+    },
+    "Power adapter" : {
+
+    },
+    "Previous" : {
+
+    },
+    "Quit Blinko" : {
+
+    },
+    "Rain" : {
+
+    },
+    "Ready" : {
+
+    },
+    "Reduce motion" : {
+
+    },
+    "Remove" : {
+
+    },
+    "Remove from Shelf" : {
+
+    },
+    "Remove items from the shelf" : {
+
+    },
+    "Repeat" : {
+
+    },
+    "Replace system volume & brightness HUD" : {
+
+    },
+    "Reset sizes" : {
+
+    },
+    "Resume" : {
+
+    },
+    "Save text you paste often. Click a snippet to copy it." : {
+
+    },
+    "Search" : {
+
+    },
+    "Search cities" : {
+
+    },
+    "See your next events here." : {
+
+    },
+    "Settings" : {
+
+    },
+    "Shadow under the open island" : {
+
+    },
+    "Shelf" : {
+
+    },
+    "Short Break" : {
+
+    },
+    "Short break: %lld min" : {
+
+    },
+    "Show Names…" : {
+
+    },
+    "Show in Finder" : {
+
+    },
+    "Show in the closed island" : {
+
+    },
+    "Show island on" : {
+
+    },
+    "Show menu bar icon" : {
+
+    },
+    "Show weather" : {
+
+    },
+    "Shows your next events and meeting links." : {
+
+    },
+    "Shuffle" : {
+
+    },
+    "Skip" : {
+
+    },
+    "Snow" : {
+
+    },
+    "Springs become short fades and the island opens without blur or scaling. Blinko also follows System Settings → Accessibility → Display → Reduce motion." : {
+
+    },
+    "Start Focus" : {
+
+    },
+    "Start as many as you like — they run side by side." : {
+
+    },
+    "Start the next session automatically" : {
+
+    },
+    "Stop" : {
+
+    },
+    "Swipe gestures (two-finger down/up)" : {
+
+    },
+    "Synced lyrics in the player" : {
+
+    },
+    "System" : {
+
+    },
+    "Tabs" : {
+
+    },
+    "They'll wait for you on the shelf" : {
+
+    },
+    "Thunderstorm" : {
+
+    },
+    "Time & date in the closed island when idle" : {
+
+    },
+    "Time in island header" : {
+
+    },
+    "Time-synced lyrics from LRCLIB, fetched when a new track starts while lyrics are on screen, and cached on this Mac." : {
+
+    },
+    "Timer" : {
+
+    },
+    "Tint controls with album artwork colour" : {
+
+    },
+    "Toggle island" : {
+
+    },
+    "Tools" : {
+
+    },
+    "Tools tab (colour picker, Keep Awake)" : {
+
+    },
+    "Turn Off" : {
+
+    },
+    "Turn it on in Settings → Modules" : {
+
+    },
+    "Until %@" : {
+
+    },
+    "Until you turn it off" : {
+
+    },
+    "Up to three, shown under the clock on Home." : {
+
+    },
+    "Updates are disabled in this development build." : {
+
+    },
+    "VPN" : {
+
+    },
+    "Version %@" : {
+
+    },
+    "Weather" : {
+
+    },
+    "Welcome" : {
+
+    },
+    "Welcome to Blinko" : {
+
+    },
+    "Wi-Fi" : {
+
+    },
+    "Wi-Fi, VPN & Personal Hotspot" : {
+
+    },
+    "World clocks" : {
+
+    },
+    "Your notch, alive. Hover it, swipe down on it, or press ⌃⌥Space." : {
+
+    },
+    "gearshape.fill" : {
+
+    },
+    "info.circle.fill" : {
+
+    },
+    "optimageeks.com" : {
+
+    },
+    "paintbrush.fill" : {
+
+    },
+    "rectangle.3.group.fill" : {
+
+    },
+    "sparkles" : {
+
+    },
+    "square.grid.2x2.fill" : {
+
+    },
+    "waveform" : {
+
+    },
+    "“Designed by OptimaGeeks” credit" : {
+
+    }
+  },
+  "version" : "1.0"
+}

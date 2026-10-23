@@ -11,10 +11,10 @@ enum TimerMode: Equatable {
 
     var title: String {
         switch self {
-        case .countdown: "Timer"
-        case .focus: "Focus"
-        case .shortBreak: "Short Break"
-        case .longBreak: "Long Break"
+        case .countdown: String(localized: "Timer")
+        case .focus: String(localized: "Focus")
+        case .shortBreak: String(localized: "Short Break")
+        case .longBreak: String(localized: "Long Break")
         }
     }
 }

@@ -193,7 +193,7 @@ private final class ShelfDragSource: NSObject, NSDraggingSource {
 
 private struct DropActionTile: View {
     let symbol: String
-    let title: String
+    let title: LocalizedStringKey
     let tint: Color
     @Binding var targeted: Bool
     let drop: ([URL]) -> Void
@@ -250,7 +250,7 @@ private struct ClipCard: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 4) {
                 Image(systemName: icon).font(.system(size: 9, weight: .bold))
-                Text(item.sourceApp ?? "Copied")
+                (item.sourceApp.map { Text(verbatim: $0) } ?? Text("Copied"))
                     .lineLimit(1)
                 Spacer(minLength: 0)
                 Text(item.date, format: .relative(presentation: .numeric, unitsStyle: .narrow))
@@ -333,7 +333,7 @@ struct StatsView: View {
 }
 
 private struct StatCard: View {
-    let title: String
+    let title: LocalizedStringKey
     let value: String
     let detail: String
     let history: [Double]
@@ -342,7 +342,7 @@ private struct StatCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title.uppercased())
+            Text(title).textCase(.uppercase)
                 .font(.system(size: 9.5, weight: .bold))
                 .tracking(0.6)
                 .foregroundStyle(tint)
@@ -426,7 +426,7 @@ struct TimerView: View {
                 HStack(spacing: 2) {
                     ForEach(Page.allCases, id: \.self) { p in
                         Button { withAnimation(Motion.micro) { page = p } } label: {
-                            Text(p.rawValue)
+                            Text(LocalizedStringKey(p.rawValue))
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundStyle(page == p ? Color.black : .secondaryText)
                                 .padding(.horizontal, 12)
@@ -583,10 +583,10 @@ private struct CountdownRow: View {
             .multilineTextAlignment(.trailing)
             .frame(minWidth: 44, alignment: .trailing)
             IslandIconButton(symbol: timer.isPaused ? "play.fill" : "pause.fill", size: 9, plate: 22,
-                             help: timer.isPaused ? String(localized: "Resume") : String(localized: "Pause")) {
+                             help: timer.isPaused ? "Resume" : "Pause") {
                 timer.isPaused ? service.resume(timer.id) : service.pause(timer.id)
             }
-            IslandIconButton(symbol: "xmark", size: 9, plate: 22, tint: .secondaryText, help: String(localized: "Cancel")) {
+            IslandIconButton(symbol: "xmark", size: 9, plate: 22, tint: .secondaryText, help: "Cancel") {
                 withAnimation(Motion.micro) { service.cancel(timer.id) }
             }
         }
@@ -670,8 +670,8 @@ struct PresetChip: View {
 
 struct EmptyState: View {
     let symbol: String
-    let title: String
-    let subtitle: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
 
     var body: some View {
         VStack(spacing: 6) {

@@ -6,25 +6,25 @@ enum SettingsPane: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .welcome: "Welcome"
-        case .general: "General"
-        case .activities: "Live Activities"
-        case .modules: "Modules"
-        case .layout: "Layout"
-        case .appearance: "Appearance"
-        case .about: "About"
+        case .welcome: String(localized: "Welcome")
+        case .general: String(localized: "General")
+        case .activities: String(localized: "Live Activities")
+        case .modules: String(localized: "Modules")
+        case .layout: String(localized: "Layout")
+        case .appearance: String(localized: "Appearance")
+        case .about: String(localized: "About")
         }
     }
 
     var symbol: String {
         switch self {
-        case .welcome: "sparkles"
-        case .general: "gearshape.fill"
-        case .activities: "waveform"
-        case .modules: "square.grid.2x2.fill"
-        case .layout: "rectangle.3.group.fill"
-        case .appearance: "paintbrush.fill"
-        case .about: "info.circle.fill"
+        case .welcome: String(localized: "sparkles")
+        case .general: String(localized: "gearshape.fill")
+        case .activities: String(localized: "waveform")
+        case .modules: String(localized: "square.grid.2x2.fill")
+        case .layout: String(localized: "rectangle.3.group.fill")
+        case .appearance: String(localized: "paintbrush.fill")
+        case .about: String(localized: "info.circle.fill")
         }
     }
 
@@ -153,8 +153,8 @@ private struct WelcomePane: View {
 
 private struct PermissionRow: View {
     let symbol: String
-    let title: String
-    let detail: String
+    let title: LocalizedStringKey
+    let detail: LocalizedStringKey
     let granted: Bool
     let action: () -> Void
 
