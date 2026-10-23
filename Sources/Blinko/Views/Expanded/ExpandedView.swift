@@ -4,6 +4,14 @@ struct ExpandedView: View {
     let vm: NotchViewModel
 
     var body: some View {
+        if vm.isCommandBarActive {
+            CommandBarView(vm: vm)
+        } else {
+            tabs
+        }
+    }
+
+    private var tabs: some View {
         VStack(spacing: 0) {
             ExpandedHeader(vm: vm)
                 .frame(height: max(vm.geometry.notchSize.height, 30))

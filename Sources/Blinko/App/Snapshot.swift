@@ -21,10 +21,10 @@ enum Snapshot {
                                                duration: 243, elapsed: 97, playing: true,
                                                artwork: sampleArtwork())
 
-        func shot(_ name: String, setup: (NotchViewModel) -> Void) {
+        func shot(_ name: String, height: CGFloat = 280, setup: (NotchViewModel) -> Void) {
             let vm = NotchViewModel(geometry: geometry)
             setup(vm)
-            let canvas = CGSize(width: 760, height: 280)
+            let canvas = CGSize(width: 760, height: height)
             let view = ZStack(alignment: .top) {
                 LinearGradient(colors: [Color(red: 0.36, green: 0.42, blue: 0.62), Color(red: 0.75, green: 0.55, blue: 0.6)],
                                startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -129,6 +129,51 @@ enum Snapshot {
         prefs.weatherEnabled = true
         shot("22-header-full") { vm in vm.open(tab: .stats) }
         prefs.weatherEnabled = saved.0
+        renderV04(shot: shot)
+    }
+
+    /// v0.4: Meeting mode and the command bar.
+    private static func renderV04(shot: (String, CGFloat, (NotchViewModel) -> Void) -> Void) {
+        let prefs = Preferences.shared
+        let meetingMode = prefs.meetingMode
+        prefs.meetingMode = true
+        NowPlayingService.shared.injectPreview(title: "", artist: "", duration: 0, elapsed: 0, playing: false, artwork: nil)
+        PrivacyService.shared.injectPreview(camera: false, mic: true)
+        let meeting = MeetingService.shared
+        meeting.injectPreview(app: "facetime", started: Date().addingTimeInterval(-754))
+        shot("30-meeting-compact", 280) { _ in }
+        PrivacyService.shared.injectPreview(camera: true, mic: true)
+        meeting.injectPreview(app: "facetime", started: Date().addingTimeInterval(-3_725), micMuted: true)
+        shot("30b-meeting-compact-camera-muted", 280) { _ in }
+        meeting.injectPreview(app: "facetime", started: Date().addingTimeInterval(-754))
+        shot("31-meeting-card", 280) { vm in vm.open(tab: .home) }
+        meeting.injectPreview(app: "teams", started: Date().addingTimeInterval(-1_312), micMuted: false, appMuted: true)
+        shot("31b-meeting-card-app-muted", 280) { vm in vm.open(tab: .home) }
+        ActivityCenter.shared.show(.mutedWarning)
+        shot("32-muted-warning", 280) { _ in }
+        ActivityCenter.shared.dismiss()
+        meeting.injectPreview(app: nil)
+        PrivacyService.shared.injectPreview(camera: false, mic: false)
+        prefs.meetingMode = meetingMode
+
+        // Command bar: one shot per kind of result.
+        AppIndex.shared.injectPreview()
+        ShortcutsIndex.shared.injectPreview(["Start Work Day", "Shorten URL", "Make GIF", "Send Location to Sam"])
+        CurrencyRates.shared.injectPreview(["USD": 1, "EUR": 0.92, "GBP": 0.79, "JPY": 151.2])
+        ClipboardService.shared.injectPreview([("https://github.com/techInnovator1999/Blinko/pull/42", "Safari"),
+                                               ("Blinko v0.4 release notes draft", "Notes"),
+                                               ("git rebase -i origin/main", "Terminal")])
+        let model = CommandBarModel.shared
+        let queries: [(String, String)] = [
+            ("40-command-empty", ""), ("41-command-calc", "(12 + 4) * 3^2 / 5"), ("41b-command-calc-error", "1/0"),
+            ("42-command-units", "10 km to mi"), ("43-command-currency", "100 usd to eur"),
+            ("44-command-apps", "sa"), ("45-command-timer", "t 25m"), ("46-command-shortcuts", "short"),
+            ("47-command-clipboard", "blinko"), ("48-command-web", "how to bake sourdough"),
+        ]
+        for (name, query) in queries {
+            model.injectPreview(query: query)
+            shot(name, 340) { vm in vm.toggleCommandBar() }
+        }
     }
 
     private static func sampleArtwork() -> NSImage {

@@ -40,6 +40,18 @@ final class NotchManager {
         startHoverTracking()
     }
 
+    /// Command bar on the display under the pointer (where the user is looking).
+    func toggleCommandBar() {
+        let mouse = NSEvent.mouseLocation
+        let target = controllers.values.first { $0.screen.frame.contains(mouse) } ?? controllers.values.first
+        guard let target, !target.isHiddenForFullscreen else { return }
+        for other in controllers.values where other !== target && other.viewModel.isCommandBarActive {
+            other.viewModel.close()
+        }
+        target.viewModel.toggleCommandBar()
+        startHoverTracking()
+    }
+
     func open(tab: NotchTab) {
         let mouse = NSEvent.mouseLocation
         let target = controllers.values.first { $0.screen.frame.contains(mouse) } ?? controllers.values.first

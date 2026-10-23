@@ -105,5 +105,10 @@ final class ClipboardService {
     }
 
     func remove(_ item: ClipItem) { items.removeAll { $0.id == item.id } }
+
+    /// Design-time state for snapshot rendering.
+    func injectPreview(_ texts: [(String, String)]) {
+        items = texts.map { ClipItem(content: .text($0.0), date: .now, sourceApp: $0.1) }
+    }
     func clear() { items.removeAll() }
 }

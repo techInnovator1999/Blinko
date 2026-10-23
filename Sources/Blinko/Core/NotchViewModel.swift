@@ -42,6 +42,7 @@ enum CompactContent: Equatable {
     case timer
     case privacy
     case clock
+    case meeting
 
     var key: String {
         switch self {
@@ -52,6 +53,7 @@ enum CompactContent: Equatable {
         case .timer: "timer"
         case .privacy: "privacy"
         case .clock: "clock"
+        case .meeting: "meeting"
         }
     }
 }
@@ -73,7 +75,9 @@ final class NotchViewModel {
     private(set) var isEditingText = false
     /// The colour sampler is up: the pointer leaves the island on purpose.
     var isSampling = false
-    var holdsOpen: Bool { isPinned || isEditingText || isSampling }
+    /// The command bar (⌥Space) replaces the tabs while it is up.
+    private(set) var isCommandBarActive = false
+    var holdsOpen: Bool { isPinned || isEditingText || isSampling || isCommandBarActive }
 
     /// Wired by the window controller: make the panel key / hand keyboard focus back.
     @ObservationIgnored var requestKey: (() -> Void)?
@@ -93,6 +97,7 @@ final class NotchViewModel {
 
     var compact: CompactContent {
         if let activity = ActivityCenter.shared.current { return .activity(activity) }
+        if prefs.meetingMode, MeetingService.shared.isInCall { return .meeting }
         if DownloadsService.shared.active != nil { return .download }
         if TimerService.shared.hasRunning { return .timer }
         if prefs.musicActivity, NowPlayingService.shared.isPlaying { return .music }
@@ -105,7 +110,8 @@ final class NotchViewModel {
     var showsPrivacyEdge: Bool {
         let content = compact
         if case .activity(.privacy) = content { return false } // already shows them
-        return content != .idle && content != .privacy
+        if case .activity(.mutedWarning) = content { return false } // needs the room
+        return content != .idle && content != .privacy && content != .meeting
             && prefs.privacyIndicators && PrivacyService.shared.anyInUse
     }
 
@@ -129,6 +135,7 @@ final class NotchViewModel {
         case .timer: return TimerService.shared.othersRunning > 0 ? 86 : 66
         case .privacy: return 40
         case .clock: return 76
+        case .meeting: return PrivacyService.shared.cameraInUse ? 102 : 86
         case .activity(let a):
             switch a {
             case .volume, .brightness, .keyboardBacklight, .microphone: return 108
@@ -143,6 +150,7 @@ final class NotchViewModel {
             case .privacy: return 108
             case .network: return 124
             case .downloadFinished: return 128
+            case .mutedWarning: return 128
             }
         }
     }
@@ -156,7 +164,7 @@ final class NotchViewModel {
     private var baseShapeSize: CGSize {
         if isOpen {
             return CGSize(width: max(prefs.openWidth, geometry.notchSize.width + 360),
-                          height: Metrics.openSize.height)
+                          height: isCommandBarActive ? Metrics.commandBarHeight : Metrics.openSize.height)
         }
         return CGSize(width: closedNotchWidth + wingWidth * 2, height: geometry.notchSize.height)
     }
@@ -228,6 +236,7 @@ final class NotchViewModel {
         guard phase != .closed else { return }
         phase = .closed
         log.info("close")
+        isCommandBarActive = false
         isPinned = false
         isSampling = false
         if isEditingText { relinquishKey?() }
@@ -237,6 +246,22 @@ final class NotchViewModel {
     }
 
     func toggle() { isOpen ? close() : open() }
+
+    /// Opens the island as a command bar and makes the panel key so typing goes to it.
+    /// Pressing the shortcut again while it is up closes it.
+    func toggleCommandBar() {
+        if isOpen, isCommandBarActive { close(); return }
+        isCommandBarActive = true
+        open()
+        requestKey?()
+    }
+
+    /// Leaves the command bar for a regular tab (Blinko actions such as "open shelf").
+    func showTab(fromCommandBar tab: NotchTab) {
+        // The panel stays key (so the island stays open) until the user clicks elsewhere.
+        isCommandBarActive = false
+        self.tab = tab
+    }
 
     /// Pointer is inside but moving fast (passing through on the way to the menu bar):
     /// postpone opening until it settles, so sweeping across the notch never pops it open.
@@ -278,6 +303,8 @@ final class NotchViewModel {
         isEditingText = isKey
         if !isKey, phase == .open, !isHovering, prefs.closeOnMouseExit, !isPinned, !isSampling {
             close()
+        } else if !isKey, isCommandBarActive {
+            close() // clicked outside the command bar
         }
     }
 

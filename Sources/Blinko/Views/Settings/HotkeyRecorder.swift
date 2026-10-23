@@ -54,19 +54,39 @@ enum HotkeyFormat {
     ]
 }
 
+/// Which stored shortcut a recorder edits (Carbon key code, modifier mask, display name).
+@MainActor
+struct HotkeyBinding {
+    let keyCode: ReferenceWritableKeyPath<Preferences, Int>
+    let modifiers: ReferenceWritableKeyPath<Preferences, Int>
+    let keyName: ReferenceWritableKeyPath<Preferences, String>
+
+    static let toggle = HotkeyBinding(keyCode: \.hotkeyKeyCode, modifiers: \.hotkeyModifiers, keyName: \.hotkeyKeyName)
+    static let commandBar = HotkeyBinding(keyCode: \.commandHotkeyKeyCode, modifiers: \.commandHotkeyModifiers,
+                                          keyName: \.commandHotkeyKeyName)
+    static let all = [toggle, commandBar]
+}
+
 /// Click, then press a key combination (must include ⌘, ⌃ or ⌥). Esc cancels.
+/// A combination already used by Blinko's other shortcut is refused.
 struct HotkeyRecorder: View {
     @State private var monitor: Any?
     @State private var invalid = false
+    @State private var editing = false
     private var recorder = HotkeyRecorderState.shared
+    private let binding: HotkeyBinding
+
+    init(_ binding: HotkeyBinding? = nil) {
+        self.binding = binding ?? .toggle
+    }
 
     var body: some View {
         let prefs = Preferences.shared
-        let recording = recorder.recording
+        let recording = recorder.recording && editing
         Button {
             recording ? stop() : start()
         } label: {
-            Text(recording ? "Type shortcut…" : HotkeyFormat.symbols(for: prefs.hotkeyModifiers) + prefs.hotkeyKeyName)
+            Text(recording ? "Type shortcut…" : HotkeyFormat.symbols(for: prefs[keyPath: binding.modifiers]) + prefs[keyPath: binding.keyName])
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .foregroundStyle(recording ? Color.accentColor : .primary)
                 .frame(minWidth: 110)
@@ -81,6 +101,7 @@ struct HotkeyRecorder: View {
 
     private func start() {
         recorder.recording = true
+        editing = true
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             if event.keyCode == UInt16(kVK_Escape) { stop(); return nil }
             let mods = HotkeyFormat.carbonModifiers(from: event.modifierFlags)
@@ -90,9 +111,18 @@ struct HotkeyRecorder: View {
                 return nil
             }
             let prefs = Preferences.shared
-            prefs.hotkeyKeyCode = Int(event.keyCode)
-            prefs.hotkeyModifiers = mods
-            prefs.hotkeyKeyName = HotkeyFormat.keyName(for: event)
+            let taken = HotkeyBinding.all.contains { other in
+                other.keyCode != binding.keyCode
+                    && prefs[keyPath: other.keyCode] == Int(event.keyCode) && prefs[keyPath: other.modifiers] == mods
+            }
+            guard !taken else {
+                invalid = true
+                NSSound.beep()
+                return nil
+            }
+            prefs[keyPath: binding.keyCode] = Int(event.keyCode)
+            prefs[keyPath: binding.modifiers] = mods
+            prefs[keyPath: binding.keyName] = HotkeyFormat.keyName(for: event)
             invalid = false
             stop()
             return nil
@@ -102,6 +132,7 @@ struct HotkeyRecorder: View {
     private func stop() {
         if let monitor { NSEvent.removeMonitor(monitor) }
         monitor = nil
-        recorder.recording = false
+        if editing { recorder.recording = false }
+        editing = false
     }
 }
