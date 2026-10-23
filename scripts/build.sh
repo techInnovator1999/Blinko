@@ -31,6 +31,7 @@ mkdir -p "$APP/Contents/Frameworks"
 ditto "$SPARKLE_FW" "$APP/Contents/Frameworks/Sparkle.framework"
 [ -f Resources/AppIcon.icns ] && cp Resources/AppIcon.icns "$APP/Contents/Resources/"
 cp Resources/optimageeks-mark.png "$APP/Contents/Resources/"
+cp -R Resources/Sounds "$APP/Contents/Resources/"   # notification sounds
 # Shortcuts actions (App Intents metadata, best-effort; see the script).
 scripts/appintents-metadata.sh "$CONFIG" "$APP/Contents/Resources"
 

@@ -246,6 +246,7 @@ final class AgentHubService {
                 ActivityCenter.shared.show(.custom(CustomAlert(
                     title: session.project, body: String(localized: "Finished"), symbol: "checkmark.circle.fill",
                     color: "green", duration: 3)))
+                SoundService.shared.play(.agentFinished)
             }
         case AgentMessage.Kind.tool:
             setState(&session, .working, at: now)
@@ -258,6 +259,7 @@ final class AgentHubService {
                 if prefs.agentNotifications {
                     ActivityCenter.shared.show(.custom(CustomAlert(
                         title: session.project, body: text.agentClipped(60), symbol: "bell.fill", color: "orange", duration: 4)))
+                    SoundService.shared.play(.agentNotification)
                 }
             }
         case AgentMessage.Kind.usage:
@@ -276,6 +278,7 @@ final class AgentHubService {
             approvals.removeAll { $0.id == requestID }
             approvals.append(approval)
             armExpiry(approval)
+            SoundService.shared.play(.agentApproval)
             setState(&session, .waiting, at: now)
             session.detail = [m.tool, m.summary].compactMap { $0 }.joined(separator: " · ").agentClipped(120)
             upsert(session)

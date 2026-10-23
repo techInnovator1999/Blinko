@@ -174,6 +174,13 @@ enum SelfTest {
         expect(SettingsSearch.entries.count > 60, "settings index populated (\(SettingsSearch.entries.count))")
 
         spectrumChecks()
+        // Sounds: defaults, per-event overrides, search reaches the Sounds pane.
+        expect(SoundEvent.agentApproval.enabledByDefault && SoundEvent.timerEnd.enabledByDefault, "sound defaults on")
+        expect(!SoundEvent.shelfAdded.enabledByDefault, "noisy events off by default")
+        expect(SoundEvent.allCases.allSatisfy { $0.defaultSound != .none }, "every event has a default sound")
+        expect(SettingsSearch.search("sound").contains { $0.pane == .sounds }, "search sound → Sounds pane")
+        expect(SettingsSearch.search("permission").contains { $0.pane == .sounds || $0.pane == .agents }, "search permission")
+
         return failed
     }
 

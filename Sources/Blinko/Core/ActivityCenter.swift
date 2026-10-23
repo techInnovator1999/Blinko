@@ -126,6 +126,7 @@ final class ActivityCenter {
     @ObservationIgnored private var dismissWork: DispatchWorkItem?
 
     func show(_ activity: TransientActivity) {
+        if current?.kind != activity.kind, let event = activity.soundEvent { SoundService.shared.play(event) }
         if current != activity { current = activity }
         dismissWork?.cancel()
         let work = DispatchWorkItem { [weak self] in self?.current = nil }
@@ -136,5 +137,21 @@ final class ActivityCenter {
     func dismiss() {
         dismissWork?.cancel()
         current = nil
+    }
+}
+
+extension TransientActivity {
+    /// Sound for activities raised by system events. Timers, Focus and agents play their
+    /// sounds where they happen (they know more, e.g. start vs. end).
+    var soundEvent: SoundEvent? {
+        switch self {
+        case .mutedWarning: .meetingMuted
+        case .lowBattery: .lowBattery
+        case .power(_, _, let pluggedIn): pluggedIn ? .chargerConnected : nil
+        case .bluetooth(_, _, let connected, _): connected ? .deviceConnected : nil
+        case .downloadFinished: .downloadFinished
+        case .shelf: .shelfAdded
+        default: nil
+        }
     }
 }

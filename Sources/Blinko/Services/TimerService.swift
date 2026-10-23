@@ -107,6 +107,7 @@ final class TimerService {
         let timer = CountdownTimer(label: label, total: seconds)
         timers.append(timer)
         run(timer.id, for: seconds)
+        SoundService.shared.play(.timerStart)
     }
 
     func pause(_ id: UUID) {
@@ -155,7 +156,7 @@ final class TimerService {
     private func finishCountdown(_ id: UUID) {
         guard let timer = timers.first(where: { $0.id == id }) else { return }
         cancel(id)
-        NSSound(named: "Glass")?.play()
+        SoundService.shared.play(.timerEnd)
         ActivityCenter.shared.show(.timerFinished(label: timer.label))
     }
 
@@ -164,6 +165,7 @@ final class TimerService {
     func startFocus() {
         mode = .focus
         begin(minutes(for: .focus), label: TimerMode.focus.title)
+        SoundService.shared.play(.timerStart)
     }
 
     /// Ends the current pomodoro session early and moves to the next one.
@@ -252,7 +254,7 @@ final class TimerService {
 
     private func finishSession() {
         guard mode.isPomodoro else { return }
-        NSSound(named: mode == .focus ? "Glass" : "Hero")?.play()
+        SoundService.shared.play(.focusSession)
         advancePomodoro(announce: true)
     }
 }

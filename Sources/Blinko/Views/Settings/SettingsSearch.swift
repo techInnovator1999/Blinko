@@ -54,9 +54,15 @@ enum SettingsSearch {
         ("timer", "countdown stopwatch alarm"),
         ("lock screen", "locked login"),
         ("language", "translation localization urdu spanish"),
+        ("sound", "audio chime tone alert notification beep ding"),
+        ("timer", "countdown alarm"),
+        ("permission", "approve approval claude agent"),
     ]
 
-    static var entries: [Entry] { generatedEntries }
+    /// Generated entries plus the per-event sound switches (built at runtime, so not in the scan).
+    static var entries: [Entry] {
+        generatedEntries + SoundEvent.allCases.map { Entry(title: $0.title, pane: .sounds, section: $0.group) }
+    }
 
     /// All query words must match the title, section, pane or a synonym; title hits rank first.
     static func search(_ query: String) -> [Entry] {

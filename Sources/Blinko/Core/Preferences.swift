@@ -153,8 +153,26 @@ final class Preferences {
     /// Thin spectrum along the bottom of the player's artwork (Real mode only).
     var expandedSpectrum: Bool { didSet { store.set(expandedSpectrum, forKey: "expandedSpectrum") } }
 
+    // Sounds
+    var soundsEnabled: Bool { didSet { store.set(soundsEnabled, forKey: "soundsEnabled") } }
+    var soundVolume: Double { didSet { store.set(soundVolume, forKey: "soundVolume") } }
+    var silenceSoundsInFocus: Bool { didSet { store.set(silenceSoundsInFocus, forKey: "silenceSoundsInFocus") } }
+    /// Per-event overrides: event → on/off and event → sound. Unset events use their defaults.
+    var soundSwitches: [String: Bool] { didSet { store.set(soundSwitches, forKey: "soundSwitches") } }
+    var soundChoices: [String: String] { didSet { store.set(soundChoices, forKey: "soundChoices") } }
+
+    func isSoundOn(_ e: SoundEvent) -> Bool { soundSwitches[e.rawValue] ?? e.enabledByDefault }
+    func setSound(_ e: SoundEvent, on: Bool) { soundSwitches[e.rawValue] = on }
+    func sound(for e: SoundEvent) -> NotificationSound {
+        soundChoices[e.rawValue].flatMap(NotificationSound.init(rawValue:)) ?? e.defaultSound
+    }
+    func setSound(_ e: SoundEvent, to s: NotificationSound) { soundChoices[e.rawValue] = s.rawValue }
+
     private init() {
         store.register(defaults: [
+            "soundsEnabled": true,
+            "soundVolume": 0.8,
+            "silenceSoundsInFocus": true,
             "displayMode": DisplayMode.notchedOnly.rawValue,
             "showMenuBarIcon": true,
             "hideInFullscreen": true,
@@ -232,6 +250,11 @@ final class Preferences {
             "homeLayoutID": HomeLayout.defaultID,
             "expandedSpectrum": true,
         ])
+        soundsEnabled = store.bool(forKey: "soundsEnabled")
+        soundVolume = store.double(forKey: "soundVolume")
+        silenceSoundsInFocus = store.bool(forKey: "silenceSoundsInFocus")
+        soundSwitches = store.dictionary(forKey: "soundSwitches") as? [String: Bool] ?? [:]
+        soundChoices = store.dictionary(forKey: "soundChoices") as? [String: String] ?? [:]
         hasCompletedOnboarding = store.bool(forKey: "hasCompletedOnboarding")
         displayMode = DisplayMode(rawValue: store.string(forKey: "displayMode") ?? "") ?? .notchedOnly
         showMenuBarIcon = store.bool(forKey: "showMenuBarIcon")

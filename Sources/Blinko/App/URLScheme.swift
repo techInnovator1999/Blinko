@@ -113,6 +113,7 @@ enum URLSchemeHandler {
                                     color: value("color") ?? "white",
                                     duration: min(max(number("duration") ?? 4, 1), 30))
             ActivityCenter.shared.show(.custom(alert))
+            SoundService.shared.play(.customAlert)
         case "timer":
             let seconds = number("seconds") ?? (number("minutes") ?? 5) * 60
             guard seconds >= 1, seconds <= 24 * 3600 else { return false }
