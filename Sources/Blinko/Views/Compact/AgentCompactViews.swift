@@ -15,11 +15,16 @@ struct AgentCompactLeading: View {
         let waiting = !hub.approvals.isEmpty
         HStack(spacing: 6) {
             if waiting {
-                Image(systemName: "hand.raised.fill")
-                    .font(.system(size: 11.5, weight: .semibold))
-                    .foregroundStyle(Color.agentAccent)
-                    .symbolEffect(.pulse, options: .repeating, isActive: true)
-                    .frame(width: 14)
+                // Render-server pulse: a repeating SwiftUI symbolEffect re-renders every frame (~15% CPU).
+                if AgentSpinner.renderStatic {
+                    Image(systemName: "hand.raised.fill")
+                        .font(.system(size: 11.5, weight: .semibold))
+                        .foregroundStyle(Color.agentAccent)
+                        .frame(width: 14, height: 14)
+                } else {
+                    PulsingSymbol(name: "hand.raised.fill", pointSize: 11.5, color: NSColor(Color.agentAccent))
+                        .frame(width: 14, height: 14)
+                }
             } else {
                 AgentSpinner(tint: .agentAccent).frame(width: 13, height: 13)
             }
@@ -82,6 +87,53 @@ private struct AgentSpinnerArc: NSViewRepresentable {
     let lineWidth: CGFloat
     func makeNSView(context: Context) -> SpinnerArcView { SpinnerArcView(color: color, lineWidth: lineWidth) }
     func updateNSView(_ view: SpinnerArcView, context: Context) {}
+}
+
+/// SF Symbol whose opacity "breathes" via a Core Animation layer animation: zero app work per frame.
+struct PulsingSymbol: NSViewRepresentable {
+    let name: String
+    let pointSize: CGFloat
+    let color: NSColor
+
+    func makeNSView(context: Context) -> PulsingSymbolView { PulsingSymbolView(name: name, pointSize: pointSize, color: color) }
+    func updateNSView(_ view: PulsingSymbolView, context: Context) {}
+}
+
+final class PulsingSymbolView: NSView {
+    private let imageLayer = CALayer()
+
+    init(name: String, pointSize: CGFloat, color: NSColor) {
+        super.init(frame: .zero)
+        wantsLayer = true
+        let config = NSImage.SymbolConfiguration(pointSize: pointSize, weight: .semibold)
+            .applying(.init(paletteColors: [color]))
+        let image = NSImage(systemSymbolName: name, accessibilityDescription: nil)?.withSymbolConfiguration(config)
+        imageLayer.contents = image
+        imageLayer.contentsGravity = .resizeAspect
+        imageLayer.contentsScale = NSScreen.main?.backingScaleFactor ?? 2
+        layer?.addSublayer(imageLayer)
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func layout() {
+        super.layout()
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        imageLayer.frame = bounds
+        CATransaction.commit()
+        if imageLayer.animation(forKey: "pulse") == nil {
+            let pulse = CABasicAnimation(keyPath: "opacity")
+            pulse.fromValue = 1
+            pulse.toValue = 0.35
+            pulse.duration = 0.8
+            pulse.autoreverses = true
+            pulse.repeatCount = .infinity
+            pulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            pulse.isRemovedOnCompletion = false
+            imageLayer.add(pulse, forKey: "pulse")
+        }
+    }
 }
 
 // MARK: - Custom alerts (blinko://alert, `blinko alert`)

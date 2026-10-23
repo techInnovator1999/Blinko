@@ -57,7 +57,7 @@ public enum ClaudeHooks {
     /// Blinko entries replaced) → atomic write.
     public static func install(settingsURL: URL = defaultSettingsURL, helperPath: String) throws {
         var root = try readSettings(settingsURL)
-        try backUp(settingsURL)
+        try backUp(settingsURL, current: root)
         var hooks = removingBlinko(from: root["hooks"] as? [String: Any] ?? [:])
         let cmd = command(helperPath: helperPath)
         for event in events {
@@ -76,7 +76,7 @@ public enum ClaudeHooks {
         guard FileManager.default.fileExists(atPath: settingsURL.path) else { return }
         var root = try readSettings(settingsURL)
         guard let hooks = root["hooks"] as? [String: Any] else { return }
-        try backUp(settingsURL)
+        try backUp(settingsURL, current: root)
         let cleaned = removingBlinko(from: hooks)
         if cleaned.isEmpty { root.removeValue(forKey: "hooks") } else { root["hooks"] = cleaned }
         try write(root, to: settingsURL)
@@ -93,11 +93,18 @@ public enum ClaudeHooks {
         return dict
     }
 
-    private static func backUp(_ url: URL) throws {
+    /// The backup keeps the last state *without* Blinko's hooks: it is refreshed only when the
+    /// current file has none (or there is no backup yet), so reinstalling never overwrites it
+    /// with a copy that already contains them.
+    private static func backUp(_ url: URL, current root: [String: Any]) throws {
         let fm = FileManager.default
         guard fm.fileExists(atPath: url.path) else { return }
         let backup = url.appendingPathExtension("blinko-backup")
-        if fm.fileExists(atPath: backup.path) { try fm.removeItem(at: backup) }
+        let hasBlinko = (root["hooks"] as? [String: Any])?.values.contains { ($0 as? [Any])?.contains(where: isBlinkoGroup) ?? false } ?? false
+        if fm.fileExists(atPath: backup.path) {
+            guard !hasBlinko else { return }
+            try fm.removeItem(at: backup)
+        }
         try fm.copyItem(at: url, to: backup)
     }
 
