@@ -50,7 +50,7 @@ final class SettingsWindowController {
     func show(pane: SettingsPane? = nil) {
         if let pane { selection.pane = pane }
         if window == nil {
-            let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 720, height: 500),
+            let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 740, height: 580),
                              styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
                              backing: .buffered, defer: false)
             w.titlebarAppearsTransparent = true
@@ -603,30 +603,6 @@ private struct LayoutPane: View {
                 Text("Tabs")
             } footer: {
                 Text("Drag to reorder. At least one tab stays visible.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-        }
-        .formStyle(.grouped)
-    }
-}
-
-private struct AppearancePane: View {
-    var body: some View {
-        @Bindable var p = Preferences.shared
-        Form {
-            Section {
-                Toggle("Tint controls with album artwork colour", isOn: $p.artworkTint)
-                Toggle("Music visualizer", isOn: $p.showVisualizer)
-                Toggle("Shadow under the open island", isOn: $p.openShadow)
-                Toggle("Battery in island header", isOn: $p.showBatteryInHeader)
-                Toggle("“Designed by OptimaGeeks” credit", isOn: $p.showCredit)
-            }
-            Section {
-                Toggle("Reduce motion", isOn: $p.reduceMotion)
-            } header: {
-                Text("Motion")
-            } footer: {
-                Text("Springs become short fades and the island opens without blur or scaling. Blinko also follows System Settings → Accessibility → Display → Reduce motion.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
