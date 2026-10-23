@@ -21,7 +21,6 @@ struct ExpandedView: View {
 
 /// "Designed by OptimaGeeks" — quiet credit line along the bottom edge.
 private struct CreditFooter: View {
-    @State private var hovering = false
     private static let mark: NSImage? = Bundle.main.url(forResource: "optimageeks-mark", withExtension: "png")
         .flatMap(NSImage.init(contentsOf:))
 
@@ -31,24 +30,21 @@ private struct CreditFooter: View {
         } label: {
             HStack(spacing: 4) {
                 Text("Designed by")
-                    .foregroundStyle(Color.white.opacity(hovering ? 0.5 : 0.28))
+                    .foregroundStyle(Color.white.opacity(0.5))
                 if let mark = Self.mark {
                     Image(nsImage: mark)
                         .resizable()
                         .interpolation(.high)
                         .frame(width: 11, height: 11)
-                        .opacity(hovering ? 1 : 0.75)
                 }
                 Text("OptimaGeeks")
-                    .foregroundStyle(Color.white.opacity(hovering ? 0.75 : 0.42))
+                    .foregroundStyle(Color.white.opacity(0.75))
             }
             .font(.system(size: 9, weight: .semibold))
             .tracking(0.2)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .onHover { hovering = $0 }
-        .animation(Motion.micro, value: hovering)
         .help("optimageeks.com")
     }
 }
