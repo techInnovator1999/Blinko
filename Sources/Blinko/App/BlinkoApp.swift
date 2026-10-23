@@ -7,6 +7,7 @@ enum BlinkoMain {
         let app = NSApplication.shared
         if Snapshot.runIfRequested() { return }
         if SelfTest.runIfRequested() { return }
+        if LockScreenRoundTrip.runIfRequested(app) { return }
         let delegate = AppDelegate()
         app.delegate = delegate
         app.setActivationPolicy(.accessory)
@@ -33,6 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         manager.start()
         notchManager = manager
         AppRouter.shared.attach(manager)
+        LockScreenController.shared.attach(manager) // experimental, off by default
 
         statusItem = StatusItemController(manager: manager)
 

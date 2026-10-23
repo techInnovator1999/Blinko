@@ -3,6 +3,7 @@ import SwiftUI
 enum SettingsPane: String, CaseIterable, Identifiable {
     case welcome, general, activities, modules, layout, appearance, meetings, commandBar
     case agents, automation
+    case lockScreen
     case about
     var id: String { rawValue }
 
@@ -19,6 +20,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .about: String(localized: "About")
         case .agents: String(localized: "Agents")
         case .automation: String(localized: "Automation")
+        case .lockScreen: String(localized: "Lock Screen")
         }
     }
 
@@ -35,6 +37,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .about: String(localized: "info.circle.fill")
         case .agents: "sparkles.rectangle.stack.fill"
         case .automation: "bolt.horizontal.fill"
+        case .lockScreen: "lock.fill"
         }
     }
 
@@ -51,6 +54,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .about: .teal
         case .agents: .agentAccent
         case .automation: .green
+        case .lockScreen: .blue
         }
     }
 }
@@ -117,6 +121,7 @@ struct SettingsView: View {
                 case .about: AboutPane()
                 case .agents: AgentsSettingsPane()
                 case .automation: AutomationSettingsPane()
+                case .lockScreen: LockScreenPane()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

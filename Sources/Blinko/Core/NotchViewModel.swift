@@ -83,6 +83,9 @@ final class NotchViewModel {
     /// The command bar (⌥Space) replaces the tabs while it is up.
     private(set) var isCommandBarActive = false
     var holdsOpen: Bool { isPinned || isEditingText || isSampling || isCommandBarActive }
+    /// The island is shown on the lock screen (LockScreenController): privacy-filtered
+    /// compact content, no hover-open, tap expands the music player only.
+    var lockScreenMode = false
 
     /// Wired by the window controller: make the panel key / hand keyboard focus back.
     @ObservationIgnored var requestKey: (() -> Void)?
@@ -105,6 +108,7 @@ final class NotchViewModel {
 
     var compact: CompactContent {
         if let compactOverride { return compactOverride }
+        if lockScreenMode { return lockScreenCompact }
         if let activity = ActivityCenter.shared.current { return .activity(activity) }
         if prefs.meetingMode, MeetingService.shared.isInCall { return .meeting }
         if prefs.agentCompact, AgentHubService.shared.hasActivity { return .agent }
@@ -174,6 +178,7 @@ final class NotchViewModel {
 
     /// Island size ignoring the hover "peek".
     private var baseShapeSize: CGSize {
+        if isOpen, lockScreenMode { return Metrics.lockScreenOpenSize(notchHeight: geometry.notchSize.height) }
         if isOpen {
             return CGSize(width: max(prefs.openWidth, geometry.notchSize.width + 360),
                           height: isCommandBarActive ? Metrics.commandBarHeight(rows: CommandBarModel.shared.results.count) : Theme.shared.openHeight)
@@ -230,6 +235,7 @@ final class NotchViewModel {
 
     func open(tab: NotchTab? = nil) {
         hoverWork?.cancel()
+        if lockScreenMode, !lockScreenCanExpand { return }
         if let tab {
             self.tab = tab
         } else if phase == .closed, case .activity(.downloadFinished) = compact, prefs.visibleTabs.contains(.shelf) {
@@ -286,6 +292,7 @@ final class NotchViewModel {
     }
 
     private func armHoverOpen() {
+        guard !lockScreenMode else { return }
         schedule(after: max(prefs.hoverDelay, 0.06)) { [weak self] in
             guard let self, self.isHovering else { return }
             self.open()
