@@ -60,11 +60,19 @@ struct AgentCompactTrailing: View {
 struct AgentSpinner: View {
     let tint: Color
     var lineWidth: CGFloat = 2
+    /// ImageRenderer can't draw AppKit views: snapshots get a still arc.
+    nonisolated(unsafe) static var renderStatic = false
 
     var body: some View {
         ZStack {
             Circle().stroke(tint.opacity(0.22), lineWidth: lineWidth)
-            AgentSpinnerArc(color: NSColor(tint), lineWidth: lineWidth)
+            if Self.renderStatic {
+                Circle().trim(from: 0, to: 0.3)
+                    .stroke(tint, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+            } else {
+                AgentSpinnerArc(color: NSColor(tint), lineWidth: lineWidth)
+            }
         }
     }
 }
@@ -142,6 +150,9 @@ struct CustomAlertTrailing: View {
                 .foregroundStyle(Color.secondaryText)
                 .lineLimit(1)
                 .truncationMode(.tail)
+        } else {
+            // Keeps the wing's frame: modifiers on an empty view collapse it, off-centring the island.
+            Color.clear.frame(width: 1, height: 1)
         }
     }
 }

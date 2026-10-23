@@ -129,6 +129,57 @@ enum Snapshot {
         prefs.weatherEnabled = true
         shot("22-header-full") { vm in vm.open(tab: .stats) }
         prefs.weatherEnabled = saved.0
+
+        // v0.4 Agent Hub: working, several sessions, approval, empty tab; custom alerts.
+        ActivityCenter.shared.dismiss()
+        TimerService.shared.cancel()
+        np.injectPreview(title: np.title, artist: np.artist, duration: np.duration, elapsed: 97, playing: false, artwork: np.artwork)
+        AgentSpinner.renderStatic = true
+        let hub = AgentHubService.shared
+        let now = Date()
+        let blinko = AgentSession(id: "claude-code:1", agent: "claude-code", cwd: "/Users/me/Projects/blinko", title: nil,
+                                  state: .working, detail: "Bash · swift build -c release", tool: "Bash",
+                                  startedAt: now - 900, updatedAt: now, stateSince: now - 260)
+        let site = AgentSession(id: "codex:2", agent: "codex", cwd: "/Users/me/Projects/website", title: nil,
+                                state: .working, detail: "Edit · src/pages/index.tsx", tool: "Edit",
+                                startedAt: now - 1800, updatedAt: now, stateSince: now - 75)
+        let api = AgentSession(id: "claude-code:3", agent: "claude-code", cwd: "/Users/me/Projects/api-server", title: nil,
+                               state: .idle, detail: "Finished · all 214 tests pass", tool: nil,
+                               startedAt: now - 5400, updatedAt: now - 600, stateSince: now - 600, cost: 0.84)
+        hub.injectPreview(sessions: [blinko], approvals: [])
+        shot("23-compact-agent-working") { _ in }
+        hub.injectPreview(sessions: [blinko, site, api], approvals: [])
+        shot("23b-compact-agents-multiple") { _ in }
+        shot("24-open-agents") { vm in vm.open(tab: .agents) }
+        var waiting = blinko
+        waiting.state = .waiting
+        let approval = AgentApproval(id: "r1", sessionID: blinko.id, connection: 0, agent: "claude-code", project: "blinko",
+                                     tool: "Bash", summary: "rm -rf .build && swift build -c release --arch arm64 --arch x86_64",
+                                     detail: "Clean rebuild of the universal binary", receivedAt: now, deadline: now + 72)
+        hub.injectPreview(sessions: [waiting, site, api], approvals: [approval])
+        shot("25-compact-agent-approval") { _ in }
+        shot("25b-open-approval") { vm in vm.open(tab: .agents) }
+        var second = approval
+        second = AgentApproval(id: "r2", sessionID: site.id, connection: 0, agent: "codex", project: "website", tool: "Edit",
+                               summary: "~/Projects/website/src/pages/index.tsx", detail: "−12 +31 lines",
+                               receivedAt: now, deadline: now + 80)
+        hub.injectPreview(sessions: [waiting, site, api], approvals: [approval, second])
+        shot("25c-open-approval-queue") { vm in vm.open(tab: .agents) }
+        hub.injectPreview(sessions: [], approvals: [])
+        shot("26-open-agents-empty") { vm in vm.open(tab: .agents) }
+        shot("27-custom-alert") { _ in
+            ActivityCenter.shared.show(.custom(CustomAlert(title: "Build passed", body: "blinko · 42 s",
+                                                           symbol: "checkmark.seal.fill", color: "green", duration: 4)))
+        }
+        shot("27b-custom-alert-title") { _ in
+            ActivityCenter.shared.show(.custom(CustomAlert(title: "Stand up", body: nil, symbol: "figure.walk",
+                                                           color: "#FF9F0A", duration: 4)))
+        }
+        shot("27c-agent-finished") { _ in
+            ActivityCenter.shared.show(.custom(CustomAlert(title: "api-server", body: "Finished", symbol: "checkmark.circle.fill",
+                                                           color: "green", duration: 3)))
+        }
+        ActivityCenter.shared.dismiss()
     }
 
     private static func sampleArtwork() -> NSImage {
