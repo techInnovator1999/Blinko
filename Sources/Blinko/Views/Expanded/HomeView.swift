@@ -7,7 +7,7 @@ struct HomeView: View {
         HStack(alignment: .top, spacing: 14) {
             MediaPlayerView()
                 .frame(maxWidth: .infinity, alignment: .leading)
-            if prefs.showCalendar {
+            if prefs.showCalendar || prefs.showClock {
                 Divider().overlay(Color.hairline).frame(height: 120).padding(.top, 8)
                 AgendaView().frame(width: 176)
             }
@@ -30,19 +30,27 @@ struct MediaPlayerView: View {
                 // Ambient glow from the artwork itself.
                 ArtworkView(image: np.artwork, cornerRadius: 16)
                     .frame(width: 112, height: 112)
-                    .blur(radius: 22)
-                    .opacity(np.artwork == nil ? 0 : 0.45)
-                    .scaleEffect(0.92)
-                ArtworkView(image: np.artwork, cornerRadius: 16)
-                    .frame(width: 112, height: 112)
+                    .background {
+                        // Ambient glow: pre-blurred once per track. In a background so it never
+                        // affects layout. 96px art + 2×28px padding → scale to match the cover.
+                        if let glow = np.artworkGlow {
+                            Image(nsImage: glow)
+                                .resizable()
+                                .frame(width: 112 * 152 / 96, height: 112 * 152 / 96)
+                                .opacity(0.55)
+                                .allowsHitTesting(false)
+                        }
+                    }
+                    .overlay { if np.hasTrack { ArtworkSeekOverlay() } }
                     .scaleEffect(np.isPlaying || !np.hasTrack ? 1 : 0.9)
                     .shadow(color: .black.opacity(0.4), radius: 8, y: 4)
-                    .onTapGesture { np.openSourceApp() }
                 if let icon = np.appIcon {
                     Image(nsImage: icon)
                         .resizable()
                         .frame(width: 26, height: 26)
                         .offset(x: 6, y: 6)
+                        .onTapGesture { np.openSourceApp() }
+                        .help("Open source app")
                         .shadow(color: .black.opacity(0.5), radius: 3)
                 }
             }
@@ -65,18 +73,62 @@ struct MediaPlayerView: View {
                     .opacity(np.hasTrack ? 1 : 0.35)
                     .disabled(!np.hasTrack)
 
-                HStack(spacing: 18) {
-                    IslandIconButton(symbol: "backward.fill", size: 15, plate: 34) { np.previous() }
-                    IslandIconButton(symbol: np.isPlaying ? "pause.fill" : "play.fill", size: 22, plate: 42) {
+                HStack(spacing: 0) {
+                    IslandIconButton(symbol: "shuffle", size: 11, plate: 26,
+                                     tint: np.shuffle == .on ? accent : .tertiaryText, help: "Shuffle") {
+                        np.toggleShuffle()
+                    }
+                    Spacer(minLength: 2)
+                    IslandIconButton(symbol: "backward.fill", size: 15, plate: 32, help: "Previous") { np.previous() }
+                    Spacer(minLength: 2)
+                    IslandIconButton(symbol: np.isPlaying ? "pause.fill" : "play.fill", size: 22, plate: 40) {
                         np.togglePlayPause()
                     }
-                    IslandIconButton(symbol: "forward.fill", size: 15, plate: 34) { np.next() }
+                    Spacer(minLength: 2)
+                    IslandIconButton(symbol: "forward.fill", size: 15, plate: 32, help: "Next") { np.next() }
+                    Spacer(minLength: 2)
+                    IslandIconButton(symbol: np.repeatMode.symbol, size: 11, plate: 26,
+                                     tint: np.repeatMode == .one || np.repeatMode == .all ? accent : .tertiaryText,
+                                     help: "Repeat") {
+                        np.cycleRepeat()
+                    }
                 }
-                .frame(maxWidth: .infinity)
                 .padding(.top, 6)
             }
             .padding(.top, 8)
         }
+    }
+}
+
+/// Hovering the artwork reveals ±10 s seek zones; clicking the centre opens the source app.
+private struct ArtworkSeekOverlay: View {
+    @State private var hovering = false
+
+    var body: some View {
+        let np = NowPlayingService.shared
+        ZStack {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(.black.opacity(hovering ? 0.45 : 0))
+            HStack(spacing: 0) {
+                seekZone(symbol: "gobackward.10") { np.skip(by: -10) }
+                seekZone(symbol: "goforward.10") { np.skip(by: 10) }
+            }
+            .opacity(hovering ? 1 : 0)
+        }
+        .contentShape(Rectangle())
+        .onHover { hovering = $0 }
+        .animation(Motion.micro, value: hovering)
+    }
+
+    private func seekZone(symbol: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle(scale: 0.85))
     }
 }
 
@@ -129,18 +181,25 @@ private struct Scrubber: View {
 private struct AgendaView: View {
     var body: some View {
         let cal = CalendarService.shared
+        let prefs = Preferences.shared
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(Date.now, format: .dateTime.weekday(.wide))
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color.red.opacity(0.9))
-                Text(Date.now, format: .dateTime.day())
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color.primaryText)
+            if prefs.showClock {
+                ClockWidget().padding(.top, 4)
+            } else {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(Date.now, format: .dateTime.weekday(.wide))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.red.opacity(0.9))
+                    Text(Date.now, format: .dateTime.day())
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.primaryText)
+                }
+                .padding(.top, 8)
             }
-            .padding(.top, 8)
 
-            if !cal.authorized {
+            if !prefs.showCalendar {
+                EmptyView()
+            } else if !cal.authorized {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("See your next events here.")
                         .font(.system(size: 11, weight: .medium))
@@ -164,6 +223,28 @@ private struct AgendaView: View {
                         ForEach(cal.items.prefix(6)) { item in AgendaRow(item: item) }
                     }
                 }
+            }
+        }
+    }
+}
+
+/// Large clock + date. Redraws once a minute, and only while the island is open.
+private struct ClockWidget: View {
+    var body: some View {
+        TimelineView(.everyMinute) { ctx in
+            VStack(alignment: .leading, spacing: 0) {
+                Text(ctx.date, format: .dateTime.hour().minute())
+                    .font(.system(size: 30, weight: .semibold, design: .rounded).monospacedDigit())
+                    .foregroundStyle(Color.primaryText)
+                    .contentTransition(.numericText())
+                    .animation(Motion.micro, value: ctx.date)
+                HStack(spacing: 4) {
+                    Text(ctx.date, format: .dateTime.weekday(.wide))
+                        .foregroundStyle(Color.red.opacity(0.9))
+                    Text(ctx.date, format: .dateTime.day().month(.abbreviated))
+                        .foregroundStyle(Color.secondaryText)
+                }
+                .font(.system(size: 11.5, weight: .semibold))
             }
         }
     }

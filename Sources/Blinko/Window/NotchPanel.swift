@@ -34,6 +34,25 @@ final class NotchPanel: NSPanel {
 }
 
 /// Hosting view that accepts the first click, so buttons work even when the panel isn't key.
+/// Its tracking area is only a *wake-up trigger* for precise hover tracking; hover truth
+/// itself is computed geometrically (tracking areas misfire when the window resizes).
 final class NotchHostingView<Content: View>: NSHostingView<Content> {
+    var onPointerEntered: (() -> Void)?
+    private var sensor: NSTrackingArea?
+
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let sensor { removeTrackingArea(sensor) }
+        let area = NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+                                  owner: self, userInfo: nil)
+        addTrackingArea(area)
+        sensor = area
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        super.mouseEntered(with: event)
+        onPointerEntered?()
+    }
 }

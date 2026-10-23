@@ -9,6 +9,8 @@ final class NotchManager {
     private var mouseMonitors: [Any] = []
     private var observers: [NSObjectProtocol] = []
     private var scrollAccumulator: CGFloat = 0
+    private var horizontalAccumulator: CGFloat = 0
+    private var gestureConsumed = false
     private let prefs = Preferences.shared
 
     func start() {
@@ -29,14 +31,13 @@ final class NotchManager {
 
         observePreferences()
         installScrollMonitor()
-        installHoverMonitors()
     }
 
     func toggleOnActiveScreen() {
         let mouse = NSEvent.mouseLocation
         let target = controllers.values.first { $0.screen.frame.contains(mouse) } ?? controllers.values.first
         target?.viewModel.toggle()
-        updateHover(at: mouse)
+        startHoverTracking()
     }
 
     func open(tab: NotchTab) {
@@ -46,6 +47,12 @@ final class NotchManager {
     }
 
     // MARK: Displays
+
+    private func makeController(for screen: NSScreen) -> NotchWindowController {
+        let controller = NotchWindowController(screen: screen)
+        controller.onPointerEntered = { [weak self] in self?.startHoverTracking() }
+        return controller
+    }
 
     private func eligibleScreens() -> [NSScreen] {
         let screens = NSScreen.screens
@@ -73,12 +80,12 @@ final class NotchManager {
             if let existing = controllers[screen.displayID] {
                 if existing.screen.frame != screen.frame {
                     existing.tearDown()
-                    controllers[screen.displayID] = NotchWindowController(screen: screen)
+                    controllers[screen.displayID] = makeController(for: screen)
                 } else {
                     existing.refreshGeometry()
                 }
             } else {
-                controllers[screen.displayID] = NotchWindowController(screen: screen)
+                controllers[screen.displayID] = makeController(for: screen)
             }
         }
         updateFullscreenVisibility()
@@ -132,8 +139,11 @@ final class NotchManager {
 
     /// Hover is derived from the pointer position and each island's geometry, never from
     /// tracking areas (which macOS rebuilds on every window resize and which caused
-    /// open/close flicker). The handler is a few rect comparisons per mouse move.
-    private func installHoverMonitors() {
+    /// open/close flicker). Pointer monitors only run while the pointer is at an island:
+    /// the island's tracking area wakes them, and they remove themselves once the pointer
+    /// has left and every island is closed — zero wakeups for mouse movement elsewhere.
+    private func startHoverTracking() {
+        guard mouseMonitors.isEmpty else { return }
         let mask: NSEvent.EventTypeMask = [.mouseMoved, .leftMouseDragged]
         if let global = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: { [weak self] _ in
             MainActor.assumeIsolated { self?.updateHover(at: NSEvent.mouseLocation) }
@@ -142,6 +152,13 @@ final class NotchManager {
             self?.updateHover(at: NSEvent.mouseLocation)
             return event
         }) { mouseMonitors.append(local) }
+        lastPointer = nil
+        updateHover(at: NSEvent.mouseLocation)
+    }
+
+    private func stopHoverTracking() {
+        mouseMonitors.forEach(NSEvent.removeMonitor)
+        mouseMonitors.removeAll()
     }
 
     private var lastPointer: (point: CGPoint, time: TimeInterval)?
@@ -161,6 +178,9 @@ final class NotchManager {
             // Still travelling (> ~280 pt/s): re-arm, so the island opens only once the pointer settles.
             if inside, speed > 280 { vm.pointerPassingThrough() }
         }
+
+        let engaged = controllers.values.contains { $0.viewModel.isHovering || $0.viewModel.isOpen }
+        if !engaged { stopHoverTracking() }
     }
 
     // MARK: Gestures
@@ -172,15 +192,33 @@ final class NotchManager {
                   let controller = self.controllers.values.first(where: { $0.panel === event.window })
             else { return event }
 
-            if event.phase == .began { self.scrollAccumulator = 0 }
-            // Normalise for natural scrolling so "down" always means pulling the island down.
-            let dy = event.isDirectionInvertedFromDevice ? event.scrollingDeltaY : -event.scrollingDeltaY
-            self.scrollAccumulator += dy
+            if event.phase == .began {
+                self.scrollAccumulator = 0
+                self.horizontalAccumulator = 0
+                self.gestureConsumed = false
+            }
+            guard !self.gestureConsumed else { return event }
+
+            // Normalise for natural scrolling so "down" always means pulling the island down
+            // and "left" means swiping content left (→ next track).
+            let invert: CGFloat = event.isDirectionInvertedFromDevice ? 1 : -1
+            self.scrollAccumulator += event.scrollingDeltaY * invert
+            self.horizontalAccumulator += event.scrollingDeltaX * invert
 
             let vm = controller.viewModel
-            if self.scrollAccumulator > 18, !vm.isOpen {
+            let np = NowPlayingService.shared
+            let mediaContext = !vm.isOpen ? vm.compact == .music : vm.tab == .home
+            let horizontalDominant = abs(self.horizontalAccumulator) > abs(self.scrollAccumulator) * 1.5
+
+            if horizontalDominant, mediaContext, np.hasTrack, abs(self.horizontalAccumulator) > 40 {
+                self.horizontalAccumulator < 0 ? np.next() : np.previous()
+                if self.prefs.enableHaptics {
+                    NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
+                }
+                self.gestureConsumed = true // one track per swipe
+            } else if !horizontalDominant, self.scrollAccumulator > 18, !vm.isOpen {
                 vm.open(); self.scrollAccumulator = 0
-            } else if self.scrollAccumulator < -18, vm.isOpen, vm.tab != .clipboard {
+            } else if !horizontalDominant, self.scrollAccumulator < -18, vm.isOpen, vm.tab != .clipboard {
                 vm.close(); self.scrollAccumulator = 0
             }
             return event

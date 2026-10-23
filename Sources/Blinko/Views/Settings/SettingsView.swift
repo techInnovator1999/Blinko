@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum SettingsPane: String, CaseIterable, Identifiable {
-    case welcome, general, activities, modules, appearance, about
+    case welcome, general, activities, modules, layout, appearance, about
     var id: String { rawValue }
 
     var title: String {
@@ -10,6 +10,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .general: "General"
         case .activities: "Live Activities"
         case .modules: "Modules"
+        case .layout: "Layout"
         case .appearance: "Appearance"
         case .about: "About"
         }
@@ -21,6 +22,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .general: "gearshape.fill"
         case .activities: "waveform"
         case .modules: "square.grid.2x2.fill"
+        case .layout: "rectangle.3.group.fill"
         case .appearance: "paintbrush.fill"
         case .about: "info.circle.fill"
         }
@@ -32,6 +34,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .general: .gray
         case .activities: .orange
         case .modules: .blue
+        case .layout: .indigo
         case .appearance: .purple
         case .about: .teal
         }
@@ -93,6 +96,7 @@ struct SettingsView: View {
                 case .general: GeneralPane()
                 case .activities: ActivitiesPane()
                 case .modules: ModulesPane()
+                case .layout: LayoutPane()
                 case .appearance: AppearancePane()
                 case .about: AboutPane()
                 }
@@ -206,7 +210,10 @@ private struct GeneralPane: View {
                 Toggle("Close when the pointer leaves", isOn: $p.closeOnMouseExit)
                 Toggle("Swipe gestures (two-finger down/up)", isOn: $p.enableGestures)
                 Toggle("Haptic feedback", isOn: $p.enableHaptics)
-                LabeledContent("Toggle shortcut", value: "⌃⌥Space")
+                Toggle("Global shortcut", isOn: $p.hotkeyEnabled)
+                if p.hotkeyEnabled {
+                    LabeledContent("Toggle island") { HotkeyRecorder() }
+                }
             }
         }
         .formStyle(.grouped)
@@ -228,7 +235,9 @@ private struct ActivitiesPane: View {
             }
             Section {
                 Toggle("Replace system volume & brightness HUD", isOn: $p.replaceSystemHUD)
-                if p.replaceSystemHUD, !trusted {
+                Toggle("Caps Lock indicator", isOn: $p.capsLockHUD)
+                Toggle("Microphone volume & mute", isOn: $p.micHUD)
+                if p.replaceSystemHUD || p.capsLockHUD, !trusted {
                     HStack {
                         Label("Accessibility permission required", systemImage: "exclamationmark.triangle.fill")
                             .foregroundStyle(.orange)
@@ -254,9 +263,25 @@ private struct ModulesPane: View {
     var body: some View {
         @Bindable var p = Preferences.shared
         Form {
+            Section("Clock") {
+                Toggle("Clock on Home", isOn: $p.showClock)
+                Toggle("Time in island header", isOn: $p.showClockInHeader)
+                Toggle("Time & date in the closed island when idle", isOn: $p.showClockWhenIdle)
+            }
             Section("Home") {
                 Toggle("Calendar & reminders", isOn: $p.showCalendar)
                 Toggle("Camera mirror", isOn: $p.showMirror)
+            }
+            Section {
+                Stepper("Focus: \(p.focusMinutes) min", value: $p.focusMinutes, in: 5...90, step: 5)
+                Stepper("Short break: \(p.shortBreakMinutes) min", value: $p.shortBreakMinutes, in: 1...30)
+                Stepper("Long break: \(p.longBreakMinutes) min", value: $p.longBreakMinutes, in: 5...60, step: 5)
+                Toggle("Start the next session automatically", isOn: $p.autoStartNextSession)
+            } header: {
+                Text("Focus (Pomodoro)")
+            } footer: {
+                Text("A long break follows every fourth focus session.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Section("Shelf") {
                 Toggle("Open shelf when dragging files onto the notch", isOn: $p.shelfAutoOpenOnDrag)
@@ -270,6 +295,66 @@ private struct ModulesPane: View {
                 Text("Clipboard")
             } footer: {
                 Text("History stays in memory only. Items marked as passwords by password managers are never recorded.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+    }
+}
+
+private struct LayoutPane: View {
+    var body: some View {
+        @Bindable var p = Preferences.shared
+        Form {
+            Section {
+                LabeledContent("Open width") {
+                    HStack {
+                        Slider(value: $p.openWidth, in: 600...840, step: 10).frame(width: 220)
+                        Text("\(Int(p.openWidth)) pt").monospacedDigit().foregroundStyle(.secondary).frame(width: 52, alignment: .trailing)
+                    }
+                }
+                LabeledContent("Closed width fine-tune") {
+                    HStack {
+                        Slider(value: $p.notchWidthOffset, in: -12...40, step: 1).frame(width: 220)
+                        Text(String(format: "%+d pt", Int(p.notchWidthOffset))).monospacedDigit().foregroundStyle(.secondary).frame(width: 52, alignment: .trailing)
+                    }
+                }
+                Button("Reset sizes") {
+                    p.openWidth = 700
+                    p.notchWidthOffset = 0
+                }
+            } header: {
+                Text("Island size")
+            } footer: {
+                Text("Fine-tune makes the closed island exactly cover your notch — handy for scaled display resolutions.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section {
+                List {
+                    ForEach(p.tabOrder) { tab in
+                        HStack {
+                            Image(systemName: "line.3.horizontal").foregroundStyle(.tertiary)
+                            Image(systemName: tab.symbol).frame(width: 20)
+                            Text(tab.title)
+                            Spacer()
+                            Toggle("", isOn: Binding(
+                                get: { !p.hiddenTabs.contains(tab) },
+                                set: { visible in
+                                    if visible { p.hiddenTabs.remove(tab) }
+                                    else if p.visibleTabs.count > 1 { p.hiddenTabs.insert(tab) }
+                                }))
+                                .labelsHidden()
+                                .toggleStyle(.switch)
+                                .controlSize(.small)
+                        }
+                    }
+                    .onMove { p.tabOrder.move(fromOffsets: $0, toOffset: $1) }
+                }
+                .frame(height: CGFloat(p.tabOrder.count) * 34)
+            } header: {
+                Text("Tabs")
+            } footer: {
+                Text("Drag to reorder. At least one tab stays visible.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }

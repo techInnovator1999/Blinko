@@ -17,7 +17,7 @@ Legend: ✅ shipped in v0.1 · 🟡 partial · ⏭ planned
 | Album-tinted accent colour + ambient glow | ✅ | 1×1 average, saturation-clamped |
 | Compact live activity (artwork + visualizer) | ✅ | Visualizer is pure Core Animation (zero per-frame app CPU) |
 | Track-change peek | ✅ | |
-| Shuffle / repeat, ±10 s seek, horizontal swipe for tracks | ⏭ v0.2 | MRCommand 6/7, 17/18 |
+| Shuffle / repeat, ±10 s seek, horizontal swipe for tracks | ✅ v0.2 | AppleScript for Music/Spotify (exact state), MRCommand 6/7 elsewhere; ±10 s on artwork hover |
 | Synced lyrics (LRCLIB) | ⏭ v0.3 | |
 | Real FFT spectrum (ScreenCaptureKit audio tap) | ⏭ v0.4 | Opt-in, costs a permission |
 | AirPlay / output device picker, per-app volume | ⏭ v0.4 | |
@@ -30,7 +30,7 @@ Legend: ✅ shipped in v0.1 · 🟡 partial · ⏭ planned
 | Keyboard backlight HUD | ✅ | CoreBrightness `KeyboardBrightnessClient` |
 | Fine steps (⌥⇧), ⌥ opens Settings pane | ✅ | |
 | Changes from Control Center / AirPods reflected | ✅ | CoreAudio property listener |
-| Caps Lock, mic input volume HUD | ⏭ v0.2 | |
+| Caps Lock, mic input volume HUD | ✅ v0.2 | Caps Lock via the existing event tap (observe-only); mic via CoreAudio input listener |
 | External display brightness (DDC) | ⏭ v0.4 | |
 
 ### Power & connectivity
@@ -54,7 +54,10 @@ Legend: ✅ shipped in v0.1 · 🟡 partial · ⏭ planned
 | Timer with presets, pause, +1 min, compact countdown | ✅ | Date-based: no ticking model timer |
 | System stats: CPU / memory / network / battery | ✅ | Samples only while the tab is visible |
 | Camera mirror | ✅ | Session lazy, runs only while visible, `.medium` preset |
-| Pomodoro, multiple timers | ⏭ v0.2 | |
+| Pomodoro (focus / short / long break, auto-advance) | ✅ v0.2 | Configurable lengths |
+| Multiple concurrent timers | ⏭ v0.3 | |
+| Clock: Home widget, header time, idle clock in closed island | ✅ v0.2 | `TimelineView(.everyMinute)`, only while visible |
+| World clocks (second time zone) | ⏭ v0.3 | |
 | Notes / snippets, color picker, caffeinate | ⏭ v0.3 | |
 | Weather | ⏭ v0.3 | Open-Meteo, no key |
 | Shelf expiry, LocalSend, multi-select drag-out | ⏭ v0.3 | |
@@ -81,9 +84,10 @@ Legend: ✅ shipped in v0.1 · 🟡 partial · ⏭ planned
 | Spring motion system, blur-reveal transitions | ✅ | `Motion.swift` |
 | Settings window, onboarding, menu bar icon, launch at login | ✅ | |
 | Snapshot renderer (`--snapshot <dir>`) for design QA | ✅ | |
-| Customisable shortcut, reorderable tabs, notch size tuning | ⏭ v0.2 | |
+| Customisable shortcut, reorderable / hideable tabs, island size tuning | ✅ v0.2 | Settings → General / Layout |
 | Lock-screen widgets (SkyLight space) | ⏭ v0.5 | Private API |
-| Sparkle updates, notarized DMG | ⏭ v0.2 | |
+| Signed + notarized DMG (`scripts/release.sh`) | ✅ v0.2 | Needs a Developer ID cert + notary profile |
+| Sparkle auto-updates | ⏭ | Pending decision on dependency + appcast hosting |
 | Extensions / plugins (JavaScriptCore) | ⏭ v0.6 | |
 | Localisation, reduced-motion | ⏭ v0.3 | |
 
@@ -91,7 +95,8 @@ Legend: ✅ shipped in v0.1 · 🟡 partial · ⏭ planned
 
 | Metric | Target | v0.1 measured |
 |---|---|---|
-| Idle CPU (island closed, nothing playing) | ≈ 0 % | ~0.5 % (clipboard `changeCount` check, 1 Hz with tolerance) |
+| Idle CPU (island closed, nothing playing) | ≈ 0 % | ~0.2 % (v0.2: no wakeups for mouse movement away from the island) |
+| Open island, idle | < 1 % | ~0.7 % |
 | Media bridge (perl) idle | 0 % | 0.0 %, ~5 MB |
 | RSS | < 80 MB | ~75 MB |
 
@@ -106,7 +111,7 @@ Rules every feature must follow:
 
 ## 3. Roadmap
 
-- **v0.2 — Polish.** Shuffle/repeat, ±10 s seek, horizontal swipe for tracks, Caps Lock and mic HUD, custom shortcut recorder, tab reordering, notch size tuning, Sparkle and a notarized DMG, Pomodoro.
+- **v0.2 — Polish (shipped).** Shuffle/repeat, ±10 s seek, swipe for tracks, Caps Lock + mic HUD, shortcut recorder, tab reordering, size tuning, Pomodoro, clock widget, DMG/notarization script, pointer monitors that only run near the island, pre-blurred artwork glow. Sparkle pending.
 - **v0.3 — Awareness.** Focus/DND, privacy indicators, downloads activity, Wi-Fi/VPN/Hotspot alerts, AirPods battery, weather, synced lyrics, notes and snippets, shelf expiry, localisation, reduced motion.
 - **v0.4 — Power user.** AI agent status and approvals (Claude Code / Codex hooks), real FFT visualizer, AirPlay routing, DDC brightness for external displays, per-app volume.
 - **v0.5 — Lock screen and notifications.** SkyLight lock-screen widgets; notification mirroring research.

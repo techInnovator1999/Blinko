@@ -11,6 +11,7 @@ final class NotchWindowController {
     let panel = NotchPanel()
 
     private var shrinkWork: DispatchWorkItem?
+    var onPointerEntered: (() -> Void)?
     private var currentSize: CGSize = .zero
     private(set) var isHiddenForFullscreen = false
 
@@ -20,6 +21,7 @@ final class NotchWindowController {
 
         let hosting = NotchHostingView(rootView: NotchRootView(vm: viewModel))
         hosting.sizingOptions = [] // never let SwiftUI drive window size (avoids layout feedback loops)
+        hosting.onPointerEntered = { [weak self] in self?.onPointerEntered?() }
         panel.contentView = hosting
 
         applyCanvas(viewModel.canvasSize, immediately: true)

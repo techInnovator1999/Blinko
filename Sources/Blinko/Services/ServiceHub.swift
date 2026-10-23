@@ -6,12 +6,14 @@ import Foundation
 final class ServiceHub {
     static let shared = ServiceHub()
 
-    private let volumeObserver = VolumeObserver()
+    private let volumeObserver = VolumeObserver(direction: .output)
+    private let micObserver = VolumeObserver(direction: .input)
 
     func start() {
         BatteryService.shared.start()
         BluetoothService.shared.start()
         volumeObserver.start()
+        micObserver.start()
         // Defer non-critical startup work so the island appears instantly.
         DispatchQueue.main.async {
             NowPlayingService.shared.start()
@@ -30,6 +32,7 @@ final class ServiceHub {
         let prefs = Preferences.shared
         withObservationTracking {
             _ = prefs.replaceSystemHUD
+            _ = prefs.capsLockHUD
             _ = prefs.clipboardHistory
         } onChange: { [weak self] in
             DispatchQueue.main.async {

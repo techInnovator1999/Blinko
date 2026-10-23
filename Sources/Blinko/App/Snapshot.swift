@@ -42,7 +42,19 @@ enum Snapshot {
         shot("02-hud-volume") { _ in ActivityCenter.shared.show(.volume(level: 0.62, muted: false)) }
         shot("03-charging") { _ in ActivityCenter.shared.show(.power(level: 76, charging: true, pluggedIn: true)) }
         shot("04-bluetooth") { _ in ActivityCenter.shared.show(.bluetooth(name: "AirPods Pro", kind: .headphones, connected: true)) }
+        shot("05-capslock") { _ in ActivityCenter.shared.show(.capsLock(on: true)) }
+        shot("06-mic") { _ in ActivityCenter.shared.show(.microphone(level: 0.4, muted: false)) }
+        shot("07-focus") { _ in ActivityCenter.shared.show(.focusSession(title: "Short Break", isBreak: true)) }
         ActivityCenter.shared.dismiss()
+        let idleClock = Preferences.shared.showClockWhenIdle
+        let np = NowPlayingService.shared
+        np.injectPreview(title: np.title, artist: np.artist, duration: np.duration, elapsed: 97, playing: false, artwork: np.artwork)
+        Preferences.shared.showClockWhenIdle = true
+        shot("09-idle-clock") { _ in }
+        Preferences.shared.showClockWhenIdle = idleClock
+        np.injectPreview(title: np.title, artist: np.artist, duration: np.duration, elapsed: 97, playing: true, artwork: np.artwork)
+        TimerService.shared.startFocus()
+        shot("08-compact-focus") { _ in }
         for tab in NotchTab.allCases {
             shot("10-open-\(tab.rawValue)") { vm in vm.open(tab: tab) }
         }

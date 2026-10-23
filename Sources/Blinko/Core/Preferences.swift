@@ -54,6 +54,38 @@ final class Preferences {
     var clipboardLimit: Int { didSet { store.set(clipboardLimit, forKey: "clipboardLimit") } }
     var shelfAutoOpenOnDrag: Bool { didSet { store.set(shelfAutoOpenOnDrag, forKey: "shelfAutoOpenOnDrag") } }
 
+    // Clock
+    var showClock: Bool { didSet { store.set(showClock, forKey: "showClock") } }
+    var showClockInHeader: Bool { didSet { store.set(showClockInHeader, forKey: "showClockInHeader") } }
+    var showClockWhenIdle: Bool { didSet { store.set(showClockWhenIdle, forKey: "showClockWhenIdle") } }
+
+    // HUD extras
+    var capsLockHUD: Bool { didSet { store.set(capsLockHUD, forKey: "capsLockHUD") } }
+    var micHUD: Bool { didSet { store.set(micHUD, forKey: "micHUD") } }
+
+    // Layout
+    var openWidth: Double { didSet { store.set(openWidth, forKey: "openWidth") } }
+    /// Fine-tunes the closed island width to match the hardware notch exactly.
+    var notchWidthOffset: Double { didSet { store.set(notchWidthOffset, forKey: "notchWidthOffset") } }
+    var tabOrder: [NotchTab] { didSet { store.set(tabOrder.map(\.rawValue), forKey: "tabOrder") } }
+    var hiddenTabs: Set<NotchTab> { didSet { store.set(hiddenTabs.map(\.rawValue), forKey: "hiddenTabs") } }
+    var visibleTabs: [NotchTab] {
+        let tabs = tabOrder.filter { !hiddenTabs.contains($0) }
+        return tabs.isEmpty ? [.home] : tabs
+    }
+
+    // Shortcut (Carbon key code + Carbon modifier mask)
+    var hotkeyKeyCode: Int { didSet { store.set(hotkeyKeyCode, forKey: "hotkeyKeyCode") } }
+    var hotkeyModifiers: Int { didSet { store.set(hotkeyModifiers, forKey: "hotkeyModifiers") } }
+    var hotkeyKeyName: String { didSet { store.set(hotkeyKeyName, forKey: "hotkeyKeyName") } }
+    var hotkeyEnabled: Bool { didSet { store.set(hotkeyEnabled, forKey: "hotkeyEnabled") } }
+
+    // Pomodoro
+    var focusMinutes: Int { didSet { store.set(focusMinutes, forKey: "focusMinutes") } }
+    var shortBreakMinutes: Int { didSet { store.set(shortBreakMinutes, forKey: "shortBreakMinutes") } }
+    var longBreakMinutes: Int { didSet { store.set(longBreakMinutes, forKey: "longBreakMinutes") } }
+    var autoStartNextSession: Bool { didSet { store.set(autoStartNextSession, forKey: "autoStartNextSession") } }
+
     private init() {
         store.register(defaults: [
             "displayMode": DisplayMode.notchedOnly.rawValue,
@@ -77,6 +109,23 @@ final class Preferences {
             "clipboardHistory": true,
             "clipboardLimit": 30,
             "shelfAutoOpenOnDrag": true,
+            "showClock": true,
+            "showClockInHeader": true,
+            "showClockWhenIdle": false,
+            "capsLockHUD": true,
+            "micHUD": true,
+            "openWidth": 700.0,
+            "notchWidthOffset": 0.0,
+            "tabOrder": NotchTab.allCases.map(\.rawValue),
+            "hiddenTabs": [String](),
+            "hotkeyKeyCode": 49,           // kVK_Space
+            "hotkeyModifiers": 0x1000 | 0x0800, // controlKey | optionKey
+            "hotkeyKeyName": "Space",
+            "hotkeyEnabled": true,
+            "focusMinutes": 25,
+            "shortBreakMinutes": 5,
+            "longBreakMinutes": 15,
+            "autoStartNextSession": true,
         ])
         hasCompletedOnboarding = store.bool(forKey: "hasCompletedOnboarding")
         displayMode = DisplayMode(rawValue: store.string(forKey: "displayMode") ?? "") ?? .notchedOnly
@@ -100,5 +149,25 @@ final class Preferences {
         clipboardHistory = store.bool(forKey: "clipboardHistory")
         clipboardLimit = store.integer(forKey: "clipboardLimit")
         shelfAutoOpenOnDrag = store.bool(forKey: "shelfAutoOpenOnDrag")
+        showClock = store.bool(forKey: "showClock")
+        showClockInHeader = store.bool(forKey: "showClockInHeader")
+        showClockWhenIdle = store.bool(forKey: "showClockWhenIdle")
+        capsLockHUD = store.bool(forKey: "capsLockHUD")
+        micHUD = store.bool(forKey: "micHUD")
+        openWidth = store.double(forKey: "openWidth")
+        notchWidthOffset = store.double(forKey: "notchWidthOffset")
+        // Keep saved order, append tabs added in newer versions.
+        var order = (store.stringArray(forKey: "tabOrder") ?? []).compactMap(NotchTab.init(rawValue:))
+        order += NotchTab.allCases.filter { !order.contains($0) }
+        tabOrder = order
+        hiddenTabs = Set((store.stringArray(forKey: "hiddenTabs") ?? []).compactMap(NotchTab.init(rawValue:)))
+        hotkeyKeyCode = store.integer(forKey: "hotkeyKeyCode")
+        hotkeyModifiers = store.integer(forKey: "hotkeyModifiers")
+        hotkeyKeyName = store.string(forKey: "hotkeyKeyName") ?? "Space"
+        hotkeyEnabled = store.bool(forKey: "hotkeyEnabled")
+        focusMinutes = store.integer(forKey: "focusMinutes")
+        shortBreakMinutes = store.integer(forKey: "shortBreakMinutes")
+        longBreakMinutes = store.integer(forKey: "longBreakMinutes")
+        autoStartNextSession = store.bool(forKey: "autoStartNextSession")
     }
 }

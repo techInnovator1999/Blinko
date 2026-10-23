@@ -31,10 +31,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = StatusItemController(manager: manager)
 
         hotkey.onPress = { [weak manager] in manager?.toggleOnActiveScreen() }
-        hotkey.register()
+        syncHotkey()
 
         if !prefs.hasCompletedOnboarding {
             SettingsWindowController.shared.show(pane: .welcome)
+        }
+    }
+
+    /// Re-registers the global shortcut whenever it is edited in Settings.
+    private func syncHotkey() {
+        let prefs = Preferences.shared
+        withObservationTracking {
+            if prefs.hotkeyEnabled, !HotkeyRecorderState.isRecording {
+                hotkey.register(keyCode: UInt32(prefs.hotkeyKeyCode), modifiers: UInt32(prefs.hotkeyModifiers))
+            } else {
+                hotkey.unregister()
+            }
+        } onChange: { [weak self] in
+            DispatchQueue.main.async { self?.syncHotkey() }
         }
     }
 

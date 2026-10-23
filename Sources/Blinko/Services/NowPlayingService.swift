@@ -1,6 +1,12 @@
 import AppKit
 import Observation
 
+enum ShuffleState: Equatable { case unknown, off, on }
+enum RepeatState: Equatable {
+    case unknown, off, one, all
+    var symbol: String { self == .one ? "repeat.1" : "repeat" }
+}
+
 /// Now Playing for every source (Music, Spotify, browsers, video players…).
 ///
 /// Primary path: the BlinkoMedia helper running inside /usr/bin/perl (the only way to
@@ -19,12 +25,22 @@ final class NowPlayingService {
     private(set) var duration: TimeInterval = 0
     private(set) var isPlaying = false
     private(set) var artwork: NSImage?
+    private(set) var artworkGlow: NSImage?
     private(set) var accent: NSColor = .white
     private(set) var bundleID: String?
     /// Elapsed position anchored at `anchorDate`; current position is extrapolated on read.
     private(set) var anchorElapsed: TimeInterval = 0
     private(set) var anchorDate = Date()
     private(set) var rate: Double = 0
+    private(set) var shuffle: ShuffleState = .unknown
+    private(set) var repeatMode: RepeatState = .unknown
+
+    /// Music and Spotify are driven over AppleScript for shuffle/repeat: MediaRemote
+    /// rarely reports their modes, and their scripting dictionaries are exact.
+    private var scriptableBundle: String? {
+        guard let bundleID, ["com.apple.Music", "com.spotify.client"].contains(bundleID) else { return nil }
+        return bundleID
+    }
 
     var hasTrack: Bool { !title.isEmpty }
 
@@ -52,6 +68,7 @@ final class NowPlayingService {
         self.title = title; self.artist = artist; self.duration = duration
         anchorElapsed = elapsed; anchorDate = .now; isPlaying = playing; rate = 1
         self.artwork = artwork; accent = artwork?.dominantAccent() ?? .white
+        artworkGlow = artwork?.blurredGlow()
     }
 
     // MARK: Lifecycle
@@ -70,6 +87,74 @@ final class NowPlayingService {
     func togglePlayPause() { send("toggle", fallback: "playpause") }
     func next() { send("next", fallback: "next track") }
     func previous() { send("previous", fallback: "previous track") }
+
+    func skip(by delta: TimeInterval) {
+        guard hasTrack else { return }
+        seek(to: min(max(elapsed() + delta, 0), duration > 0 ? duration : .greatestFiniteMagnitude))
+    }
+
+    func toggleShuffle() {
+        if let bundle = scriptableBundle {
+            let script = bundle == "com.spotify.client"
+                ? "tell application id \"\(bundle)\"\nset shuffling to not shuffling\nreturn shuffling\nend tell"
+                : "tell application id \"\(bundle)\"\nset shuffle enabled to not shuffle enabled\nreturn shuffle enabled\nend tell"
+            shuffle = shuffle == .on ? .off : .on // optimistic
+            evaluate(script) { [weak self] result in
+                if let on = result?.booleanValue as Bool? { self?.shuffle = on ? .on : .off }
+            }
+        } else {
+            shuffle = shuffle == .on ? .off : .on
+            write("shuffle")
+        }
+    }
+
+    func cycleRepeat() {
+        let next: RepeatState = switch repeatMode {
+        case .off, .unknown: .all
+        case .all: .one
+        case .one: .off
+        }
+        if let bundle = scriptableBundle {
+            if bundle == "com.spotify.client" {
+                let on = next != .off
+                repeatMode = on ? .all : .off // Spotify's dictionary only exposes on/off
+                evaluate("tell application id \"\(bundle)\" to set repeating to \(on)") { _ in }
+            } else {
+                repeatMode = next
+                let value = next == .one ? "one" : (next == .all ? "all" : "off")
+                evaluate("tell application id \"\(bundle)\" to set song repeat to \(value)") { _ in }
+            }
+        } else {
+            repeatMode = next
+            write("repeat")
+        }
+    }
+
+    /// Reads shuffle/repeat from Music/Spotify when MediaRemote doesn't report them.
+    private func refreshScriptedModes() {
+        guard let bundle = scriptableBundle else { return }
+        let script = bundle == "com.spotify.client"
+            ? "tell application id \"\(bundle)\" to return {shuffling, repeating}"
+            : "tell application id \"\(bundle)\" to return {shuffle enabled, song repeat as text}"
+        evaluate(script) { [weak self] result in
+            guard let self, let result, result.numberOfItems == 2,
+                  let s = result.atIndex(1), let r = result.atIndex(2) else { return }
+            self.shuffle = s.booleanValue ? .on : .off
+            if bundle == "com.spotify.client" {
+                self.repeatMode = r.booleanValue ? .all : .off
+            } else {
+                self.repeatMode = switch r.stringValue { case "one": .one; case "all": .all; default: .off }
+            }
+        }
+    }
+
+    private func evaluate(_ source: String, completion: @escaping @MainActor (NSAppleEventDescriptor?) -> Void) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            var error: NSDictionary?
+            let result = NSAppleScript(source: source)?.executeAndReturnError(&error)
+            DispatchQueue.main.async { MainActor.assumeIsolated { completion(error == nil ? result : nil) } }
+        }
+    }
 
     func seek(to seconds: TimeInterval) {
         anchorElapsed = seconds
@@ -168,14 +253,25 @@ final class NowPlayingService {
         anchorDate = p.timestamp
         if isPlaying != p.playing { isPlaying = p.playing }
 
+        if scriptableBundle == nil {
+            let s: ShuffleState = p.shuffle == 0 ? .unknown : (p.shuffle == 1 ? .off : .on)
+            let r: RepeatState = switch p.repeatMode { case 1: .off; case 2: .one; case 3: .all; default: .unknown }
+            if shuffle != s { shuffle = s }
+            if repeatMode != r { repeatMode = r }
+        } else if trackChanged {
+            refreshScriptedModes()
+        }
+
         if p.artworkID != lastArtworkID {
             lastArtworkID = p.artworkID
             if p.artworkID == 0 {
                 artwork = nil
+                artworkGlow = nil
                 accent = .white
             } else if let image = p.artwork {
                 artwork = image
-                accent = image.dominantAccent()
+                artworkGlow = p.glow
+                accent = p.accent ?? .white
             }
         }
 
@@ -227,8 +323,10 @@ final class NowPlayingService {
                   let data = try? Data(contentsOf: url),
                   let image = NSImage(data: data) else { return }
             let accent = image.dominantAccent()
+            let glow = image.blurredGlow()
             DispatchQueue.main.async { [weak self] in
                 self?.artwork = image
+                self?.artworkGlow = glow
                 self?.accent = accent
             }
         }
@@ -256,6 +354,10 @@ private struct MediaPayload: @unchecked Sendable {
     var bundle: String?
     var artworkID = 0
     var artwork: NSImage?
+    var shuffle = 0
+    var repeatMode = 0
+    var glow: NSImage?
+    var accent: NSColor?
 
     init?(line: Data) {
         guard let json = try? JSONSerialization.jsonObject(with: line) as? [String: Any],
@@ -272,8 +374,13 @@ private struct MediaPayload: @unchecked Sendable {
         playing = (json["playing"] as? NSNumber)?.boolValue ?? false
         bundle = json["bundle"] as? String
         artworkID = (json["artworkId"] as? NSNumber)?.intValue ?? 0
+        shuffle = (json["shuffle"] as? NSNumber)?.intValue ?? 0
+        repeatMode = (json["repeat"] as? NSNumber)?.intValue ?? 0
         if let b64 = json["artwork"] as? String, let data = Data(base64Encoded: b64) {
             artwork = NSImage(data: data)?.downsampled(to: 256)
+            // Derived images are computed here, on the reader thread, never on main.
+            glow = artwork?.blurredGlow()
+            accent = artwork?.dominantAccent()
         }
     }
 }

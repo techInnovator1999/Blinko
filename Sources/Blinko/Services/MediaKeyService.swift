@@ -14,6 +14,7 @@ final class MediaKeyService {
     private var source: CFRunLoopSource?
     private var permissionPoll: Timer?
     private var lastAuxBrightness = Date.distantPast
+    private var capsLockOn = false
 
     private enum Key: Int {
         case soundUp = 0, soundDown = 1, brightnessUp = 2, brightnessDown = 3, mute = 7
@@ -29,14 +30,18 @@ final class MediaKeyService {
     }
 
     func refresh() {
-        if Preferences.shared.replaceSystemHUD { install() } else { uninstall() }
+        let prefs = Preferences.shared
+        if prefs.replaceSystemHUD || prefs.capsLockHUD { install() } else { uninstall() }
     }
 
     private func install() {
         guard tap == nil else { return }
         guard isTrusted else { waitForPermission(); return }
 
-        let mask = (CGEventMask(1) << 14) | (CGEventMask(1) << CGEventType.keyDown.rawValue) // NX_SYSDEFINED
+        let mask = (CGEventMask(1) << 14) // NX_SYSDEFINED (media keys)
+            | (CGEventMask(1) << CGEventType.keyDown.rawValue)
+            | (CGEventMask(1) << CGEventType.flagsChanged.rawValue)
+        capsLockOn = CGEventSource.flagsState(.combinedSessionState).contains(.maskAlphaShift)
         guard let tap = CGEvent.tapCreate(
             tap: .cghidEventTap, place: .headInsertEventTap, options: .defaultTap,
             eventsOfInterest: mask,
@@ -84,6 +89,18 @@ final class MediaKeyService {
             if let tap { CGEvent.tapEnable(tap: tap, enable: true) }
             return Unmanaged.passUnretained(event)
         }
+
+        // Caps Lock: observe only, never swallow.
+        if type == .flagsChanged {
+            let on = event.flags.contains(.maskAlphaShift)
+            if on != capsLockOn {
+                capsLockOn = on
+                if Preferences.shared.capsLockHUD { ActivityCenter.shared.show(.capsLock(on: on)) }
+            }
+            return Unmanaged.passUnretained(event)
+        }
+
+        guard Preferences.shared.replaceSystemHUD else { return Unmanaged.passUnretained(event) }
 
         // Apple Silicon built-in keyboards may send brightness as plain key codes.
         if type == .keyDown {

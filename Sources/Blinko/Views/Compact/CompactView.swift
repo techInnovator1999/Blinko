@@ -13,7 +13,7 @@ struct CompactView: View {
             leading(content)
                 .padding(.leading, 12)
                 .frame(width: wing, height: notch.height, alignment: .leading)
-            Color.clear.frame(width: notch.width)
+            Color.clear.frame(width: vm.closedNotchWidth)
             trailing(content)
                 .padding(.trailing, 12)
                 .frame(width: wing, height: notch.height, alignment: .trailing)
@@ -30,8 +30,18 @@ struct CompactView: View {
             EmptyView()
         case .music, .activity(.nowPlayingChanged):
             CompactArtwork(size: vm.geometry.notchSize.height - 10)
+        case .clock:
+            TimelineView(.everyMinute) { ctx in
+                Text(ctx.date, format: .dateTime.hour().minute())
+                    .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(.white)
+                    .fixedSize()
+            }
         case .timer:
-            Image(systemName: "timer").font(.system(size: 12, weight: .bold)).foregroundStyle(.orange)
+            let mode = TimerService.shared.mode
+            Image(systemName: mode.isBreak ? "cup.and.saucer.fill" : (mode == .focus ? "brain.head.profile.fill" : "timer"))
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(mode.isBreak ? .green : .orange)
         case .activity(let a):
             ActivityLeading(activity: a)
         }
@@ -44,6 +54,13 @@ struct CompactView: View {
             EmptyView()
         case .music, .activity(.nowPlayingChanged):
             CompactVisualizer().frame(width: 16, height: 12)
+        case .clock:
+            TimelineView(.everyMinute) { ctx in
+                Text(ctx.date, format: .dateTime.weekday(.abbreviated).day())
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.secondaryText)
+                    .fixedSize()
+            }
         case .timer:
             CompactTimer()
         case .activity(let a):
@@ -83,7 +100,7 @@ private struct CompactTimer: View {
         if let end = timer.endDate {
             Text(timerInterval: Date.now...max(end, .now), countsDown: true)
                 .font(.system(size: 12, weight: .semibold).monospacedDigit())
-                .foregroundStyle(.orange)
+                .foregroundStyle(timer.mode.isBreak ? .green : .orange)
                 .frame(width: 50, alignment: .trailing)
         }
     }
@@ -111,6 +128,24 @@ private struct ActivityLeading: View {
             Image(systemName: level > 0 ? "light.max" : "light.min")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(.white)
+        case .microphone(let level, let muted):
+            Image(systemName: muted || level == 0 ? "mic.slash.fill" : "mic.fill")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(muted ? .red : .white)
+                .contentTransition(.symbolEffect(.replace))
+        case .capsLock(let on):
+            HStack(spacing: 5) {
+                Image(systemName: on ? "capslock.fill" : "capslock")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(on ? .green : .white)
+                    .contentTransition(.symbolEffect(.replace))
+                Text("Caps Lock").font(.system(size: 11, weight: .semibold)).foregroundStyle(.white).fixedSize()
+            }
+        case .focusSession(_, let isBreak):
+            Image(systemName: isBreak ? "cup.and.saucer.fill" : "brain.head.profile.fill")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(isBreak ? .green : .orange)
+                .symbolEffect(.bounce, value: activity)
         case .power(_, let charging, let plugged):
             HStack(spacing: 5) {
                 Image(systemName: plugged ? "bolt.fill" : "powerplug")
@@ -169,6 +204,19 @@ private struct ActivityTrailing: View {
             LevelBar(value: Double(level), tint: .yellow, height: 5).frame(width: 64)
         case .keyboardBacklight(let level):
             LevelBar(value: Double(level), tint: .white, height: 5).frame(width: 64)
+        case .microphone(let level, let muted):
+            LevelBar(value: muted ? 0 : Double(level), tint: muted ? .red : .white, height: 5).frame(width: 64)
+        case .capsLock(let on):
+            Text(on ? "On" : "Off")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(on ? .green : Color.secondaryText)
+                .contentTransition(.interpolate)
+        case .focusSession(let title, let isBreak):
+            Text(title)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(isBreak ? .green : .orange)
+                .lineLimit(1)
+                .fixedSize()
         case .power(let level, _, let plugged):
             BatteryGlyph(level: level, charging: plugged)
         case .lowBattery(let level):

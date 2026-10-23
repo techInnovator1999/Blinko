@@ -57,6 +57,9 @@ static void publish(void) {
                 out[@"duration"] = value(info, @"Duration") ?: @0;
                 out[@"elapsed"] = value(info, @"ElapsedTime") ?: @0;
                 out[@"rate"] = value(info, @"PlaybackRate") ?: @(playing ? 1 : 0);
+                // MRMediaRemoteShuffleMode / RepeatMode: 0 unknown, 1 off, 2+ on (repeat: 2 one, 3 all).
+                out[@"shuffle"] = value(info, @"ShuffleMode") ?: @0;
+                out[@"repeat"] = value(info, @"RepeatMode") ?: @0;
                 NSDate *ts = value(info, @"Timestamp");
                 out[@"timestamp"] = @((ts ?: [NSDate date]).timeIntervalSince1970);
 
@@ -99,6 +102,8 @@ static void handleCommand(NSString *line) {
     else if ([cmd isEqualToString:@"toggle"]) gSendCommand(2, NULL);
     else if ([cmd isEqualToString:@"next"]) gSendCommand(4, NULL);
     else if ([cmd isEqualToString:@"previous"]) gSendCommand(5, NULL);
+    else if ([cmd isEqualToString:@"shuffle"]) gSendCommand(6, NULL);  // advance shuffle mode
+    else if ([cmd isEqualToString:@"repeat"]) gSendCommand(7, NULL);   // advance repeat mode
     else if ([cmd isEqualToString:@"seek"] && parts.count > 1 && gSetElapsed) gSetElapsed(parts[1].doubleValue);
     else if ([cmd isEqualToString:@"refresh"]) { gLastArtworkHash = 0; }
     schedulePublish();

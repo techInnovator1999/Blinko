@@ -7,7 +7,7 @@ struct ExpandedView: View {
         VStack(spacing: 0) {
             ExpandedHeader(vm: vm)
                 .frame(height: max(vm.geometry.notchSize.height, 30))
-            TabContent(tab: vm.tab)
+            TabContent(tab: Preferences.shared.visibleTabs.contains(vm.tab) ? vm.tab : Preferences.shared.visibleTabs[0])
                 .padding(.horizontal, Metrics.openTopRadius + 12)
                 .padding(.top, 10)
                 .padding(.bottom, 16)
@@ -45,7 +45,7 @@ private struct ExpandedHeader: View {
     var body: some View {
         HStack(spacing: 0) {
             HStack(spacing: 2) {
-                ForEach(NotchTab.allCases) { tab in
+                ForEach(Preferences.shared.visibleTabs) { tab in
                     TabButton(tab: tab, selected: vm.tab == tab, namespace: tabNS) {
                         withAnimation(Motion.micro) { vm.tab = tab }
                     }
@@ -57,6 +57,15 @@ private struct ExpandedHeader: View {
             Spacer(minLength: vm.geometry.hasNotch ? vm.geometry.notchSize.width + 16 : 16)
 
             HStack(spacing: 4) {
+                // Hidden on Home when the big clock is already showing.
+                if Preferences.shared.showClockInHeader, !(vm.tab == .home && Preferences.shared.showClock) {
+                    TimelineView(.everyMinute) { ctx in
+                        Text(ctx.date, format: .dateTime.hour().minute())
+                            .font(.system(size: 11.5, weight: .semibold).monospacedDigit())
+                            .foregroundStyle(Color.secondaryText)
+                            .padding(.trailing, 8)
+                    }
+                }
                 HeaderBattery()
                 IslandIconButton(symbol: vm.isPinned ? "pin.fill" : "pin", size: 11, plate: 24,
                                  tint: vm.isPinned ? .orange : .secondaryText,

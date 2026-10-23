@@ -16,7 +16,7 @@ enum Metrics {
     static let closedBottomRadius: CGFloat = 14
     static let openTopRadius: CGFloat = 19
     static let openBottomRadius: CGFloat = 26
-    static let openSize = CGSize(width: 660, height: 196)
+    static let openSize = CGSize(width: 700, height: 196)
     /// Transparent room around the open island so its shadow is not clipped by the window.
     static let shadowPadding: CGFloat = 28
     static let peekGrowth = CGSize(width: 18, height: 5)

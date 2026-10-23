@@ -35,6 +35,7 @@ enum CompactContent: Equatable {
     case activity(TransientActivity)
     case music
     case timer
+    case clock
 
     var key: String {
         switch self {
@@ -42,6 +43,7 @@ enum CompactContent: Equatable {
         case .activity(let a): "activity-\(a.kind)"
         case .music: "music"
         case .timer: "timer"
+        case .clock: "clock"
         }
     }
 }
@@ -76,6 +78,7 @@ final class NotchViewModel {
         if let activity = ActivityCenter.shared.current { return .activity(activity) }
         if TimerService.shared.isRunning { return .timer }
         if prefs.musicActivity, NowPlayingService.shared.isPlaying { return .music }
+        if prefs.showClockWhenIdle { return .clock }
         return .idle
     }
 
@@ -85,9 +88,12 @@ final class NotchViewModel {
         case .idle: return 0
         case .music: return h + 10
         case .timer: return 66
+        case .clock: return 76
         case .activity(let a):
             switch a {
-            case .volume, .brightness, .keyboardBacklight: return 108
+            case .volume, .brightness, .keyboardBacklight, .microphone: return 108
+            case .capsLock: return 100
+            case .focusSession: return 96
             case .power, .lowBattery: return 86
             case .bluetooth: return 116
             case .shelf: return 58
@@ -97,13 +103,18 @@ final class NotchViewModel {
         }
     }
 
+    /// Hardware notch width plus the user's fine-tune offset.
+    var closedNotchWidth: CGFloat {
+        max(80, geometry.notchSize.width + prefs.notchWidthOffset)
+    }
+
     /// Island size ignoring the hover "peek".
     private var baseShapeSize: CGSize {
         if isOpen {
-            return CGSize(width: max(Metrics.openSize.width, geometry.notchSize.width + 360),
+            return CGSize(width: max(prefs.openWidth, geometry.notchSize.width + 360),
                           height: Metrics.openSize.height)
         }
-        return CGSize(width: geometry.notchSize.width + wingWidth * 2, height: geometry.notchSize.height)
+        return CGSize(width: closedNotchWidth + wingWidth * 2, height: geometry.notchSize.height)
     }
 
     var shapeSize: CGSize {

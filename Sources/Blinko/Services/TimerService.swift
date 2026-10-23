@@ -1,6 +1,22 @@
 import AppKit
 import Observation
 
+enum TimerMode: Equatable {
+    case countdown, focus, shortBreak, longBreak
+
+    var isPomodoro: Bool { self != .countdown }
+    var isBreak: Bool { self == .shortBreak || self == .longBreak }
+
+    var title: String {
+        switch self {
+        case .countdown: "Timer"
+        case .focus: "Focus"
+        case .shortBreak: "Short Break"
+        case .longBreak: "Long Break"
+        }
+    }
+}
+
 /// Countdown timer. State is just dates; views render remaining time with
 /// `Text(timerInterval:)` / TimelineView, so there is no ticking timer in the model —
 /// only one work item that fires at completion.
@@ -14,6 +30,9 @@ final class TimerService {
     private(set) var pausedRemaining: TimeInterval?
     private(set) var total: TimeInterval = 0
     var label = ""
+    private(set) var mode: TimerMode = .countdown
+    /// Focus sessions completed in the current cycle of four.
+    private(set) var completedFocusSessions = 0
 
     var isRunning: Bool { endDate != nil }
     var isPaused: Bool { pausedRemaining != nil }
@@ -32,6 +51,63 @@ final class TimerService {
     }
 
     func start(_ seconds: TimeInterval, label: String = "") {
+        mode = .countdown
+        completedFocusSessions = 0
+        begin(seconds, label: label)
+    }
+
+    // MARK: Pomodoro
+
+    func startFocus() {
+        mode = .focus
+        begin(minutes(for: .focus), label: TimerMode.focus.title)
+    }
+
+    /// Ends the current pomodoro session early and moves to the next one.
+    func skipSession() {
+        guard mode.isPomodoro else { return }
+        completion?.cancel()
+        advancePomodoro(announce: false)
+    }
+
+    private func minutes(for mode: TimerMode) -> TimeInterval {
+        let p = Preferences.shared
+        let m = switch mode {
+        case .focus: p.focusMinutes
+        case .shortBreak: p.shortBreakMinutes
+        case .longBreak: p.longBreakMinutes
+        case .countdown: 0
+        }
+        return TimeInterval(max(1, m) * 60)
+    }
+
+    private func advancePomodoro(announce: Bool) {
+        let next: TimerMode
+        if mode == .focus {
+            completedFocusSessions += 1
+            next = completedFocusSessions % 4 == 0 ? .longBreak : .shortBreak
+        } else {
+            if mode == .longBreak { completedFocusSessions = 0 }
+            next = .focus
+        }
+        mode = next
+        let seconds = minutes(for: next)
+        if Preferences.shared.autoStartNextSession {
+            begin(seconds, label: next.title)
+        } else {
+            // Park the next session, ready to resume.
+            endDate = nil
+            startDate = nil
+            total = seconds
+            label = next.title
+            pausedRemaining = seconds
+        }
+        if announce {
+            ActivityCenter.shared.show(.focusSession(title: next.title, isBreak: next.isBreak))
+        }
+    }
+
+    private func begin(_ seconds: TimeInterval, label: String) {
         total = seconds
         self.label = label
         pausedRemaining = nil
@@ -59,6 +135,12 @@ final class TimerService {
     }
 
     func cancel() {
+        mode = .countdown
+        completedFocusSessions = 0
+        stopClock()
+    }
+
+    private func stopClock() {
         completion?.cancel()
         endDate = nil
         startDate = nil
@@ -66,7 +148,7 @@ final class TimerService {
     }
 
     private func run(for seconds: TimeInterval) {
-        startDate = startDate ?? .now
+        startDate = .now
         endDate = Date().addingTimeInterval(seconds)
         completion?.cancel()
         let work = DispatchWorkItem { [weak self] in self?.finish() }
@@ -75,6 +157,11 @@ final class TimerService {
     }
 
     private func finish() {
+        if mode.isPomodoro {
+            NSSound(named: mode == .focus ? "Glass" : "Hero")?.play()
+            advancePomodoro(announce: true)
+            return
+        }
         cancel()
         NSSound(named: "Glass")?.play()
         ActivityCenter.shared.show(.timerFinished)

@@ -18,6 +18,23 @@ extension NSImage {
         return NSImage(cgImage: out, size: NSSize(width: w, height: h))
     }
 
+    private static let ciContext = CIContext(options: [.cacheIntermediates: false])
+
+    /// Pre-blurred copy for the ambient glow, rendered once (off-main) instead of a live
+    /// SwiftUI blur that re-convolves on the CPU whenever the view redraws.
+    func blurredGlow(radius: CGFloat = 14) -> NSImage? {
+        guard let cg = downsampled(to: 96).cgImage(forProposedRect: nil, context: nil, hints: nil) else { return nil }
+        // Not clamped: the blur bleeds into transparent padding, giving a soft halo edge.
+        let input = CIImage(cgImage: cg)
+        guard let blurred = CIFilter(name: "CIGaussianBlur",
+                                     parameters: [kCIInputImageKey: input, kCIInputRadiusKey: radius])?.outputImage
+        else { return nil }
+        let pad = radius * 2
+        let rect = CGRect(x: -pad, y: -pad, width: CGFloat(cg.width) + pad * 2, height: CGFloat(cg.height) + pad * 2)
+        guard let out = Self.ciContext.createCGImage(blurred, from: rect) else { return nil }
+        return NSImage(cgImage: out, size: rect.size)
+    }
+
     /// Average colour of the artwork, lifted so it reads well on pure black.
     func dominantAccent() -> NSColor {
         guard let cg = cgImage(forProposedRect: nil, context: nil, hints: nil) else { return .white }

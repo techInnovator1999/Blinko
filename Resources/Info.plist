@@ -2,39 +2,39 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleName</key>
-	<string>Blinko</string>
 	<key>CFBundleDisplayName</key>
 	<string>Blinko</string>
+	<key>CFBundleExecutable</key>
+	<string>Blinko</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>app.blinko.Blinko</string>
-	<key>CFBundleExecutable</key>
+	<key>CFBundleName</key>
 	<string>Blinko</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.0</string>
+	<string>0.2.0</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
-	<key>CFBundleIconFile</key>
-	<string>AppIcon</string>
+	<string>2</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
 	<key>LSUIElement</key>
 	<true/>
-	<key>NSHighResolutionCapable</key>
-	<true/>
-	<key>NSSupportsAutomaticGraphicsSwitching</key>
-	<true/>
-	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>Blinko shows your upcoming events in the notch.</string>
-	<key>NSRemindersFullAccessUsageDescription</key>
-	<string>Blinko shows your reminders in the notch.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Blinko uses the camera for the quick mirror.</string>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Blinko shows a live activity when Bluetooth devices connect.</string>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>Blinko controls playback in Music and Spotify.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Blinko shows a live activity when Bluetooth devices connect.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Blinko shows your upcoming events in the notch.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Blinko uses the camera for the quick mirror.</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>Blinko shows your reminders in the notch.</string>
+	<key>NSSupportsAutomaticGraphicsSwitching</key>
+	<true/>
 </dict>
 </plist>
