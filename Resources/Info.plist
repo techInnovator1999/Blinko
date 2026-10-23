@@ -44,6 +44,8 @@
 	<string>Blinko uses your approximate location once to show local weather.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Blinko uses your approximate location once to show local weather.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Blinko listens for your voice only while you are muted in a call, to warn you that you're muted. Audio is never recorded or sent anywhere.</string>
 	<key>NSRemindersFullAccessUsageDescription</key>
 	<string>Blinko shows your reminders in the notch.</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>

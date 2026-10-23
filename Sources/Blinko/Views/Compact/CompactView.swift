@@ -59,6 +59,8 @@ struct CompactView: View {
             CompactDownloadRing()
         case .privacy:
             PrivacySymbols()
+        case .meeting:
+            MeetingCompactLeading()
         case .activity(let a):
             ActivityLeading(activity: a)
         }
@@ -90,6 +92,8 @@ struct CompactView: View {
             CompactDownloadLabel()
         case .privacy:
             PrivacyDots(compact: false)
+        case .meeting:
+            MeetingCompactTrailing()
         case .activity(let a):
             ActivityTrailing(activity: a)
         }
@@ -432,6 +436,8 @@ private struct ActivityLeading: View {
                 .symbolEffect(.bounce, options: .repeat(3), value: activity)
         case .nowPlayingChanged:
             EmptyView()
+        case .mutedWarning:
+            MutedWarningLeading()
         }
     }
 
@@ -512,6 +518,8 @@ private struct ActivityTrailing: View {
             Text("Done").font(.system(size: 12, weight: .semibold)).foregroundStyle(.orange)
         case .nowPlayingChanged:
             EmptyView()
+        case .mutedWarning:
+            MutedWarningTrailing()
         }
     }
 }

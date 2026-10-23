@@ -25,7 +25,8 @@ final class PrivacyService {
     @ObservationIgnored private var defaultInputListener: AudioObjectPropertyListenerBlock?
 
     func refresh() {
-        Preferences.shared.privacyIndicators ? start() : stop()
+        // Meeting mode reads camera / microphone state too (its card and fallback detection).
+        Preferences.shared.privacyIndicators || Preferences.shared.meetingMode ? start() : stop()
     }
 
     private func start() {
@@ -106,7 +107,7 @@ final class PrivacyService {
             && !CameraService.shared.isMirrorRunning // our own mirror doesn't count
         guard active != cameraInUse else { return }
         cameraInUse = active
-        if active { ActivityCenter.shared.show(.privacy(sensor: .camera)) }
+        if active, Preferences.shared.privacyIndicators { ActivityCenter.shared.show(.privacy(sensor: .camera)) }
     }
 
     private static func cmioIsRunning(_ device: CMIOObjectID) -> Bool {
@@ -164,7 +165,7 @@ final class PrivacyService {
         }
         guard active != micInUse else { return }
         micInUse = active
-        if active { ActivityCenter.shared.show(.privacy(sensor: .microphone)) }
+        if active, Preferences.shared.privacyIndicators { ActivityCenter.shared.show(.privacy(sensor: .microphone)) }
     }
 
     private static func audioAddress(_ selector: AudioObjectPropertySelector) -> AudioObjectPropertyAddress {

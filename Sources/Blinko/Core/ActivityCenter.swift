@@ -58,9 +58,11 @@ enum TransientActivity: Equatable {
     case privacy(sensor: PrivacySensor)
     case network(NetworkEvent)
     case downloadFinished(name: String, url: URL)
+    /// Speaking while muted in a call (Meeting mode).
+    case mutedWarning
 
     /// Updates of the same kind morph in place instead of re-running the entrance transition.
-    enum Kind: Equatable { case hud, capsLock, power, lowBattery, bluetooth, shelf, timer, nowPlaying, focusMode, privacy, network, download }
+    enum Kind: Equatable { case hud, capsLock, power, lowBattery, bluetooth, shelf, timer, nowPlaying, focusMode, privacy, network, download, meeting }
 
     var kind: Kind {
         switch self {
@@ -77,6 +79,7 @@ enum TransientActivity: Equatable {
         case .privacy: .privacy
         case .network: .network
         case .downloadFinished: .download
+        case .mutedWarning: .meeting
         }
     }
 
@@ -91,6 +94,7 @@ enum TransientActivity: Equatable {
         case .timer: 6
         case .nowPlaying: 2.2
         case .download: 5
+        case .meeting: 4
         }
     }
 }

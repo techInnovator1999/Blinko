@@ -21,6 +21,7 @@ final class ServiceHub {
         }
         applyPreferences()
         observePreferences()
+        observeMeetingPreferences()
     }
 
     private func applyPreferences() {
@@ -31,6 +32,7 @@ final class ServiceHub {
         NetworkService.shared.refresh()
         DownloadsService.shared.refresh()
         WeatherService.shared.refresh()
+        MeetingService.shared.refresh()
     }
 
     private func observePreferences() {
@@ -44,10 +46,24 @@ final class ServiceHub {
             _ = prefs.networkActivity
             _ = prefs.downloadsActivity
             _ = prefs.weatherEnabled
+            _ = prefs.meetingMode
         } onChange: { [weak self] in
             DispatchQueue.main.async {
                 self?.applyPreferences()
                 self?.observePreferences()
+            }
+        }
+    }
+
+    /// Meeting sub-settings re-evaluate the call; they don't restart every service.
+    private func observeMeetingPreferences() {
+        withObservationTracking {
+            _ = Preferences.shared.mutedWarning
+            _ = Preferences.shared.disabledMeetingApps
+        } onChange: { [weak self] in
+            DispatchQueue.main.async {
+                MeetingService.shared.preferencesChanged()
+                self?.observeMeetingPreferences()
             }
         }
     }
