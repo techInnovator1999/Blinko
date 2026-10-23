@@ -23,6 +23,7 @@ scripts/build.sh release --run
 - **Downloads folder** access is asked for when you turn on download progress.
 - **Location** (When In Use, once per session) is asked for when you turn on weather; a city works instead.
 - **Microphone** is asked for only when you turn on the "You're muted" warning (Settings → Meetings). Blinko listens only while you are muted in a call and never records.
+- **System Audio Recording** (macOS 14.2+) is asked for only when you pick Visualizer → Real (Settings → Appearance). Blinko taps the playing app's audio only while the bars are on screen and music plays, never records it, and falls back to the Classic bars without it.
 
 Meeting mode needs no permission: it sees which app is using the microphone through CoreAudio. Accessibility, if already granted, also lets it read Zoom's mute state and leave Teams, Slack and Zoom calls from the island.
 
@@ -79,7 +80,8 @@ Sources/Blinko
   Window/     NotchPanel (non-activating NSPanel), NotchWindowController, NotchManager (multi-display, gestures)
   Services/   NowPlaying, Lyrics, MediaKeys/SystemControls, Battery, Bluetooth, Calendar, Shelf, Clipboard, Stats,
               Timer, Camera, Focus, Privacy, Network, Downloads, Weather, Notes, Tools (colour picker, Keep Awake),
-              Meeting (+ MutedSpeechDetector), Command bar (parsers, providers)
+              Meeting (+ MutedSpeechDetector), Command bar (parsers, providers),
+              AudioSpectrum (process tap capture, FFT/bands DSP, demand-driven service)
   App/        entry point, hotkey, status item, launch-at-login, snapshot renderer, URL scheme + routing, App Intents
   Core/       Preferences, NotchViewModel (per display), ActivityCenter, Motion/Metrics
   Window/     NotchPanel (non-activating NSPanel), NotchWindowController, NotchManager (multi-display, gestures)
@@ -97,4 +99,4 @@ Resources/    Info.plist, entitlements, icon, Localizable.xcstrings (String Cata
 
 **Logo:** `design/logo.swift` draws the mark in code (the island as an eyelid, mid-blink over an iris). Run `scripts/make-icon.sh` to regenerate `AppIcon.icns`.
 
-**Design QA:** `swift build && .build/debug/Blinko --snapshot /tmp/blinko-snaps` renders every state to PNG, plus a theme matrix (styles, size presets × tabs, accents, built-in themes, the Appearance pane). Add `--themes-only` to render just the theme matrix. `.build/debug/Blinko --selftest` runs the calculator, fuzzy-matcher and parser checks.
+**Design QA:** `swift build && .build/debug/Blinko --snapshot /tmp/blinko-snaps` renders every state to PNG, plus a theme matrix (styles, size presets × tabs, accents, built-in themes, the Appearance pane). Add `--themes-only` to render just the theme matrix. `.build/debug/Blinko --selftest` runs the calculator, fuzzy-matcher, parser and visualizer DSP checks.

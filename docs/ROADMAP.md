@@ -19,7 +19,7 @@ Legend: ✅ shipped in v0.1 · ✅ v0.x shipped in that version · 🟡 partial 
 | Track-change peek | ✅ | |
 | Shuffle / repeat, ±10 s seek, horizontal swipe for tracks | ✅ v0.2 | AppleScript for Music/Spotify (exact state), MRCommand 6/7 elsewhere; ±10 s on artwork hover |
 | Synced lyrics (LRCLIB) | ✅ v0.3 | Fetched only by views that show lyrics (`.task(id: track)`): on track change while the player or the compact wing is visible. Exact `/api/get` match, then closest synced `/api/search` result. NSCache + pruned disk cache in Application Support (misses cached too). Redraws via a `TimelineSchedule` that fires at line boundaries only. Optional current line in a wider closed-island wing (default off) |
-| Real FFT spectrum (ScreenCaptureKit audio tap) | ⏭ v0.4 | Opt-in, costs a permission |
+| Real audio visualizer (Core Audio process tap + FFT) | ✅ v0.5 | Settings → Appearance → Visualizer: Off / Classic (animated) / Real (reacts to audio). macOS 14.2+ `CATapDescription` mono tap on the now-playing app's processes (its PIDs via `NSRunningApplication`, helpers whose bundle ID extends it, WebKit/Firefox audio hosts for Safari/Firefox), re-tapped when the app spawns a new audio process or the default output changes; system-wide tap excluding Blinko when the app can't be resolved or stays silent 3 s. Private aggregate device; the IOProc only copies into a lock-free ring. vDSP 2048-point FFT on the main thread at display-link rate (never on the audio thread), log-spaced bands (4 in the wing, 24 on the player artwork), noise gate, adaptive ceiling, attack/decay smoothing. CALayer bars via `NSView.displayLink` capped at 30 fps, only while on screen + playing + audio live; the tap stops (1.5 s grace for view swaps) when paused, hidden, off, or the displays sleep. No permission / denied / macOS < 14.2 / no signal → Classic, seamlessly. Optional spectrum along the bottom of the player artwork (toggle) |
 | AirPlay / output device picker, per-app volume | ⏭ v0.4 | |
 
 ### HUD replacement
@@ -124,13 +124,14 @@ Legend: ✅ shipped in v0.1 · ✅ v0.x shipped in that version · 🟡 partial 
 | Media bridge (perl) idle | 0 % | 0.0 %, ~5 MB |
 | RSS | < 80 MB | v0.3: ~63–66 MB idle; v0.4: ~64 MB idle |
 | Agent Hub (socket listening, no session) | ≈ 0 % | v0.4: 0.01–0.04 s CPU per 30 s, ~65 MB; an agent working (render-server spinner) 0.14 s per 30 s; a pending approval in the closed island uses a CALayer pulse (the SwiftUI `symbolEffect(.pulse)` it replaced cost ~16 %) |
+| Real visualizer (v0.5) | < 3–4 % of one core while visible + playing; 0 otherwise | Visualizer work (display-link tick: tap read + FFT + bands + CALayer commit) ≈ 1.3–1.5 % of one core in `sample` (125–300 ms per 10–20 s), ~2/3 of it the per-frame CA commit; IOProc ≈ 0.01 %. Whole process while playing with the wing visible: 4–6.5 % vs ~4 % with Classic under the same test (the rest is the Now Playing bridge and SwiftUI). Paused / hidden / Classic: no tap, no display link, no IO thread |
 
 Rules every feature must follow:
 1. **Event-driven first.** IOKit / CoreAudio / CoreMediaIO / EventKit / IOBluetooth / NWPathMonitor / DispatchSource, never polling when an event exists. The only v0.3 polls: download sizes (2 Hz, only while a partial file exists) and the Focus Status fallback (20 s, only when no database access).
 2. **Nothing runs unless someone can see it or the feature is on.** Stats, scrubber, camera, timeline views and lyrics fetching start with their views; weather/downloads/network/Focus/privacy stop entirely when switched off.
 3. **Leaf-level observation.** `@Observable` services are read in the smallest view that needs them; the island frame never observes track data.
 4. **Window size never depends on hover** (feedback-loop bug found and fixed during v0.1 profiling).
-5. **Render-server animation** for anything continuous (Core Animation visualizer, download spinner).
+5. **Render-server animation** for anything continuous (Core Animation visualizer, download spinner). Exception: the Real visualizer, which needs the app's audio; it ticks at ≤ 30 fps only while visible and playing.
 6. **Bounded caches** (`NSCache`), decode images once and downsample them, keep I/O and network decoding off main.
 7. Timers always carry `tolerance`; features turned off do no background work at all.
 
@@ -138,6 +139,6 @@ Rules every feature must follow:
 
 - **v0.2 — Polish (shipped).** Shuffle/repeat, ±10 s seek, swipe for tracks, Caps Lock + mic HUD, shortcut recorder, tab reordering, size tuning, Pomodoro, clock widget, DMG/notarization script, pointer monitors that only run near the island, pre-blurred artwork glow, Sparkle.
 - **v0.3 — Awareness (shipped).** Focus/DND, camera/mic indicators, downloads activity, Wi-Fi/VPN/Hotspot alerts, AirPods battery, weather, synced lyrics, multiple timers, world clocks, Notes and Tools tabs (colour picker, Keep Awake), shelf expiry + multi-select drag-out, localisation infrastructure, reduced motion. Best-effort: AirPods levels, Focus without Full Disk Access; skipped: screen-recording indicator; postponed: LocalSend.
-- **v0.4 — Power user (shipped).** Themes & island styles (accent, Classic/Minimal/Glass/Glow, size presets, corners, font, Appearance preview, theme import/export); Meeting mode (call detection, mute / leave card, best-effort "You're muted" warning); the ⌥Space command bar (calculator, units, currency, apps, Shortcuts, clipboard, shelf, Blinko actions, web); Agent Hub (Claude Code hooks with approvals, open socket protocol for Codex/Cursor/scripts); `blinko://` URL scheme, `blinko` CLI and Shortcuts actions. Later: real FFT visualizer, AirPlay routing, DDC brightness for external displays, per-app volume, first translations.
-- **v0.5 — Lock screen and notifications.** SkyLight lock-screen widgets; notification mirroring research.
+- **v0.4 — Power user (shipped).** Themes & island styles (accent, Classic/Minimal/Glass/Glow, size presets, corners, font, Appearance preview, theme import/export); Meeting mode (call detection, mute / leave card, best-effort "You're muted" warning); the ⌥Space command bar (calculator, units, currency, apps, Shortcuts, clipboard, shelf, Blinko actions, web); Agent Hub (Claude Code hooks with approvals, open socket protocol for Codex/Cursor/scripts); `blinko://` URL scheme, `blinko` CLI and Shortcuts actions. Later: AirPlay routing, DDC brightness for external displays, per-app volume, first translations.
+- **v0.5 — Lock screen and notifications.** SkyLight lock-screen widgets; notification mirroring research; real audio visualizer (process tap + FFT, Off / Classic / Real).
 - **v0.6 — Platform.** JavaScriptCore extension API and an extension gallery.

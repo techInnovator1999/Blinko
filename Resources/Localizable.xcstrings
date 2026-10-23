@@ -338,6 +338,9 @@
     "Classic" : {
 
     },
+    "Classic (animated)" : {
+
+    },
     "Claude Code" : {
 
     },
@@ -803,9 +806,6 @@
     "Motion" : {
 
     },
-    "Music visualizer" : {
-
-    },
     "Mute" : {
 
     },
@@ -998,6 +998,15 @@
     "Ready" : {
 
     },
+    "Real (reacts to audio)" : {
+
+    },
+    "Real listens to the playing app's sound (or all system audio when it can't tell) only while the bars are on screen and music plays, and never records. macOS asks once for System Audio Recording." : {
+
+    },
+    "Real needs macOS 14.2 or later; Classic is shown instead." : {
+
+    },
     "Reduce motion" : {
 
     },
@@ -1145,6 +1154,9 @@
     "Socket" : {
 
     },
+    "Spectrum on the player artwork" : {
+
+    },
     "Springs become short fades and the island opens without blur or scaling. Blinko also follows System Settings → Accessibility → Display → Reduce motion." : {
 
     },
@@ -1200,6 +1212,9 @@
 
     },
     "System" : {
+
+    },
+    "System audio recording is off for Blinko; Classic is shown instead." : {
 
     },
     "Tab" : {
@@ -1308,6 +1323,9 @@
 
     },
     "Violet" : {
+
+    },
+    "Visualizer" : {
 
     },
     "Wait for an answer" : {
