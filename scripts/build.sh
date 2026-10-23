@@ -30,6 +30,8 @@ mkdir -p "$APP/Contents/Frameworks"
 ditto "$SPARKLE_FW" "$APP/Contents/Frameworks/Sparkle.framework"
 [ -f Resources/AppIcon.icns ] && cp Resources/AppIcon.icns "$APP/Contents/Resources/"
 cp Resources/optimageeks-mark.png "$APP/Contents/Resources/"
+# Shortcuts actions (App Intents metadata, best-effort; see the script).
+scripts/appintents-metadata.sh "$CONFIG" "$APP/Contents/Resources"
 
 # Localisation: compile the String Catalog into <lang>.lproj/Localizable.strings in the main
 # bundle, where SwiftUI's Text("…") and String(localized:) look by default. English is the
