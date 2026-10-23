@@ -4,6 +4,9 @@
     "" : {
 
     },
+    "%@ already exists and isn't Blinko's. Remove it first." : {
+
+    },
     "%@ · %@" : {
       "localizations" : {
         "en" : {
@@ -30,6 +33,16 @@
     "%lld" : {
 
     },
+    "%lld of %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld"
+          }
+        }
+      }
+    },
     "%lld pt" : {
 
     },
@@ -50,6 +63,24 @@
 
     },
     "0.6s" : {
+
+    },
+    "1 minute" : {
+
+    },
+    "2 minutes" : {
+
+    },
+    "30 seconds" : {
+
+    },
+    "5 minutes" : {
+
+    },
+    "90 seconds" : {
+
+    },
+    "A colour name (orange, green…) or #RRGGBB." : {
 
     },
     "A fast, native Dynamic Island for the Mac." : {
@@ -82,10 +113,31 @@
     "Add to Shelf" : {
 
     },
+    "Adds Blinko's hooks to ~/.claude/settings.json (your other hooks and settings are kept; the previous file is saved as settings.json.blinko-backup). Disconnect removes only Blinko's entries. Sessions started before connecting appear after their next restart." : {
+
+    },
     "After 1 day" : {
 
     },
     "After 1 week" : {
+
+    },
+    "Agent" : {
+
+    },
+    "Agent Hub" : {
+
+    },
+    "Agent Hub is off" : {
+
+    },
+    "Agent notifications" : {
+
+    },
+    "Agents" : {
+
+    },
+    "Agents tab" : {
 
     },
     "AirDrop" : {
@@ -103,10 +155,34 @@
     "Allow…" : {
 
     },
+    "Answer in Terminal" : {
+
+    },
+    "Answer in the terminal" : {
+
+    },
     "Appearance" : {
 
     },
+    "Approvals" : {
+
+    },
+    "Approve" : {
+
+    },
+    "Approve or deny permission requests in the island" : {
+
+    },
+    "Approve?" : {
+
+    },
+    "Approved" : {
+
+    },
     "Automatically check for updates" : {
+
+    },
+    "Automation" : {
 
     },
     "Awareness" : {
@@ -122,6 +198,9 @@
 
     },
     "Blinko" : {
+
+    },
+    "Blinko couldn't do that." : {
 
     },
     "Bluetooth devices" : {
@@ -175,6 +254,9 @@
     "City" : {
 
     },
+    "Claude Code" : {
+
+    },
     "Clear" : {
 
     },
@@ -188,6 +270,9 @@
 
     },
     "Click files to select several, then drag any selected file to move them all. Only the shelf entries expire — your files stay where they are." : {
+
+    },
+    "Click the approval card to answer with ⌘↩ (approve) or esc (deny). If you don't answer in time, or Blinko isn't running, the agent asks in its own window as usual." : {
 
     },
     "Clipboard" : {
@@ -211,7 +296,28 @@
     "Cloudy" : {
 
     },
+    "Codex, Cursor or your own scripts can report sessions and ask for approvals with the same newline-delimited JSON protocol (docs/AGENT_PROTOCOL.md), e.g. by piping lines into “blinko send”." : {
+
+    },
+    "Coding agents report their status to Blinko over a private socket on this Mac (readable by your user only). Nothing received is ever executed." : {
+
+    },
+    "Colour" : {
+
+    },
+    "Command-line tool" : {
+
+    },
+    "Connect Claude Code" : {
+
+    },
+    "Connect your coding agents" : {
+
+    },
     "Connected" : {
+
+    },
+    "Connected through hooks" : {
 
     },
     "Copied" : {
@@ -229,6 +335,9 @@
     "Couldn't load the weather. Blinko retries every 30 minutes." : {
 
     },
+    "Couldn't open the socket: %@" : {
+
+    },
     "Current location" : {
 
     },
@@ -238,7 +347,19 @@
     "Delete snippet" : {
 
     },
+    "Denied" : {
+
+    },
+    "Denied in Blinko" : {
+
+    },
+    "Deny" : {
+
+    },
     "Designed by" : {
+
+    },
+    "Disconnect" : {
 
     },
     "Disconnected" : {
@@ -265,7 +386,13 @@
     "Drop files here" : {
 
     },
+    "Files" : {
+
+    },
     "Fine-tune makes the closed island exactly cover your notch — handy for scaled display resolutions." : {
+
+    },
+    "Finished" : {
 
     },
     "Focus" : {
@@ -334,13 +461,31 @@
     "Hover delay" : {
 
     },
+    "Idle" : {
+
+    },
+    "In Shortcuts, use “Open URLs” with a blinko:// link, or “Run Shell Script” with the blinko tool. alert also takes body, color (a name or #RRGGBB) and duration (seconds)." : {
+
+    },
     "In Use" : {
+
+    },
+    "In the closed island" : {
+
+    },
+    "Install Command-Line Tool" : {
+
+    },
+    "Installed at %@" : {
 
     },
     "Instant" : {
 
     },
     "Interaction" : {
+
+    },
+    "Island Tab" : {
 
     },
     "Island size" : {
@@ -361,16 +506,34 @@
     "Keep Awake is on" : {
 
     },
+    "Keep Mac Awake" : {
+
+    },
     "Keep clipboard history" : {
 
     },
     "Keep open" : {
 
     },
+    "Keeps the display awake for a while (0 minutes = until turned off), or turns it off." : {
+
+    },
+    "Label" : {
+
+    },
     "Launch at login" : {
 
     },
     "Layout" : {
+
+    },
+    "Let the agent show its own prompt" : {
+
+    },
+    "Links the blinko tool from inside Blinko.app into /usr/local/bin when it is writable, otherwise ~/.local/bin. No administrator password is used. Try: blinko alert \"Deploy done\" --icon checkmark.circle.fill --color green" : {
+
+    },
+    "Listening for agents" : {
 
     },
     "Live Activities" : {
@@ -400,6 +563,9 @@
     "Main display" : {
 
     },
+    "Make sure ~/.local/bin is on your PATH (e.g. add export PATH=\"$HOME/.local/bin:$PATH\" to ~/.zshrc)." : {
+
+    },
     "Memory" : {
 
     },
@@ -407,6 +573,9 @@
 
     },
     "Microphone volume & mute" : {
+
+    },
+    "Minutes" : {
 
     },
     "Mirror" : {
@@ -430,6 +599,9 @@
     "Needed to replace the volume & brightness HUD." : {
 
     },
+    "Needs approval" : {
+
+    },
     "Network" : {
 
     },
@@ -445,7 +617,19 @@
     "No Access" : {
 
     },
+    "No active sessions" : {
+
+    },
     "No more events today" : {
+
+    },
+    "No recent activity" : {
+
+    },
+    "Not connected" : {
+
+    },
+    "Not installed" : {
 
     },
     "Notes" : {
@@ -484,6 +668,9 @@
     "Open" : {
 
     },
+    "Open Island" : {
+
+    },
     "Open Settings" : {
 
     },
@@ -496,10 +683,19 @@
     "Open source app" : {
 
     },
+    "Open the island when an agent asks" : {
+
+    },
     "Open width" : {
 
     },
+    "Opens Blinko's island, optionally on a tab." : {
+
+    },
     "OptimaGeeks" : {
+
+    },
+    "Other agents" : {
 
     },
     "Partly Cloudy" : {
@@ -527,6 +723,9 @@
 
     },
     "Previous" : {
+
+    },
+    "Puts files on Blinko's shelf." : {
 
     },
     "Quit Blinko" : {
@@ -562,6 +761,9 @@
     "Resume" : {
 
     },
+    "SF Symbol" : {
+
+    },
     "Save text you paste often. Click a snippet to copy it." : {
 
     },
@@ -571,7 +773,22 @@
     "Search cities" : {
 
     },
+    "Seconds" : {
+
+    },
+    "See what Claude Code is doing and approve its requests from the notch." : {
+
+    },
     "See your next events here." : {
+
+    },
+    "Send a Test Alert" : {
+
+    },
+    "Session started" : {
+
+    },
+    "Set Up…" : {
 
     },
     "Settings" : {
@@ -589,7 +806,13 @@
     "Short break: %lld min" : {
 
     },
+    "Show Alert in Island" : {
+
+    },
     "Show Names…" : {
+
+    },
+    "Show agent activity" : {
 
     },
     "Show in Finder" : {
@@ -607,6 +830,9 @@
     "Show weather" : {
 
     },
+    "Shows a short custom activity in Blinko's island." : {
+
+    },
     "Shows your next events and meeting links." : {
 
     },
@@ -619,10 +845,22 @@
     "Snow" : {
 
     },
+    "Socket" : {
+
+    },
     "Springs become short fades and the island opens without blur or scaling. Blinko also follows System Settings → Accessibility → Display → Reduce motion." : {
 
     },
+    "Start Claude Code in a terminal: its status and permission requests show up here." : {
+
+    },
     "Start Focus" : {
+
+    },
+    "Start Focus Session" : {
+
+    },
+    "Start Timer" : {
 
     },
     "Start as many as you like — they run side by side." : {
@@ -631,7 +869,16 @@
     "Start the next session automatically" : {
 
     },
+    "Starts a Pomodoro focus session in Blinko." : {
+
+    },
+    "Starts a countdown in Blinko." : {
+
+    },
     "Stop" : {
+
+    },
+    "Subtitle" : {
 
     },
     "Swipe gestures (two-finger down/up)" : {
@@ -643,7 +890,19 @@
     "System" : {
 
     },
+    "Tab" : {
+
+    },
     "Tabs" : {
+
+    },
+    "The blinko helper is missing from the app bundle. Build Blinko with scripts/build.sh." : {
+
+    },
+    "The blinko tool is missing from the app bundle. Build Blinko with scripts/build.sh." : {
+
+    },
+    "Then the agent asks in its own window" : {
 
     },
     "They'll wait for you on the shelf" : {
@@ -667,7 +926,13 @@
     "Tint controls with album artwork colour" : {
 
     },
+    "Title" : {
+
+    },
     "Toggle island" : {
+
+    },
+    "Tool" : {
 
     },
     "Tools" : {
@@ -679,7 +944,16 @@
     "Turn Off" : {
 
     },
+    "Turn On" : {
+
+    },
     "Turn it on in Settings → Modules" : {
+
+    },
+    "Turn it on to see coding agents and approve their requests here." : {
+
+    },
+    "URL scheme" : {
 
     },
     "Until %@" : {
@@ -700,6 +974,9 @@
     "Version %@" : {
 
     },
+    "Wait for an answer" : {
+
+    },
     "Weather" : {
 
     },
@@ -715,6 +992,9 @@
     "Wi-Fi, VPN & Personal Hotspot" : {
 
     },
+    "Working" : {
+
+    },
     "World clocks" : {
 
     },
@@ -725,6 +1005,9 @@
 
     },
     "info.circle.fill" : {
+
+    },
+    "now" : {
 
     },
     "optimageeks.com" : {
@@ -742,10 +1025,16 @@
     "square.grid.2x2.fill" : {
 
     },
+    "wants to use %@" : {
+
+    },
     "waveform" : {
 
     },
     "“Designed by OptimaGeeks” credit" : {
+
+    },
+    "“Finished” when a long task ends" : {
 
     }
   },

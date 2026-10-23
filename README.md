@@ -31,16 +31,52 @@ Lyrics come from [LRCLIB](https://lrclib.net) and weather from [Open-Meteo](http
 - Drag files onto the notch to put them on the shelf. From there you can drag them out again (click several to select them, then drag one to move them all) or AirDrop them.
 - The pin in the header keeps the island open. So does typing in Notes; click elsewhere to close it.
 
+### AI coding agents (Agent Hub)
+
+Settings → Agents → **Connect Claude Code** adds Blinko's hooks to `~/.claude/settings.json`. Your other hooks and settings are kept, and the previous file is saved as `settings.json.blinko-backup`. Restart any running Claude Code sessions afterwards. The closed island then shows a spinner, the project and the running tool while Claude works. The **Agents** tab lists every session.
+
+When Claude asks for permission, the island opens on an approval card. Click **Approve** or **Deny**, or click the card and press ⌘↩ / esc. **Answer in Terminal** hands the question back to Claude Code. If you don't answer in time (90 s by default), or Blinko isn't running, Claude Code asks in the terminal as usual. **Disconnect** removes only Blinko's entries.
+
+Other agents (Codex, Cursor, scripts) can report over the same local socket: see [docs/AGENT_PROTOCOL.md](docs/AGENT_PROTOCOL.md).
+
+### Automation: URL scheme, CLI, Shortcuts
+
+```bash
+open 'blinko://alert?title=Build%20passed&body=42%20s&icon=checkmark.seal.fill&color=green&duration=4'
+open 'blinko://timer?minutes=25&label=Deep%20work'
+open 'blinko://open?tab=shelf'          # home, shelf, clipboard, stats, timer, notes, tools, agents
+open 'blinko://focus/start'             # focus/stop
+open 'blinko://shelf/add?path=/Users/me/Desktop/report.pdf'
+open 'blinko://keepawake?minutes=60'    # no minutes = until stopped, off=1 stops
+```
+
+Settings → Automation → **Install Command-Line Tool** links `blinko` into `/usr/local/bin` if it is writable, otherwise into `~/.local/bin`. No administrator password is used. The commands mirror the URL scheme:
+
+```bash
+blinko alert "Deploy done" --body "api · 2 min" --icon checkmark.circle.fill --color "#34C759"
+blinko timer 5 --label Tea
+blinko focus            # blinko focus stop
+blinko open shelf
+blinko shelf add *.pdf
+blinko keepawake 30     # on | off
+blinko claude install   # same as Connect Claude Code (--settings PATH for another file)
+```
+
+In **Shortcuts**, Blinko's own actions appear under Blinko: Show Alert, Start Timer, Start Focus Session, Open Island, Add to Shelf, Keep Mac Awake. "Open URLs" with a `blinko://` link and "Run Shell Script" with the `blinko` tool work as well.
+
 ## Architecture
 
 ```
 Sources/Blinko
-  App/        entry point, hotkey, status item, launch-at-login, snapshot renderer
+  App/        entry point, hotkey, status item, launch-at-login, snapshot renderer, URL scheme + routing, App Intents
   Core/       Preferences, NotchViewModel (per display), ActivityCenter, Motion/Metrics
   Window/     NotchPanel (non-activating NSPanel), NotchWindowController, NotchManager (multi-display, gestures)
   Services/   NowPlaying, Lyrics, MediaKeys/SystemControls, Battery, Bluetooth, Calendar, Shelf, Clipboard, Stats,
-              Timer, Camera, Focus, Privacy, Network, Downloads, Weather, Notes, Tools (colour picker, Keep Awake)
+              Timer, Camera, Focus, Privacy, Network, Downloads, Weather, Notes, Tools (colour picker, Keep Awake),
+              AgentHub (socket server + sessions/approvals)
   Views/      NotchShape, root, compact wings, expanded tabs, components, settings
+Sources/BlinkoKit   Agent Hub protocol + Claude Code hook installer (shared by app and CLI)
+Sources/BlinkoCLI   the `blinko` command-line tool (Contents/Helpers/blinko)
 Helper/       BlinkoMedia.m + blinko-media.pl: MediaRemote bridge hosted by Apple's platform perl
 Resources/    Info.plist, entitlements, icon, Localizable.xcstrings (String Catalog)
 ```
