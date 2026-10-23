@@ -8,10 +8,13 @@ enum Snapshot {
     static func runIfRequested() -> Bool {
         let args = CommandLine.arguments
         guard let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count else { return false }
+        if relaunchForLocaleIfNeeded() { return true } // --locale xx (Snapshot+Launch.swift)
         let dir = URL(fileURLWithPath: args[i + 1], isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        if args.contains("--launch-only") { renderLaunch(to: dir); return true }
         if !args.contains("--themes-only") { render(to: dir) }
         renderThemes(to: dir)
+        renderLaunch(to: dir)
         return true
     }
 
@@ -32,7 +35,7 @@ enum Snapshot {
                 NotchRootView(vm: vm).frame(width: canvas.width, height: canvas.height)
             }
             .frame(width: canvas.width, height: canvas.height)
-            let renderer = ImageRenderer(content: view)
+            let renderer = ImageRenderer(content: localized(view))
             renderer.scale = 2
             guard let cg = renderer.cgImage else { return }
             let rep = NSBitmapImageRep(cgImage: cg)

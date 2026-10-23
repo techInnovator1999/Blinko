@@ -78,15 +78,16 @@ final class StatusItemController: NSObject {
             item.button?.image = BrandMark.menuBarImage()
             item.button?.image?.accessibilityDescription = "Blinko"
             let menu = NSMenu()
-            menu.addItem(withTitle: "Open Island", action: #selector(openIsland), keyEquivalent: "").target = self
-            menu.addItem(withTitle: "Open Shelf", action: #selector(openShelf), keyEquivalent: "").target = self
+            menu.addItem(withTitle: String(localized: "Open Island"), action: #selector(openIsland), keyEquivalent: "").target = self
+            menu.addItem(withTitle: String(localized: "Open Shelf"), action: #selector(openShelf), keyEquivalent: "").target = self
             menu.addItem(.separator())
-            menu.addItem(withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ",").target = self
+            menu.addItem(withTitle: String(localized: "Settings…"), action: #selector(openSettings), keyEquivalent: ",").target = self
             if UpdateService.shared.isConfigured {
-                menu.addItem(withTitle: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "").target = self
+                menu.addItem(withTitle: String(localized: "Check for Updates…"), action: #selector(checkForUpdates), keyEquivalent: "").target = self
             }
+            menu.addItem(feedbackMenuItem())
             menu.addItem(.separator())
-            menu.addItem(withTitle: "Quit Blinko", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+            menu.addItem(withTitle: String(localized: "Quit Blinko"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
             item.menu = menu
             self.item = item
         } else if let item {
@@ -99,4 +100,17 @@ final class StatusItemController: NSObject {
     @objc private func openShelf() { manager?.open(tab: .shelf) }
     @objc private func openSettings() { SettingsWindowController.shared.show() }
     @objc private func checkForUpdates() { UpdateService.shared.checkForUpdates() }
+
+    /// "Send Feedback" → bug report / feature request, each a pre-filled GitHub issue.
+    private func feedbackMenuItem() -> NSMenuItem {
+        let item = NSMenuItem(title: String(localized: "Send Feedback"), action: nil, keyEquivalent: "")
+        let sub = NSMenu()
+        sub.addItem(withTitle: String(localized: "Report a Bug…"), action: #selector(reportBug), keyEquivalent: "").target = self
+        sub.addItem(withTitle: String(localized: "Request a Feature…"), action: #selector(requestFeature), keyEquivalent: "").target = self
+        item.submenu = sub
+        return item
+    }
+
+    @objc private func reportBug() { Feedback.open(.bug) }
+    @objc private func requestFeature() { Feedback.open(.feature) }
 }
