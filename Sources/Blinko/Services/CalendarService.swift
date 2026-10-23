@@ -100,4 +100,10 @@ final class CalendarService {
             .compactMap(\.url)
             .first { url in meetingHosts.contains { url.host?.contains($0) == true } }
     }
+
+    /// Design-time state for snapshot rendering.
+    func injectPreview(_ items: [AgendaItem]) {
+        self.items = items
+        authorized = true
+    }
 }

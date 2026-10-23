@@ -10,8 +10,10 @@ enum Snapshot {
         guard let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count else { return false }
         let dir = URL(fileURLWithPath: args[i + 1], isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        if args.contains("--home-only") { renderHome(to: dir); return true }
         if !args.contains("--themes-only") { render(to: dir) }
         renderThemes(to: dir)
+        if !args.contains("--themes-only") { renderHome(to: dir) }
         return true
     }
 
