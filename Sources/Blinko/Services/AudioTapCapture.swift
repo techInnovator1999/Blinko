@@ -216,9 +216,14 @@ enum AudioCapturePermission {
 
     private static let tcc: UnsafeMutableRawPointer? = dlopen("/System/Library/PrivateFrameworks/TCC.framework/Versions/A/TCC", RTLD_NOW)
 
+    /// Raw TCCAccessPreflight result (0 granted, 1 denied, 2 not determined), -1 = no SPI.
+    static var rawPreflight: Int32 {
+        guard let tcc, let sym = dlsym(tcc, "TCCAccessPreflight") else { return -1 }
+        return unsafeBitCast(sym, to: Preflight.self)(service, nil)
+    }
+
     static var status: Status {
-        guard let tcc, let sym = dlsym(tcc, "TCCAccessPreflight") else { return .unknown }
-        switch unsafeBitCast(sym, to: Preflight.self)(service, nil) {
+        switch rawPreflight {
         case 0: return .authorized
         case 1: return .denied
         default: return .unknown

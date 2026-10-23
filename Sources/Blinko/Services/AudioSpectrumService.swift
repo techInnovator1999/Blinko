@@ -1,6 +1,7 @@
 import AppKit
 import CoreAudio
 import Observation
+import os
 
 /// What the music bars show (Settings → Appearance → Visualizer).
 enum VisualizerMode: String, CaseIterable, Identifiable {
@@ -39,8 +40,14 @@ final class AudioSpectrumService {
 
     /// Views draw the real spectrum only while `.live`; every other state shows the
     /// classic animation, so failures and denial fall back seamlessly.
-    private(set) var status: Status = .idle
+    private(set) var status: Status = .idle {
+        didSet {
+            if status != oldValue { Self.log.info("visualizer: \(String(describing: self.status), privacy: .public)") }
+        }
+    }
     private(set) var permission: AudioCapturePermission.Status = .unknown
+
+    @ObservationIgnored nonisolated private static let log = Logger(subsystem: "app.blinko.Blinko", category: "visualizer")
 
     static var isSupported: Bool {
         if #available(macOS 14.2, *) { return true }
@@ -67,6 +74,7 @@ final class AudioSpectrumService {
     @ObservationIgnored private var sampleRate: Double = 48_000
     @ObservationIgnored private var listeners: [(AudioObjectPropertyAddress, AudioObjectPropertyListenerBlock)] = []
     @ObservationIgnored private var retargetWork: DispatchWorkItem?
+    @ObservationIgnored private var stopWork: DispatchWorkItem?
 
     // MARK: Analysis
 
@@ -102,6 +110,7 @@ final class AudioSpectrumService {
         let old = consumers[id]
         guard old != new else { return }
         consumers[id] = new
+        Self.log.debug("visualizer demand \(self.consumers.count) (\(active))")
         // A new track, or playback resuming, retries a tap that went silent or failed.
         if new != nil, status == .silent || status == .failed { stopCapture(); status = .idle }
         reconcile()
@@ -136,10 +145,22 @@ final class AudioSpectrumService {
     private func reconcile() {
         guard Self.isSupported else { return }
         guard let demand = wanted else {
-            stopCapture()
-            if status != .denied { status = .idle }
+            // A short grace period lets a view swap (track-change peek, wing re-layout)
+            // keep the running tap instead of tearing it down and rebuilding it.
+            let immediate = Preferences.shared.visualizerMode != .real || displaysAsleep || capture == nil
+            if immediate { stopNow() } else if stopWork == nil {
+                let work = DispatchWorkItem { [weak self] in
+                    guard let self else { return }
+                    self.stopWork = nil
+                    if self.wanted == nil { self.stopNow() }
+                }
+                stopWork = work
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: work)
+            }
             return
         }
+        stopWork?.cancel()
+        stopWork = nil
         if AudioCapturePermission.status == .denied {
             permission = .denied
             stopCapture()
@@ -149,6 +170,13 @@ final class AudioSpectrumService {
         if status == .silent || status == .failed { return } // wait for the next track / play
         if let running, running.bundleID == demand.bundleID { return }
         startCapture(bundleID: demand.bundleID, global: false)
+    }
+
+    private func stopNow() {
+        stopWork?.cancel()
+        stopWork = nil
+        stopCapture()
+        if status != .denied { status = .idle }
     }
 
     // MARK: Tap lifecycle
@@ -171,8 +199,14 @@ final class AudioSpectrumService {
                 if !ids.isEmpty { target = .processes(ids) }
             }
             do {
+                let began = CACurrentMediaTime()
                 try tap.start(target)
+                Self.log.info("visualizer tap start took \(Int((CACurrentMediaTime() - began) * 1000)) ms, preflight \(AudioCapturePermission.rawPreflight)")
                 let rate = tap.sampleRate
+                Self.log.info("""
+                    visualizer tap on \(String(describing: target), privacy: .public) for \(bundleID ?? "-", privacy: .public), \
+                    \(rate) Hz, permission \(String(describing: AudioCapturePermission.status), privacy: .public)
+                    """)
                 DispatchQueue.main.async {
                     guard self.generation == gen else { return }
                     self.sampleRate = rate
@@ -180,7 +214,7 @@ final class AudioSpectrumService {
                     self.watchDefaultOutput(gen: gen)
                 }
             } catch {
-                NSLog("Blinko visualizer: %@", String(describing: error))
+                Self.log.error("visualizer tap failed: \(String(describing: error), privacy: .public)")
                 DispatchQueue.main.async {
                     guard self.generation == gen else { return }
                     self.running = nil
