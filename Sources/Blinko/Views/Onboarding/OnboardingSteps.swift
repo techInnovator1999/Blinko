@@ -543,12 +543,13 @@ private struct FlowLayout: Layout {
 }
 
 extension View {
-    /// Advances `phase` every `interval` seconds while the view is on screen. Under reduced
-    /// motion nothing moves by itself; the page keeps its still frame.
+    /// Advances `phase` every `interval` seconds while the view is on screen, for two rounds
+    /// (a tour left open doesn't keep animating). Under reduced motion nothing moves by itself;
+    /// the page keeps its still frame.
     func cyclingPhase(_ phase: Binding<Int>, count: Int, every interval: Double) -> some View {
         task {
             guard !Motion.reduced, count > 1 else { return }
-            while !Task.isCancelled {
+            for _ in 0..<(count * 2 - 1) {
                 try? await Task.sleep(for: .seconds(interval))
                 guard !Task.isCancelled else { break }
                 withAnimation(Motion.open) { phase.wrappedValue = (phase.wrappedValue + 1) % count }

@@ -72,6 +72,9 @@ extension Snapshot {
         NowPlayingService.shared.injectPreview(title: "Midnight City", artist: "M83", duration: 243, elapsed: 97,
                                                playing: true, artwork: art)
         BatteryService.shared.injectPreview(level: 84, pluggedIn: false)
+        // Placeholder lyric: never ship real (copyrighted) lyrics fetched from LRCLIB.
+        LyricsService.shared.injectPreview(key: LyricsService.key(title: "Midnight City", artist: "M83"),
+                                           lrc: "[01:20.00] —\n[01:35.00] Neon lights over a sleeping town tonight\n[01:44.00] —")
         func island(_ name: String, compact: CompactContent? = nil, tab: NotchTab? = nil, command: String? = nil) {
             let vm = NotchViewModel(geometry: geometry)
             vm.isPreview = true
