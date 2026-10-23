@@ -10031,7 +10031,44 @@
       }
     },
     "Hide message text (show only who it's from)" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nachrichtentext ausblenden (nur Absender zeigen)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar el texto del mensaje (mostrar solo el remitente)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masquer le texte du message (afficher seulement l’expéditeur)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メッセージ本文を隠す（送信者のみ表示）"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پیغام کا متن چھپائیں (صرف بھیجنے والا دکھائیں)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐藏消息内容（仅显示发送者）"
+          }
+        }
+      }
     },
     "Hide when an app is fullscreen" : {
       "localizations" : {
@@ -13520,7 +13557,44 @@
       }
     },
     "Mirrored app notification (Slack…)" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gespiegelte App-Mitteilung (Slack …)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notificación de app replicada (Slack…)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notification d’app reproduite (Slack…)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ミラーしたアプリの通知（Slack…）"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "منعکس کردہ ایپ اطلاع (Slack…)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "镜像的应用通知（Slack…）"
+          }
+        }
+      }
     },
     "Mode names available" : {
       "localizations" : {
@@ -14244,7 +14318,44 @@
       }
     },
     "Needs Accessibility permission" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benötigt die Berechtigung für Bedienungshilfen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requiere permiso de Accesibilidad"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nécessite l’autorisation Accessibilité"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アクセシビリティの許可が必要です"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ایکسیسبلٹی کی اجازت درکار ہے"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要辅助功能权限"
+          }
+        }
+      }
     },
     "Needs approval" : {
       "localizations" : {
@@ -14407,7 +14518,44 @@
       }
     },
     "New notification" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neue Mitteilung"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nueva notificación"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouvelle notification"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しい通知"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نئی اطلاع"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新通知"
+          }
+        }
+      }
     },
     "New snippet" : {
       "localizations" : {
@@ -15290,7 +15438,44 @@
       }
     },
     "Notifications" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mitteilungen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notificaciones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اطلاعات"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知"
+          }
+        }
+      }
     },
     "Now" : {
       "localizations" : {
@@ -16173,7 +16358,44 @@
       }
     },
     "Open in %@" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In %@ öffnen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir en %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir dans %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ で開く"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ میں کھولیں"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 %@ 中打开"
+          }
+        }
+      }
     },
     "Open it your way" : {
       "localizations" : {
@@ -16739,7 +16961,44 @@
       }
     },
     "Other app (name as shown on its banners)" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Andere App (Name wie in ihren Bannern angezeigt)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otra app (nombre tal como aparece en sus avisos)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autre app (nom tel qu’il apparaît sur ses bannières)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "その他のアプリ（バナーに表示される名前）"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "دوسری ایپ (نام جیسا اس کے بینرز پر دکھتا ہے)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他应用（横幅上显示的名称）"
+          }
+        }
+      }
     },
     "Partly Cloudy" : {
       "localizations" : {
@@ -19949,7 +20208,44 @@
       }
     },
     "Show app notifications in the island" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App-Mitteilungen in der Insel zeigen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar notificaciones de apps en la isla"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les notifications des apps dans l’îlot"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリの通知をアイランドに表示"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ایپ کی اطلاعات آئی لینڈ میں دکھائیں"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在灵动岛中显示应用通知"
+          }
+        }
+      }
     },
     "Show calendar details on lock screen" : {
       "localizations" : {
@@ -24648,7 +24944,44 @@
       }
     },
     "When a notification banner appears, Blinko shows it in the notch too. Click it to open the conversation. Messages never appear on the lock screen." : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn ein Mitteilungsbanner erscheint, zeigt Blinko es auch in der Notch. Klicke darauf, um die Unterhaltung zu öffnen. Nachrichten erscheinen nie auf dem Sperrbildschirm."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuando aparece un aviso de notificación, Blinko también lo muestra en el notch. Haz clic en él para abrir la conversación. Los mensajes nunca aparecen en la pantalla bloqueada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lorsqu’une bannière de notification apparaît, Blinko l’affiche aussi dans l’encoche. Cliquez dessus pour ouvrir la conversation. Les messages n’apparaissent jamais sur l’écran verrouillé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知バナーが表示されると、Blinko はノッチにも表示します。クリックすると会話が開きます。メッセージがロック画面に表示されることはありません。"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جب کوئی اطلاع کا بینر ظاہر ہوتا ہے تو Blinko اسے نوچ میں بھی دکھاتا ہے۔ گفتگو کھولنے کے لیے اس پر کلک کریں۔ پیغامات لاک اسکرین پر کبھی ظاہر نہیں ہوتے۔"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知横幅出现时，Blinko 也会在刘海中显示它。点按即可打开对话。消息永远不会出现在锁定屏幕上。"
+          }
+        }
+      }
     },
     "When an app below starts using the microphone, the closed island shows the call's app, its length and your microphone, and Home shows mute, camera and leave controls with the calendar event happening now. Detection asks for no permission." : {
       "localizations" : {
