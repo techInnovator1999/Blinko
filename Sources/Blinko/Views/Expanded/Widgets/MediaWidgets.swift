@@ -25,6 +25,7 @@ struct MediaPlayerView: View {
                                 .allowsHitTesting(false)
                         }
                     }
+                    .overlay(alignment: .bottom) { ArtworkSpectrum(cornerRadius: 16) }
                     .overlay { if np.hasTrack { ArtworkSeekOverlay() } }
                     .scaleEffect(np.isPlaying || !np.hasTrack ? 1 : 0.9)
                     .shadow(color: .black.opacity(0.4), radius: 8, y: 4)

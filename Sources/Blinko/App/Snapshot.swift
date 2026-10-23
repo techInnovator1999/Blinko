@@ -191,6 +191,25 @@ enum Snapshot {
         ActivityCenter.shared.dismiss()
         renderV04(shot: shot)
         renderLockScreen(to: dir)
+        renderVisualizer(shot: shot)
+    }
+
+    /// v0.5: Real visualizer (compact wing) and the spectrum on the player artwork,
+    /// drawn from fixed levels (the live view is AppKit, which ImageRenderer can't draw).
+    private static func renderVisualizer(shot: (String, CGFloat, (NotchViewModel) -> Void) -> Void) {
+        let prefs = Preferences.shared
+        let saved = (prefs.visualizerMode, prefs.expandedSpectrum, prefs.compactLyrics)
+        prefs.visualizerMode = .real
+        prefs.expandedSpectrum = true
+        prefs.compactLyrics = false
+        AudioSpectrumService.previewLevels = [0.55, 0.9, 0.78, 0.62, 0.7, 0.48, 0.52, 0.38, 0.44, 0.3, 0.35, 0.27,
+                                              0.32, 0.22, 0.26, 0.18, 0.21, 0.15, 0.17, 0.12, 0.14, 0.09, 0.1, 0.06]
+        NowPlayingService.shared.injectPreview(title: "Midnight City", artist: "M83", duration: 243, elapsed: 97,
+                                               playing: true, artwork: sampleArtwork())
+        shot("50-compact-real-visualizer", 280) { _ in }
+        shot("51-open-player-spectrum", 280) { vm in vm.open(tab: .home) }
+        AudioSpectrumService.previewLevels = nil
+        (prefs.visualizerMode, prefs.expandedSpectrum, prefs.compactLyrics) = saved
     }
 
     /// v0.4: Meeting mode and the command bar.

@@ -27,7 +27,6 @@ extension SettingsSearch {
         .init(title: "Closed corners", pane: .appearance, section: "Island style"),
         .init(title: "Numbers & titles", pane: .appearance, section: "Island style"),
         .init(title: "Tint the player with album artwork colour", pane: .appearance, section: "Details"),
-        .init(title: "Music visualizer", pane: .appearance, section: "Details"),
         .init(title: "Shadow under the open island", pane: .appearance, section: "Details"),
         .init(title: "Battery in island header", pane: .appearance, section: "Details"),
         .init(title: "“Designed by OptimaGeeks” credit", pane: .appearance, section: "Details"),
@@ -111,5 +110,8 @@ extension SettingsSearch {
         .init(title: "Check for Updates…", pane: .about, section: ""),
         .init(title: "Automatically check for updates", pane: .about, section: ""),
         .init(title: "Quit Blinko", pane: .about, section: ""),
+        .init(title: "Visualizer", pane: .appearance, section: ""),
+        .init(title: "Open Settings", pane: .appearance, section: ""),
+        .init(title: "Spectrum on the player artwork", pane: .appearance, section: ""),
     ]
 }

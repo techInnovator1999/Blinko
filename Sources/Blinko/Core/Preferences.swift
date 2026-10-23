@@ -143,6 +143,16 @@ final class Preferences {
     var homeLayouts: [HomeLayout] { didSet { store.set(HomeLayout.encodeList(homeLayouts), forKey: "homeLayouts") } }
     var homeLayoutID: String { didSet { store.set(homeLayoutID, forKey: "homeLayoutID") } }
 
+    // Visualizer (v0.5). `showVisualizer` mirrors `visualizerMode != .off` for older call sites.
+    var visualizerMode: VisualizerMode {
+        didSet {
+            store.set(visualizerMode.rawValue, forKey: "visualizerMode")
+            if showVisualizer != (visualizerMode != .off) { showVisualizer = visualizerMode != .off }
+        }
+    }
+    /// Thin spectrum along the bottom of the player's artwork (Real mode only).
+    var expandedSpectrum: Bool { didSet { store.set(expandedSpectrum, forKey: "expandedSpectrum") } }
+
     private init() {
         store.register(defaults: [
             "displayMode": DisplayMode.notchedOnly.rawValue,
@@ -220,6 +230,7 @@ final class Preferences {
             "agentFinishedAlert": true,
             "agentNotifications": true,
             "homeLayoutID": HomeLayout.defaultID,
+            "expandedSpectrum": true,
         ])
         hasCompletedOnboarding = store.bool(forKey: "hasCompletedOnboarding")
         displayMode = DisplayMode(rawValue: store.string(forKey: "displayMode") ?? "") ?? .notchedOnly
@@ -301,5 +312,9 @@ final class Preferences {
         agentNotifications = store.bool(forKey: "agentNotifications")
         homeLayouts = HomeLayout.decodeList(store.data(forKey: "homeLayouts"))
         homeLayoutID = store.string(forKey: "homeLayoutID") ?? HomeLayout.defaultID
+        // No stored mode yet: carry over the old on/off toggle (on → Classic).
+        visualizerMode = VisualizerMode(rawValue: store.string(forKey: "visualizerMode") ?? "")
+            ?? (store.bool(forKey: "showVisualizer") ? .classic : .off)
+        expandedSpectrum = store.bool(forKey: "expandedSpectrum")
     }
 }

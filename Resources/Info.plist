@@ -41,6 +41,8 @@
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>Blinko controls playback in Music and Spotify.</string>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>Blinko listens to the music that is playing to draw the visualizer bars. Audio is never recorded or sent anywhere.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Blinko shows a live activity when Bluetooth devices connect.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>

@@ -273,7 +273,7 @@ private struct CompactVisualizer: View {
         let prefs = Preferences.shared
         let color = prefs.artworkTint && np.hasTrack ? np.accent : Theme.shared.accentNSColor
         if prefs.showVisualizer {
-            AudioVisualizer(isPlaying: np.isPlaying, color: color)
+            MusicVisualizer(isPlaying: np.isPlaying, color: color)
         } else {
             Image(systemName: np.isPlaying ? "waveform" : "pause.fill")
                 .font(.system(size: 11, weight: .bold))
