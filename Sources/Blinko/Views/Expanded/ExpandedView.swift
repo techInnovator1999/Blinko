@@ -153,10 +153,7 @@ private struct ExpandedHeader: View {
             IslandIconButton(symbol: vm.isPinned ? "pin.fill" : "pin", size: 11, plate: 24,
                              tint: vm.isPinned ? Theme.shared.accent : .secondaryText,
                              help: "Keep open") { vm.isPinned.toggle() }
-            IslandIconButton(symbol: "gearshape.fill", size: 11, plate: 24, tint: .secondaryText, help: "Settings") {
-                vm.close()
-                SettingsWindowController.shared.show()
-            }
+            IslandAppMenu(vm: vm)
         }
         .fixedSize()
     }
@@ -229,5 +226,38 @@ private struct HeaderBattery: View {
             BatteryGlyph(level: battery.level, charging: battery.isPluggedIn)
                 .padding(.trailing, 6)
         }
+    }
+}
+
+/// ⚙︎ in the island header: Settings, updates and Quit, without hunting for the menu bar icon.
+private struct IslandAppMenu: View {
+    let vm: NotchViewModel
+    @State private var hovering = false
+
+    var body: some View {
+        Menu {
+            Button("Settings…") {
+                vm.close()
+                SettingsWindowController.shared.show()
+            }
+            if UpdateService.shared.isConfigured {
+                Button("Check for Updates…") { UpdateService.shared.checkForUpdates() }
+            }
+            Divider()
+            Button("Quit Blinko") { NSApp.terminate(nil) }
+        } label: {
+            Image(systemName: "gearshape.fill")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(hovering ? Color.primaryText : Color.secondaryText)
+                .frame(width: 24, height: 24)
+                .background(Circle().fill(hovering ? Color.fillHover : .clear))
+                .contentShape(Circle())
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .onHover { hovering = $0 }
+        .animation(Motion.micro, value: hovering)
+        .help("Settings & Quit")
     }
 }

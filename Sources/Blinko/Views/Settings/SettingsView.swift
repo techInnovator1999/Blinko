@@ -24,15 +24,15 @@ enum SettingsPane: String, CaseIterable, Identifiable {
 
     var symbol: String {
         switch self {
-        case .welcome: String(localized: "sparkles")
-        case .general: String(localized: "gearshape.fill")
-        case .activities: String(localized: "waveform")
-        case .modules: String(localized: "square.grid.2x2.fill")
-        case .layout: String(localized: "rectangle.3.group.fill")
-        case .appearance: String(localized: "paintbrush.fill")
+        case .welcome: "sparkles"
+        case .general: "gearshape.fill"
+        case .activities: "waveform"
+        case .modules: "square.grid.2x2.fill"
+        case .layout: "rectangle.3.group.fill"
+        case .appearance: "paintbrush.fill"
         case .meetings: "video.fill"
         case .commandBar: "command"
-        case .about: String(localized: "info.circle.fill")
+        case .about: "info.circle.fill"
         case .agents: "sparkles.rectangle.stack.fill"
         case .automation: "bolt.horizontal.fill"
         }

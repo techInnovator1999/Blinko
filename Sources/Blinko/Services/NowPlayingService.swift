@@ -74,6 +74,7 @@ final class NowPlayingService {
     // MARK: Lifecycle
 
     func start() {
+        observeScriptedPlayers()
         startHelper()
     }
 
@@ -159,7 +160,7 @@ final class NowPlayingService {
     func seek(to seconds: TimeInterval) {
         anchorElapsed = seconds
         anchorDate = .now
-        if usingFallback {
+        if usingFallback || source != .mediaRemote {
             runScript("set player position to \(seconds)")
         } else {
             write("seek \(seconds)")
@@ -172,8 +173,10 @@ final class NowPlayingService {
         NSWorkspace.shared.openApplication(at: url, configuration: .init())
     }
 
+    /// Commands go to whichever app the island is showing: AppleScript for Music/Spotify
+    /// picked from their own notifications, MediaRemote for everything else.
     private func send(_ command: String, fallback: String) {
-        if usingFallback { runScript(fallback) } else { write(command) }
+        if usingFallback || source != .mediaRemote { runScript(fallback) } else { write(command) }
     }
 
     private func write(_ line: String) {
@@ -234,100 +237,200 @@ final class NowPlayingService {
         }
     }
 
+    // MARK: Source selection
+    //
+    // MediaRemote reports a single "now playing" client, and browsers keep that slot even
+    // after they're paused — so pausing a YouTube tab and starting Spotify would leave the
+    // island stuck on the browser. Music and Spotify also broadcast their own playback state,
+    // so Blinko keeps a snapshot per source and shows whichever is actually playing (or,
+    // when nothing plays, whichever played most recently). All of it is notification-driven.
+
+    private enum Source: Equatable { case mediaRemote, scripted(String) }
+
+    private struct Snapshot {
+        var title = "", artist = "", album = ""
+        var duration: TimeInterval = 0
+        var elapsed: TimeInterval = 0
+        var at = Date()
+        var rate: Double = 0
+        var playing = false
+        var bundle: String?
+        var art: NSImage?
+        var glow: NSImage?
+        var accent: NSColor?
+        var shuffle: ShuffleState = .unknown
+        var repeatMode: RepeatState = .unknown
+        /// Last time this source was playing; breaks ties when everything is paused.
+        var lastActive = Date.distantPast
+        var trackKey: String { title + "\u{1}" + artist }
+    }
+
+    @ObservationIgnored private var helperSnapshot: Snapshot?
+    @ObservationIgnored private var scriptedSnapshots: [String: Snapshot] = [:]
+    @ObservationIgnored private var source: Source = .mediaRemote
+    @ObservationIgnored private var observingScriptedPlayers = false
+
     private func apply(_ p: MediaPayload) {
         if p.isError { failures = 3; return }
         guard p.isState else { return }
         failures = 0
 
-        let trackKey = p.title + "\u{1}" + p.artist
-        let trackChanged = trackKey != lastTrackKey && !p.title.isEmpty
-        lastTrackKey = trackKey
+        var snap = helperSnapshot ?? Snapshot()
+        snap.title = p.title
+        snap.artist = p.artist
+        snap.album = p.album
+        snap.duration = p.duration
+        snap.elapsed = p.elapsed
+        snap.at = p.timestamp
+        snap.rate = p.rate
+        snap.playing = p.playing
+        snap.bundle = p.bundle
+        snap.shuffle = p.shuffle == 0 ? .unknown : (p.shuffle == 1 ? .off : .on)
+        snap.repeatMode = switch p.repeatMode { case 1: .off; case 2: .one; case 3: .all; default: .unknown }
+        if p.playing { snap.lastActive = .now }
+        // Artwork is only sent when it changes; keep the previous image otherwise.
+        if p.artworkID != lastArtworkID {
+            lastArtworkID = p.artworkID
+            if p.artworkID == 0 {
+                snap.art = nil; snap.glow = nil; snap.accent = nil
+            } else if let image = p.artwork {
+                snap.art = image; snap.glow = p.glow; snap.accent = p.accent
+            }
+        }
+        helperSnapshot = snap
+        reconcile()
+    }
 
-        if title != p.title { title = p.title }
-        if artist != p.artist { artist = p.artist }
-        if album != p.album { album = p.album }
-        if duration != p.duration { duration = p.duration }
-        if bundleID != p.bundle { bundleID = p.bundle }
-        rate = p.rate
-        anchorElapsed = p.elapsed
-        anchorDate = p.timestamp
-        if isPlaying != p.playing { isPlaying = p.playing }
+    /// Picks the source to show and publishes it.
+    private func reconcile() {
+        var candidates: [(Source, Snapshot)] = []
+        if let helper = helperSnapshot, !helper.title.isEmpty { candidates.append((.mediaRemote, helper)) }
+        for (bundle, snap) in scriptedSnapshots where !snap.title.isEmpty {
+            // MediaRemote already describes this app — don't show it twice.
+            if helperSnapshot?.bundle == bundle, helperSnapshot?.playing == snap.playing { continue }
+            candidates.append((.scripted(bundle), snap))
+        }
+        guard let pick = candidates.max(by: { a, b in
+            if a.1.playing != b.1.playing { return !a.1.playing }   // playing beats paused
+            return a.1.lastActive < b.1.lastActive                   // then most recently active
+        }) else { return }
+        source = pick.0
+        present(pick.1)
+    }
+
+    private func present(_ snap: Snapshot) {
+        let trackChanged = snap.trackKey != lastTrackKey && !snap.title.isEmpty
+        lastTrackKey = snap.trackKey
+
+        if title != snap.title { title = snap.title }
+        if artist != snap.artist { artist = snap.artist }
+        if album != snap.album { album = snap.album }
+        if duration != snap.duration { duration = snap.duration }
+        if bundleID != snap.bundle { bundleID = snap.bundle }
+        rate = snap.rate
+        anchorElapsed = snap.elapsed
+        anchorDate = snap.at
+        if isPlaying != snap.playing { isPlaying = snap.playing }
+        if artwork !== snap.art {
+            artwork = snap.art
+            artworkGlow = snap.glow
+            accent = snap.accent ?? .white
+        }
 
         if scriptableBundle == nil {
-            let s: ShuffleState = p.shuffle == 0 ? .unknown : (p.shuffle == 1 ? .off : .on)
-            let r: RepeatState = switch p.repeatMode { case 1: .off; case 2: .one; case 3: .all; default: .unknown }
-            if shuffle != s { shuffle = s }
-            if repeatMode != r { repeatMode = r }
+            if shuffle != snap.shuffle { shuffle = snap.shuffle }
+            if repeatMode != snap.repeatMode { repeatMode = snap.repeatMode }
         } else if trackChanged {
             refreshScriptedModes()
         }
 
-        if p.artworkID != lastArtworkID {
-            lastArtworkID = p.artworkID
-            if p.artworkID == 0 {
-                artwork = nil
-                artworkGlow = nil
-                accent = .white
-            } else if let image = p.artwork {
-                artwork = image
-                artworkGlow = p.glow
-                accent = p.accent ?? .white
-            }
-        }
-
-        if trackChanged, p.playing, Preferences.shared.musicActivity {
+        if trackChanged, snap.playing, Preferences.shared.musicActivity {
             ActivityCenter.shared.show(.nowPlayingChanged)
         }
     }
 
-    // MARK: Fallback (Music + Spotify)
+    // MARK: Music + Spotify (always on; also the fallback when the helper can't run)
 
     private func enableFallback() {
-        guard !usingFallback else { return }
         usingFallback = true
+        observeScriptedPlayers()
+    }
+
+    private func observeScriptedPlayers() {
+        guard !observingScriptedPlayers else { return }
+        observingScriptedPlayers = true
         let dnc = DistributedNotificationCenter.default()
         for (name, bundle) in [("com.apple.Music.playerInfo", "com.apple.Music"),
                                ("com.spotify.client.PlaybackStateChanged", "com.spotify.client")] {
             dnc.addObserver(forName: Notification.Name(name), object: nil, queue: .main) { [weak self] note in
                 let info = note.userInfo ?? [:]
-                MainActor.assumeIsolated { self?.applyFallback(info, bundle: bundle) }
+                MainActor.assumeIsolated { self?.applyScripted(info, bundle: bundle) }
+            }
+        }
+        // A player that quits must not linger as "paused" in the island.
+        NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didTerminateApplicationNotification,
+                                                          object: nil, queue: .main) { [weak self] note in
+            let id = (note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier
+            MainActor.assumeIsolated {
+                guard let self, let id, self.scriptedSnapshots.removeValue(forKey: id) != nil else { return }
+                self.reconcile()
             }
         }
     }
 
-    private func applyFallback(_ info: [AnyHashable: Any], bundle: String) {
+    private func applyScripted(_ info: [AnyHashable: Any], bundle: String) {
         let state = info["Player State"] as? String ?? ""
-        let playing = state == "Playing"
-        let name = info["Name"] as? String ?? ""
-        let changed = name != title
-        title = name
-        artist = info["Artist"] as? String ?? ""
-        album = info["Album"] as? String ?? ""
+        var snap = scriptedSnapshots[bundle] ?? Snapshot()
+        if state == "Stopped" {
+            scriptedSnapshots[bundle] = nil
+            reconcile()
+            return
+        }
+        let name = info["Name"] as? String ?? snap.title
+        let artist = info["Artist"] as? String ?? snap.artist
+        let changed = name + "\u{1}" + artist != snap.trackKey
+        snap.title = name
+        snap.artist = artist
+        snap.album = info["Album"] as? String ?? snap.album
         // Both players report milliseconds.
-        let millis = (info["Total Time"] as? NSNumber) ?? (info["Duration"] as? NSNumber)
-        duration = (millis?.doubleValue ?? 0) / 1000
-        if let pos = info["Playback Position"] as? Double { anchorElapsed = pos; anchorDate = .now }
-        rate = playing ? 1 : 0
-        bundleID = bundle
-        isPlaying = playing
-        if changed { fetchFallbackArtwork(bundle: bundle) }
+        if let millis = (info["Total Time"] as? NSNumber) ?? (info["Duration"] as? NSNumber) {
+            snap.duration = millis.doubleValue / 1000
+        }
+        if let pos = (info["Playback Position"] as? NSNumber)?.doubleValue { snap.elapsed = pos; snap.at = .now }
+        snap.playing = state == "Playing"
+        snap.rate = snap.playing ? 1 : 0
+        snap.bundle = bundle
+        if snap.playing { snap.lastActive = .now }
+        if changed { snap.art = nil; snap.glow = nil; snap.accent = nil }
+        scriptedSnapshots[bundle] = snap
+        reconcile()
+        if changed { fetchScriptedArtwork(bundle: bundle, trackKey: snap.trackKey, info: info) }
     }
 
-    private func fetchFallbackArtwork(bundle: String) {
-        guard bundle == "com.spotify.client" else { artwork = nil; return }
-        let source = "tell application id \"com.spotify.client\" to get artwork url of current track"
+    /// Spotify publishes an artwork URL; Music hands over the image data via AppleScript.
+    private func fetchScriptedArtwork(bundle: String, trackKey: String, info: [AnyHashable: Any]) {
+        let source = bundle == "com.spotify.client"
+            ? "tell application id \"com.spotify.client\" to get artwork url of current track"
+            : "tell application id \"com.apple.Music\" to get raw data of artwork 1 of current track"
         DispatchQueue.global(qos: .utility).async {
             var error: NSDictionary?
-            guard let urlString = NSAppleScript(source: source)?.executeAndReturnError(&error).stringValue,
-                  let url = URL(string: urlString),
-                  let data = try? Data(contentsOf: url),
-                  let image = NSImage(data: data) else { return }
+            guard let result = NSAppleScript(source: source)?.executeAndReturnError(&error), error == nil else { return }
+            let data: Data?
+            if bundle == "com.spotify.client" {
+                data = result.stringValue.flatMap(URL.init(string:)).flatMap { try? Data(contentsOf: $0) }
+            } else {
+                data = result.data
+            }
+            guard let data, let image = NSImage(data: data)?.downsampled(to: 256) else { return }
             let accent = image.dominantAccent()
             let glow = image.blurredGlow()
             DispatchQueue.main.async { [weak self] in
-                self?.artwork = image
-                self?.artworkGlow = glow
-                self?.accent = accent
+                MainActor.assumeIsolated {
+                    guard let self, var snap = self.scriptedSnapshots[bundle], snap.trackKey == trackKey else { return }
+                    snap.art = image; snap.glow = glow; snap.accent = accent
+                    self.scriptedSnapshots[bundle] = snap
+                    self.reconcile()
+                }
             }
         }
     }
