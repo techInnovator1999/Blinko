@@ -112,7 +112,7 @@ enum TransientActivity: Equatable {
         case .download: 5
         case .meeting: 4
         case .custom: 3
-        case .notification: 5
+        case .notification: 6.5
         }
     }
 }
@@ -135,6 +135,15 @@ final class ActivityCenter {
         let work = DispatchWorkItem { [weak self] in self?.current = nil }
         dismissWork = work
         DispatchQueue.main.asyncAfter(deadline: .now() + activity.duration, execute: work)
+    }
+
+    /// Pauses the auto-dismiss while the pointer rests on the activity; resumes briefly after.
+    func hold(_ on: Bool) {
+        dismissWork?.cancel()
+        guard !on, current != nil else { return }
+        let work = DispatchWorkItem { [weak self] in self?.current = nil }
+        dismissWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5, execute: work)
     }
 
     func dismiss() {

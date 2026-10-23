@@ -184,7 +184,17 @@ final class NotchViewModel {
             return CGSize(width: max(prefs.openWidth, geometry.notchSize.width + 360),
                           height: isCommandBarActive ? Metrics.commandBarHeight(rows: CommandBarModel.shared.results.count) : Theme.shared.openHeight)
         }
+        if notificationCard != nil {
+            return CGSize(width: max(Metrics.notificationCardWidth, closedNotchWidth + 260),
+                          height: geometry.notchSize.height + Metrics.notificationCardBody)
+        }
         return CGSize(width: closedNotchWidth + wingWidth * 2, height: geometry.notchSize.height)
+    }
+
+    /// A mirrored message (Slack…) drops the closed island down into a message card.
+    var notificationCard: MirroredNotification? {
+        guard !isOpen, case .activity(.appNotification(let note)) = compact else { return nil }
+        return note
     }
 
     var shapeSize: CGSize {
@@ -212,6 +222,7 @@ final class NotchViewModel {
     var topRadius: CGFloat { isOpen ? Theme.shared.openTopRadius : Metrics.closedTopRadius }
     var bottomRadius: CGFloat {
         if isOpen { return Theme.shared.openBottomRadius }
+        if notificationCard != nil { return 24 }
         let closed = Theme.shared.closedBottomRadius
         return compact == .idle ? closed : closed + 2
     }
@@ -306,6 +317,11 @@ final class NotchViewModel {
         log.debug("hover \(inside)")
         hoverWork?.cancel()
 
+        if notificationCard != nil {
+            // Reading a message card: pause its countdown instead of opening the island.
+            ActivityCenter.shared.hold(inside)
+            return
+        }
         if inside {
             guard phase == .closed, prefs.openOnHover, !requiresExitBeforeHoverOpen else { return }
             armHoverOpen()

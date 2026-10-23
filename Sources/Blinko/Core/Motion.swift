@@ -41,6 +41,9 @@ enum Motion {
 }
 
 enum Metrics {
+    /// Mirrored-notification card (closed island dropped down under the notch).
+    static let notificationCardWidth: CGFloat = 470
+    static let notificationCardBody: CGFloat = 86
     static let closedTopRadius: CGFloat = 6
     static let closedBottomRadius: CGFloat = 14
     static let openTopRadius: CGFloat = 19

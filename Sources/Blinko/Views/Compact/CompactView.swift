@@ -11,6 +11,11 @@ struct CompactView: View {
 
         let privacyEdge = vm.showsPrivacyEdge
 
+        if let note = vm.notificationCard {
+            NotificationCard(note: note, notch: notch, notchWidth: vm.closedNotchWidth)
+                .id(content.key)
+                .transition(.wingReveal)
+        } else {
         HStack(spacing: 0) {
             leading(content)
                 .padding(.leading, 12)
@@ -29,6 +34,7 @@ struct CompactView: View {
         }
         .id(content.key)
         .transition(.wingReveal)
+        }
     }
 
     @ViewBuilder
