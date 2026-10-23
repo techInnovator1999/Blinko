@@ -22,14 +22,19 @@ scripts/build.sh release --run
 - **Focus Status** (Settings → Live Activities) shows Focus on/off. Optional **Full Disk Access** adds the Focus mode's name.
 - **Downloads folder** access is asked for when you turn on download progress.
 - **Location** (When In Use, once per session) is asked for when you turn on weather; a city works instead.
+- **Microphone** is asked for only when you turn on the "You're muted" warning (Settings → Meetings). Blinko listens only while you are muted in a call and never records.
 
-Lyrics come from [LRCLIB](https://lrclib.net) and weather from [Open-Meteo](https://open-meteo.com); both are free and need no key.
+Meeting mode needs no permission: it sees which app is using the microphone through CoreAudio. Accessibility, if already granted, also lets it read Zoom's mute state and leave Teams, Slack and Zoom calls from the island.
+
+Lyrics come from [LRCLIB](https://lrclib.net), weather from [Open-Meteo](https://open-meteo.com) and exchange rates from [open.er-api.com](https://www.exchangerate-api.com/docs/free); all are free and need no key.
 
 ## Using it
 
 - Hover over the notch, click it, two-finger swipe down on it, or press **⌃⌥Space** to open it. Swipe up or move the pointer away to close it.
 - Drag files onto the notch to put them on the shelf. From there you can drag them out again (click several to select them, then drag one to move them all) or AirDrop them.
 - The pin in the header keeps the island open. So does typing in Notes; click elsewhere to close it.
+- Press **⌥Space** for the command bar: calculate (`(12+4)*3^2`), convert (`10 km to mi`, `100 usd in eur`), launch apps, run Shortcuts, find clipboard and shelf items, start a timer (`t 25m`) or search the web. ↑↓ choose, ↩ runs, ⎋ closes.
+- During a call (Zoom, Teams, Meet, FaceTime, Slack, Discord, Webex) the closed island shows the call's length and your microphone; open it for mute and leave controls.
 
 ## Architecture
 
@@ -39,7 +44,8 @@ Sources/Blinko
   Core/       Preferences, NotchViewModel (per display), ActivityCenter, Motion/Metrics
   Window/     NotchPanel (non-activating NSPanel), NotchWindowController, NotchManager (multi-display, gestures)
   Services/   NowPlaying, Lyrics, MediaKeys/SystemControls, Battery, Bluetooth, Calendar, Shelf, Clipboard, Stats,
-              Timer, Camera, Focus, Privacy, Network, Downloads, Weather, Notes, Tools (colour picker, Keep Awake)
+              Timer, Camera, Focus, Privacy, Network, Downloads, Weather, Notes, Tools (colour picker, Keep Awake),
+              Meeting (+ MutedSpeechDetector), Command bar (parsers, providers)
   Views/      NotchShape, root, compact wings, expanded tabs, components, settings
 Helper/       BlinkoMedia.m + blinko-media.pl: MediaRemote bridge hosted by Apple's platform perl
 Resources/    Info.plist, entitlements, icon, Localizable.xcstrings (String Catalog)
@@ -49,4 +55,4 @@ Resources/    Info.plist, entitlements, icon, Localizable.xcstrings (String Cata
 
 **Logo:** `design/logo.swift` draws the mark in code (the island as an eyelid, mid-blink over an iris). Run `scripts/make-icon.sh` to regenerate `AppIcon.icns`.
 
-**Design QA:** `swift build && .build/debug/Blinko --snapshot /tmp/blinko-snaps` renders every state to PNG.
+**Design QA:** `swift build && .build/debug/Blinko --snapshot /tmp/blinko-snaps` renders every state to PNG. `.build/debug/Blinko --selftest` runs the calculator, fuzzy-matcher and parser checks.

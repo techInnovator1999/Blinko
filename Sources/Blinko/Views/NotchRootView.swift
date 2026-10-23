@@ -68,6 +68,7 @@ private struct IslandBody: View {
         .animation(Motion.compact, value: vm.compact.key)
         .animation(Motion.peek, value: vm.isHovering)
         .animation(Motion.compact, value: vm.geometry)
+        .animation(Motion.open, value: vm.isCommandBarActive)
     }
 }
 

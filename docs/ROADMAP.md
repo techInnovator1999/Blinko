@@ -64,6 +64,9 @@ Legend: ✅ shipped in v0.1 · ✅ v0.x shipped in that version · 🟡 partial 
 | Weather | ✅ v0.3 | Open-Meteo, no key. Off by default. One-shot CoreLocation fix (When In Use, asked when you enable weather) or a city searched via Open-Meteo geocoding. 30 min timer (5 min tolerance) + catch-up on wake, cached result, decoding off main. Chip beside the Home clock flips the agenda column to a 5-hour forecast; temperature in the header elsewhere |
 | Shelf expiry, multi-select drag-out | ✅ v0.3 | Expiry Off / 1 day / 1 week, purged at launch and when the shelf is shown (no timers). Dragging a selected tile drags the whole selection (AppKit dragging session, one item per file) |
 | LocalSend | ⏭ | Postponed |
+| Meeting mode | ✅ v0.4 | **No permission.** CoreAudio per-process objects (`kAudioHardwarePropertyProcessObjectList`, `kAudioProcessPropertyIsRunningInput/Output`, `BundleID`) say which app captures the mic: Zoom, Teams, Webex, FaceTime (via `avconferenced`), Slack huddles, Discord, browsers (Meet & co., helper processes mapped to their browser). Listeners on the process list + meeting-app processes + NSWorkspace launch/terminate/activate; fallback "mic in use + meeting app running" if the API is missing. Compact wing: app icon, mic state, call length (`Text(timerInterval:)`). Home swaps the player for a meeting card: Mute (system input `kAudioDevicePropertyMute`), camera indicator, Show, Leave, title from the calendar event happening now. Leave posts the app's own shortcut (Teams/Slack ⌘⇧H, Zoom ⌘W + confirm) only if Accessibility is already granted, else brings the call to front. No window titles (would need Screen Recording) |
+| "You're muted" warning | 🟡 v0.4 | **Best-effort, opt-in (Microphone).** A hardware/system mute silences the input for *every* process (Apple's header: voice detection "works when a process mute is used, but not with hardware mute"), so Blinko's own Mute can't be paired with speech detection. The warning covers mutes made *inside the meeting app*: Zoom (its "Mute/Unmute Audio" menu item read via Accessibility every 2 s, only during a Zoom call, English titles) and native apps that release the mic while call audio keeps playing. Then an `AVAudioEngine` input tap runs with CoreAudio voice activity detection (echo-cancelled, event-driven) or an RMS fallback; 0.6 s of voice shows "You're muted" + Unmute (app's own mute shortcut with Accessibility, else bring to front). apps that keep the mic open while muted and expose no mute state (not verified per app; possibly Teams, Meet, Slack) get no warning. Untested against live calls |
+| Command bar (⌥Space) | ✅ v0.4 | Second Carbon hotkey (configurable, conflict-checked). Island grows to 280 pt only while it is up; panel becomes key like Notes; ↑↓ ↩ ⌘↩ ⎋, click outside closes and focus returns to the previous app. Providers: safe recursive-descent calculator (+ − × ÷ ^ % !, functions, constants, bounded depth, typed errors — no NSExpression), units (`Measurement`), currency (open.er-api.com, fetched only when a currency is typed, cached a day), clipboard, shelf, apps (indexed lazily off main), Apple Shortcuts (`shortcuts list/run`), Blinko actions (`t 5m`, focus, `awake 2h`, open tab, mute mic), web search / URL. Fuzzy ranking (prefix > word prefix > acronym > subsequence ≥ 3 letters), ≤ 6 rows. `Blinko --selftest` covers parser, matcher, durations, units, currency parsing and the speech meter |
 
 ### System status
 | Feature | Status | Notes |
@@ -99,10 +102,10 @@ Legend: ✅ shipped in v0.1 · ✅ v0.x shipped in that version · 🟡 partial 
 
 | Metric | Target | Measured |
 |---|---|---|
-| Idle CPU (island closed, nothing playing) | ≈ 0 % | v0.3: 0.01–0.07 s CPU per 30 s (≈ 0.0–0.2 %) with the default v0.3 features on (Focus, privacy, network, AirPods) |
+| Idle CPU (island closed, nothing playing) | ≈ 0 % | v0.3: 0.01–0.07 s CPU per 30 s (≈ 0.0–0.2 %) with the default v0.3 features on (Focus, privacy, network, AirPods). v0.4 (Meeting mode + command bar on): 0.01 s per 30 s |
 | Open island, idle | < 1 % | ~0.7 % (v0.1) |
 | Media bridge (perl) idle | 0 % | 0.0 %, ~5 MB |
-| RSS | < 80 MB | v0.3: ~63–66 MB idle |
+| RSS | < 80 MB | v0.3: ~63–66 MB idle; v0.4: ~64 MB idle |
 
 Rules every feature must follow:
 1. **Event-driven first.** IOKit / CoreAudio / CoreMediaIO / EventKit / IOBluetooth / NWPathMonitor / DispatchSource, never polling when an event exists. The only v0.3 polls: download sizes (2 Hz, only while a partial file exists) and the Focus Status fallback (20 s, only when no database access).
@@ -117,6 +120,6 @@ Rules every feature must follow:
 
 - **v0.2 — Polish (shipped).** Shuffle/repeat, ±10 s seek, swipe for tracks, Caps Lock + mic HUD, shortcut recorder, tab reordering, size tuning, Pomodoro, clock widget, DMG/notarization script, pointer monitors that only run near the island, pre-blurred artwork glow, Sparkle.
 - **v0.3 — Awareness (shipped).** Focus/DND, camera/mic indicators, downloads activity, Wi-Fi/VPN/Hotspot alerts, AirPods battery, weather, synced lyrics, multiple timers, world clocks, Notes and Tools tabs (colour picker, Keep Awake), shelf expiry + multi-select drag-out, localisation infrastructure, reduced motion. Best-effort: AirPods levels, Focus without Full Disk Access; skipped: screen-recording indicator; postponed: LocalSend.
-- **v0.4 — Power user.** AI agent status and approvals (Claude Code / Codex hooks), real FFT visualizer, AirPlay routing, DDC brightness for external displays, per-app volume, first translations.
+- **v0.4 — Power user.** Meeting mode (call detection, mute / leave card, best-effort "You're muted" warning) and the ⌥Space command bar (calculator, units, currency, apps, Shortcuts, clipboard, shelf, Blinko actions, web) shipped. Planned: AI agent status and approvals (Claude Code / Codex hooks), real FFT visualizer, AirPlay routing, DDC brightness for external displays, per-app volume, first translations.
 - **v0.5 — Lock screen and notifications.** SkyLight lock-screen widgets; notification mirroring research.
 - **v0.6 — Platform.** JavaScriptCore extension API and an extension gallery.
