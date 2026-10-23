@@ -7,7 +7,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 OUT=".build/strings/stringsdata"
-rm -rf "$OUT" && mkdir -p "$OUT"
+# Clean build: an incremental one only emits .stringsdata for recompiled files, and sync
+# would then drop every string from the others.
+rm -rf .build/strings && mkdir -p "$OUT"
 swift build --scratch-path .build/strings \
   -Xswiftc -emit-localized-strings -Xswiftc -emit-localized-strings-path -Xswiftc "$PWD/$OUT" >/dev/null
 xcrun xcstringstool sync Resources/Localizable.xcstrings --stringsdata "$OUT"/*.stringsdata

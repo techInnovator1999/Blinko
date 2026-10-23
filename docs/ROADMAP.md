@@ -3,7 +3,7 @@
 Research basis (Oct 2026): boring.notch, Atoll, MewNotch, NotchDrop, DynamicNotchKit, jackson-storm/DynamicNotch,
 Cyclop, SuperIsland, ComfyNotch, vibe-notch / notchi (agent status), plus closed-source NotchNook and Alcove.
 
-Legend: ✅ shipped in v0.1 · 🟡 partial · ⏭ planned
+Legend: ✅ shipped in v0.1 · ✅ v0.x shipped in that version · 🟡 partial / best-effort · ⏭ planned
 
 ## 1. Feature matrix
 
@@ -18,7 +18,7 @@ Legend: ✅ shipped in v0.1 · 🟡 partial · ⏭ planned
 | Compact live activity (artwork + visualizer) | ✅ | Visualizer is pure Core Animation (zero per-frame app CPU) |
 | Track-change peek | ✅ | |
 | Shuffle / repeat, ±10 s seek, horizontal swipe for tracks | ✅ v0.2 | AppleScript for Music/Spotify (exact state), MRCommand 6/7 elsewhere; ±10 s on artwork hover |
-| Synced lyrics (LRCLIB) | ⏭ v0.3 | |
+| Synced lyrics (LRCLIB) | ✅ v0.3 | Fetched only by views that show lyrics (`.task(id: track)`): on track change while the player or the compact wing is visible. Exact `/api/get` match, then closest synced `/api/search` result. NSCache + pruned disk cache in Application Support (misses cached too). Redraws via a `TimelineSchedule` that fires at line boundaries only. Optional current line in a wider closed-island wing (default off) |
 | Real FFT spectrum (ScreenCaptureKit audio tap) | ⏭ v0.4 | Opt-in, costs a permission |
 | AirPlay / output device picker, per-app volume | ⏭ v0.4 | |
 
@@ -40,8 +40,9 @@ Legend: ✅ shipped in v0.1 · 🟡 partial · ⏭ planned
 | Low battery alerts (20/10/5 %) | ✅ | |
 | Battery in header + time remaining + Low Power | ✅ | |
 | Bluetooth connect / disconnect activity | ✅ | IOBluetooth notifications, device-type icons |
-| AirPods battery levels | ⏭ v0.3 | |
-| Wi-Fi / VPN / Hotspot alerts | ⏭ v0.3 | |
+| AirPods battery levels | 🟡 v0.3 | **Best-effort.** Private `IOBluetoothDevice` KVC keys (`batteryPercentLeft/Right/Case/Single`), each guarded by `responds(to:)`; read at connect and once more 1.5 s later. L / R / case shown in a wider Bluetooth wing. Not every model/macOS reports them |
+| Wi-Fi / VPN / Hotspot alerts | ✅ v0.3 | `NWPathMonitor` on its own queue, debounced 1.2 s. VPN = a `utun`/`ipsec`/`ppp`/`wg` interface in the path; Hotspot = Wi-Fi + `isExpensive`. SSID via CoreWLAN only if Location is already authorized (never requested for this) |
+| Downloads progress live activity | ✅ v0.3 | Opt-in (macOS asks for Downloads access). `DispatchSource` on ~/Downloads; sizes sampled at 2 Hz only while a `.download` (Safari, total from its Info.plist) / `.crdownload` / `.part` exists. Progress ring (render-server spinner when the size is unknown), "Downloaded" activity: click adds it to the shelf; the shelf also offers it for 5 min |
 
 ### Productivity
 | Feature | Status | Notes |
@@ -55,21 +56,23 @@ Legend: ✅ shipped in v0.1 · 🟡 partial · ⏭ planned
 | System stats: CPU / memory / network / battery | ✅ | Samples only while the tab is visible |
 | Camera mirror | ✅ | Session lazy, runs only while visible, `.medium` preset |
 | Pomodoro (focus / short / long break, auto-advance) | ✅ v0.2 | Configurable lengths |
-| Multiple concurrent timers | ⏭ v0.3 | |
+| Multiple concurrent timers | ✅ v0.3 | Up to 6 countdowns beside the single Pomodoro session; one completion work item each. Per-timer pause / resume / cancel (+1 min in the context menu); closed island shows the soonest with a "+N" badge |
 | Clock: Home widget, header time, idle clock in closed island | ✅ v0.2 | `TimelineView(.everyMinute)`, only while visible |
-| World clocks (second time zone) | ⏭ v0.3 | |
-| Notes / snippets, color picker, caffeinate | ⏭ v0.3 | |
-| Weather | ⏭ v0.3 | Open-Meteo, no key |
-| Shelf expiry, LocalSend, multi-select drag-out | ⏭ v0.3 | |
-| Downloads progress live activity | ⏭ v0.3 | FSEvents on ~/Downloads |
+| World clocks | ✅ v0.3 | Up to 3 zones (searchable picker in Settings) under the Home clock, with day offset |
+| Notes / snippets | ✅ v0.3 | New **Notes** tab: scratchpad with debounced autosave to Application Support, snippets (click to copy). Text fields make the non-activating panel key; the island stays open while it is key and closes when you click elsewhere |
+| Colour picker, Keep Awake (caffeinate) | ✅ v0.3 | New **Tools** tab: `NSColorSampler`, HEX / RGB / HSL click-to-copy, last 8 colours. Keep Awake = `IOPMAssertion` (PreventUserIdleDisplaySleep) for 15 min / 1 h / ∞, released on stop and quit; cup in the header while on |
+| Weather | ✅ v0.3 | Open-Meteo, no key. Off by default. One-shot CoreLocation fix (When In Use, asked when you enable weather) or a city searched via Open-Meteo geocoding. 30 min timer (5 min tolerance) + catch-up on wake, cached result, decoding off main. Chip beside the Home clock flips the agenda column to a 5-hour forecast; temperature in the header elsewhere |
+| Shelf expiry, multi-select drag-out | ✅ v0.3 | Expiry Off / 1 day / 1 week, purged at launch and when the shelf is shown (no timers). Dragging a selected tile drags the whole selection (AppKit dragging session, one item per file) |
+| LocalSend | ⏭ | Postponed |
 
 ### System status
-| Feature | Status |
-|---|---|
-| Focus / DND indicator | ⏭ v0.3 |
-| Screen-recording / camera / mic privacy indicators | ⏭ v0.3 |
-| App notifications in the island | ⏭ v0.5 (no public API; research) |
-| AI coding-agent status + approvals (Claude Code hooks → socket) | ⏭ v0.4 |
+| Feature | Status | Notes |
+|---|---|---|
+| Focus / DND indicator | 🟡 v0.3 | **Two sources.** With Full Disk Access: `~/Library/DoNotDisturb/DB` watched by a `DispatchSource` (fully event-driven, shows the mode's name and icon). Otherwise `INFocusStatusCenter` (authorize in Settings → Live Activities): on/off only; it has no change notification for regular apps, so it is re-read on app switches / wake plus one 20 s timer (10 s tolerance) that exists only while authorized and enabled. Scheduled Focus modes may be reported late on the second path |
+| Camera / microphone in use | ✅ v0.3 | CoreMediaIO + CoreAudio `DeviceIsRunningSomewhere` listeners (default input re-attached on change, old listeners removed). Green / orange dots at the wing edge (or a small privacy wing when nothing else shows) + a transient activity on start. Blinko's own mirror is ignored |
+| Screen-recording indicator | ⏭ | **Skipped:** no public, reliable "screen is being captured" signal (ScreenCaptureKit only reports your own streams). Revisit if macOS adds one |
+| App notifications in the island | ⏭ v0.5 (no public API; research) | |
+| AI coding-agent status + approvals (Claude Code hooks → socket) | ⏭ v0.4 | |
 
 ### Display, interaction, app
 | Feature | Status | Notes |
@@ -82,37 +85,38 @@ Legend: ✅ shipped in v0.1 · 🟡 partial · ⏭ planned
 | Hover "peek", haptics, pin open | ✅ | |
 | Global shortcut ⌃⌥Space | ✅ | Carbon hotkey, no permission |
 | Spring motion system, blur-reveal transitions | ✅ | `Motion.swift` |
+| Reduced motion | ✅ v0.3 | Follows `accessibilityDisplayShouldReduceMotion` (change notification) or the Appearance override: springs become short fades, the island reveal drops blur/scale |
 | Settings window, onboarding, menu bar icon, launch at login | ✅ | |
-| Snapshot renderer (`--snapshot <dir>`) for design QA | ✅ | |
-| Customisable shortcut, reorderable / hideable tabs, island size tuning | ✅ v0.2 | Settings → General / Layout |
+| Snapshot renderer (`--snapshot <dir>`) for design QA | ✅ | v0.3 adds every new activity, tab and the busiest header |
+| Customisable shortcut, reorderable / hideable tabs, island size tuning | ✅ v0.2 | Settings → General / Layout; new tabs are appended automatically |
 | Lock-screen widgets (SkyLight space) | ⏭ v0.5 | Private API |
 | Signed + notarized DMG (`scripts/release.sh`) | ✅ v0.2 | Needs a Developer ID cert + notary profile |
-| Sparkle auto-updates | ⏭ | Pending decision on dependency + appcast hosting |
+| Sparkle auto-updates | ✅ v0.2 | Appcast on GitHub Releases |
+| Localisation | 🟡 v0.3 | **Infrastructure, English only.** `Resources/Localizable.xcstrings` (≈240 keys) generated from the code by `scripts/extract-strings.sh` (compiler `-emit-localized-strings` + `xcstringstool sync`, i.e. what Xcode does). `build.sh` compiles it into `<lang>.lproj` in the main bundle, so plain `Text("…")` / `String(localized:)` pick translations up without a SwiftPM resource bundle. Add a language by translating the catalog in Xcode |
 | Extensions / plugins (JavaScriptCore) | ⏭ v0.6 | |
-| Localisation, reduced-motion | ⏭ v0.3 | |
 
 ## 2. Performance budget
 
-| Metric | Target | v0.1 measured |
+| Metric | Target | Measured |
 |---|---|---|
-| Idle CPU (island closed, nothing playing) | ≈ 0 % | ~0.2 % (v0.2: no wakeups for mouse movement away from the island) |
-| Open island, idle | < 1 % | ~0.7 % |
+| Idle CPU (island closed, nothing playing) | ≈ 0 % | v0.3: 0.01–0.07 s CPU per 30 s (≈ 0.0–0.2 %) with the default v0.3 features on (Focus, privacy, network, AirPods) |
+| Open island, idle | < 1 % | ~0.7 % (v0.1) |
 | Media bridge (perl) idle | 0 % | 0.0 %, ~5 MB |
-| RSS | < 80 MB | ~75 MB |
+| RSS | < 80 MB | v0.3: ~63–66 MB idle |
 
 Rules every feature must follow:
-1. **Event-driven first.** IOKit / CoreAudio / EventKit / IOBluetooth / distributed notifications, never polling when an event exists.
-2. **Nothing runs unless someone can see it.** Stats, scrubber, camera and timeline views start in `onAppear` and stop in `onDisappear`.
+1. **Event-driven first.** IOKit / CoreAudio / CoreMediaIO / EventKit / IOBluetooth / NWPathMonitor / DispatchSource, never polling when an event exists. The only v0.3 polls: download sizes (2 Hz, only while a partial file exists) and the Focus Status fallback (20 s, only when no database access).
+2. **Nothing runs unless someone can see it or the feature is on.** Stats, scrubber, camera, timeline views and lyrics fetching start with their views; weather/downloads/network/Focus/privacy stop entirely when switched off.
 3. **Leaf-level observation.** `@Observable` services are read in the smallest view that needs them; the island frame never observes track data.
 4. **Window size never depends on hover** (feedback-loop bug found and fixed during v0.1 profiling).
-5. **Render-server animation** for anything continuous (Core Animation visualizer).
-6. **Bounded caches** (`NSCache`), decode images once and downsample them, keep I/O off main.
+5. **Render-server animation** for anything continuous (Core Animation visualizer, download spinner).
+6. **Bounded caches** (`NSCache`), decode images once and downsample them, keep I/O and network decoding off main.
 7. Timers always carry `tolerance`; features turned off do no background work at all.
 
 ## 3. Roadmap
 
-- **v0.2 — Polish (shipped).** Shuffle/repeat, ±10 s seek, swipe for tracks, Caps Lock + mic HUD, shortcut recorder, tab reordering, size tuning, Pomodoro, clock widget, DMG/notarization script, pointer monitors that only run near the island, pre-blurred artwork glow. Sparkle pending.
-- **v0.3 — Awareness.** Focus/DND, privacy indicators, downloads activity, Wi-Fi/VPN/Hotspot alerts, AirPods battery, weather, synced lyrics, notes and snippets, shelf expiry, localisation, reduced motion.
-- **v0.4 — Power user.** AI agent status and approvals (Claude Code / Codex hooks), real FFT visualizer, AirPlay routing, DDC brightness for external displays, per-app volume.
+- **v0.2 — Polish (shipped).** Shuffle/repeat, ±10 s seek, swipe for tracks, Caps Lock + mic HUD, shortcut recorder, tab reordering, size tuning, Pomodoro, clock widget, DMG/notarization script, pointer monitors that only run near the island, pre-blurred artwork glow, Sparkle.
+- **v0.3 — Awareness (shipped).** Focus/DND, camera/mic indicators, downloads activity, Wi-Fi/VPN/Hotspot alerts, AirPods battery, weather, synced lyrics, multiple timers, world clocks, Notes and Tools tabs (colour picker, Keep Awake), shelf expiry + multi-select drag-out, localisation infrastructure, reduced motion. Best-effort: AirPods levels, Focus without Full Disk Access; skipped: screen-recording indicator; postponed: LocalSend.
+- **v0.4 — Power user.** AI agent status and approvals (Claude Code / Codex hooks), real FFT visualizer, AirPlay routing, DDC brightness for external displays, per-app volume, first translations.
 - **v0.5 — Lock screen and notifications.** SkyLight lock-screen widgets; notification mirroring research.
 - **v0.6 — Platform.** JavaScriptCore extension API and an extension gallery.
