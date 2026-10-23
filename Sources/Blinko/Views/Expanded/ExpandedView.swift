@@ -92,33 +92,46 @@ private struct ExpandedHeader: View {
 
             Spacer(minLength: vm.geometry.hasNotch ? vm.geometry.notchSize.width + 16 : 16)
 
-            HStack(spacing: 4) {
-                KeepAwakeIndicator { withAnimation(Motion.micro) { vm.tab = .tools } }
-                // Home shows weather next to its clock already.
-                if !(vm.tab == .home && Preferences.shared.showClock) {
-                    HeaderWeather()
-                }
-                // Hidden on Home when the big clock is already showing.
-                if Preferences.shared.showClockInHeader, !(vm.tab == .home && Preferences.shared.showClock) {
-                    TimelineView(.everyMinute) { ctx in
-                        Text(ctx.date, format: .dateTime.hour().minute())
-                            .font(.system(size: 11.5, weight: .semibold).monospacedDigit())
-                            .foregroundStyle(Color.secondaryText)
-                            .padding(.trailing, 8)
-                    }
-                }
-                HeaderBattery()
-                IslandIconButton(symbol: vm.isPinned ? "pin.fill" : "pin", size: 11, plate: 24,
-                                 tint: vm.isPinned ? .orange : .secondaryText,
-                                 help: "Keep open") { vm.isPinned.toggle() }
-                IslandIconButton(symbol: "gearshape.fill", size: 11, plate: 24, tint: .secondaryText, help: "Settings") {
-                    vm.close()
-                    SettingsWindowController.shared.show()
-                }
+            // With many tabs and every status item on, a 700 pt island runs out of room:
+            // drop the weather first, then the time, rather than squeezing text.
+            ViewThatFits(in: .horizontal) {
+                statusItems(weather: true, time: true)
+                statusItems(weather: false, time: true)
+                statusItems(weather: false, time: false)
             }
+            .layoutPriority(1)
         }
         .padding(.horizontal, Metrics.openTopRadius + 8)
         .padding(.top, 2)
+    }
+
+    private func statusItems(weather: Bool, time: Bool) -> some View {
+        // Home shows the clock and weather in its own layout already.
+        let homeClock = vm.tab == .home && Preferences.shared.showClock
+        return HStack(spacing: 4) {
+            KeepAwakeIndicator { withAnimation(Motion.micro) { vm.tab = .tools } }
+            if weather, !homeClock {
+                HeaderWeather()
+            }
+            if time, Preferences.shared.showClockInHeader, !homeClock {
+                TimelineView(.everyMinute) { ctx in
+                    Text(ctx.date, format: .dateTime.hour().minute())
+                        .font(.system(size: 11.5, weight: .semibold).monospacedDigit())
+                        .foregroundStyle(Color.secondaryText)
+                        .fixedSize()
+                        .padding(.trailing, 8)
+                }
+            }
+            HeaderBattery()
+            IslandIconButton(symbol: vm.isPinned ? "pin.fill" : "pin", size: 11, plate: 24,
+                             tint: vm.isPinned ? .orange : .secondaryText,
+                             help: "Keep open") { vm.isPinned.toggle() }
+            IslandIconButton(symbol: "gearshape.fill", size: 11, plate: 24, tint: .secondaryText, help: "Settings") {
+                vm.close()
+                SettingsWindowController.shared.show()
+            }
+        }
+        .fixedSize()
     }
 }
 

@@ -123,6 +123,12 @@ enum Snapshot {
         KeepAwakeService.shared.injectPreview(until: Date().addingTimeInterval(3600))
         shot("21-open-notes") { vm in vm.open(tab: .notes) }
         shot("21b-open-tools") { vm in vm.open(tab: .tools) }
+
+        // Busiest header a MacBook can show: 7 tabs, Keep Awake, weather, time, battery.
+        BatteryService.shared.injectPreview(level: 84, pluggedIn: false)
+        prefs.weatherEnabled = true
+        shot("22-header-full") { vm in vm.open(tab: .stats) }
+        prefs.weatherEnabled = saved.0
     }
 
     private static func sampleArtwork() -> NSImage {

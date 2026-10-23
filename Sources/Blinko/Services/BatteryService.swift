@@ -36,6 +36,13 @@ final class BatteryService {
         }
     }
 
+    /// Design-time state for snapshot rendering.
+    func injectPreview(level: Int, pluggedIn: Bool) {
+        hasBattery = true
+        self.level = level
+        isPluggedIn = pluggedIn
+    }
+
     private func read(notify: Bool) {
         guard let blob = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
               let list = IOPSCopyPowerSourcesList(blob)?.takeRetainedValue() as? [CFTypeRef],
