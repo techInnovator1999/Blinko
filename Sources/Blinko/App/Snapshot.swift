@@ -10,7 +10,8 @@ enum Snapshot {
         guard let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count else { return false }
         let dir = URL(fileURLWithPath: args[i + 1], isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        render(to: dir)
+        if !args.contains("--themes-only") { render(to: dir) }
+        renderThemes(to: dir)
         return true
     }
 
@@ -24,7 +25,7 @@ enum Snapshot {
         func shot(_ name: String, setup: (NotchViewModel) -> Void) {
             let vm = NotchViewModel(geometry: geometry)
             setup(vm)
-            let canvas = CGSize(width: 760, height: 280)
+            let canvas = CGSize(width: max(760, vm.canvasSize.width + 40), height: 280)
             let view = ZStack(alignment: .top) {
                 LinearGradient(colors: [Color(red: 0.36, green: 0.42, blue: 0.62), Color(red: 0.75, green: 0.55, blue: 0.6)],
                                startPoint: .topLeading, endPoint: .bottomTrailing)

@@ -45,6 +45,7 @@ private struct Scratchpad: View {
                 .padding(.vertical, 8)
                 .onExitCommand { focused = false; vm.close() }
         }
+        .overlay(FocusRing(cornerRadius: 14, focused: focused))
         .animation(Motion.micro, value: focused)
         .onChange(of: focused) { _, isFocused in if isFocused { vm.requestKey?() } }
     }
@@ -76,6 +77,7 @@ private struct SnippetsColumn: View {
             .frame(height: 28)
             .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
                 .fill(focused ? Color.fillHover : Color.fillSubtle))
+            .overlay(FocusRing(cornerRadius: 9, focused: focused))
             .onChange(of: focused) { _, isFocused in if isFocused { vm.requestKey?() } }
 
             if notes.snippets.isEmpty {

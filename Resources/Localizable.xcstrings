@@ -58,7 +58,16 @@
     "A long break follows every fourth focus session." : {
 
     },
+    "A theme sets the accent, style, size, corners and type. Export saves yours as a small JSON file to share or keep." : {
+
+    },
     "About" : {
+
+    },
+    "Accent" : {
+
+    },
+    "Accent glow beneath" : {
 
     },
     "Accessibility" : {
@@ -94,6 +103,9 @@
     "AirPods battery levels" : {
 
     },
+    "Album art" : {
+
+    },
     "All displays" : {
 
     },
@@ -104,6 +116,9 @@
 
     },
     "Appearance" : {
+
+    },
+    "Applied “%@”" : {
 
     },
     "Automatically check for updates" : {
@@ -122,6 +137,12 @@
 
     },
     "Blinko" : {
+
+    },
+    "Blinko Pink" : {
+
+    },
+    "Blinko Theme" : {
 
     },
     "Bluetooth devices" : {
@@ -172,7 +193,16 @@
     "Check for Updates…" : {
 
     },
+    "Choose a .json file exported from Blinko's Appearance settings." : {
+
+    },
+    "Chrome appears on hover" : {
+
+    },
     "City" : {
+
+    },
+    "Classic" : {
 
     },
     "Clear" : {
@@ -205,10 +235,19 @@
     "Close when the pointer leaves" : {
 
     },
+    "Closed corners" : {
+
+    },
     "Closed width fine-tune" : {
 
     },
     "Cloudy" : {
+
+    },
+    "Compact" : {
+
+    },
+    "Compact and Large scale the open island and its contents together. Moving the width slider (here or in Layout) makes the size Custom." : {
 
     },
     "Connected" : {
@@ -226,10 +265,22 @@
     "Copy text, images or files — they'll show up here" : {
 
     },
+    "Couldn't export the theme." : {
+
+    },
     "Couldn't load the weather. Blinko retries every 30 minutes." : {
 
     },
     "Current location" : {
+
+    },
+    "Custom" : {
+
+    },
+    "Custom colour…" : {
+
+    },
+    "Default" : {
 
     },
     "Delete" : {
@@ -239,6 +290,9 @@
 
     },
     "Designed by" : {
+
+    },
+    "Details" : {
 
     },
     "Disconnected" : {
@@ -265,6 +319,12 @@
     "Drop files here" : {
 
     },
+    "Export Theme" : {
+
+    },
+    "Export…" : {
+
+    },
     "Fine-tune makes the closed island exactly cover your notch — handy for scaled display resolutions." : {
 
     },
@@ -289,13 +349,22 @@
     "Forecasts from Open-Meteo, refreshed every 30 minutes while Blinko runs. Your location is used once per session and only sent to Open-Meteo as rounded coordinates." : {
 
     },
+    "Frosted edge, soft inner light" : {
+
+    },
     "General" : {
 
     },
     "Get Started" : {
 
     },
+    "Glass" : {
+
+    },
     "Global shortcut" : {
+
+    },
+    "Glow" : {
 
     },
     "Grant Full Disk Access to Blinko to show the Focus mode's name" : {
@@ -334,6 +403,15 @@
     "Hover delay" : {
 
     },
+    "Import Theme" : {
+
+    },
+    "Imported Theme" : {
+
+    },
+    "Import…" : {
+
+    },
     "In Use" : {
 
     },
@@ -344,6 +422,9 @@
 
     },
     "Island size" : {
+
+    },
+    "Island style" : {
 
     },
     "Join meeting" : {
@@ -365,6 +446,9 @@
 
     },
     "Keep open" : {
+
+    },
+    "Large" : {
 
     },
     "Launch at login" : {
@@ -400,6 +484,12 @@
     "Main display" : {
 
     },
+    "Match album art" : {
+
+    },
+    "Match wallpaper" : {
+
+    },
     "Memory" : {
 
     },
@@ -407,6 +497,12 @@
 
     },
     "Microphone volume & mute" : {
+
+    },
+    "Minimal" : {
+
+    },
+    "Mint" : {
 
     },
     "Mirror" : {
@@ -418,6 +514,9 @@
     "Modules" : {
 
     },
+    "Mono" : {
+
+    },
     "Mostly Clear" : {
 
     },
@@ -425,6 +524,9 @@
 
     },
     "Music visualizer" : {
+
+    },
+    "My Blinko Theme" : {
 
     },
     "Needed to replace the volume & brightness HUD." : {
@@ -469,6 +571,12 @@
     "Now Playing" : {
 
     },
+    "Numbers & titles" : {
+
+    },
+    "Ocean" : {
+
+    },
     "Off" : {
 
     },
@@ -485,6 +593,9 @@
 
     },
     "Open Settings" : {
+
+    },
+    "Open corners" : {
 
     },
     "Open on hover" : {
@@ -526,7 +637,13 @@
     "Power adapter" : {
 
     },
+    "Preview" : {
+
+    },
     "Previous" : {
+
+    },
+    "Pure black, one with the notch" : {
 
     },
     "Quit Blinko" : {
@@ -559,7 +676,19 @@
     "Reset sizes" : {
 
     },
+    "Reset to Defaults" : {
+
+    },
     "Resume" : {
+
+    },
+    "Rounder" : {
+
+    },
+    "SF Pro" : {
+
+    },
+    "SF Pro Rounded" : {
 
     },
     "Save text you paste often. Click a snippet to copy it." : {
@@ -578,6 +707,9 @@
 
     },
     "Shadow under the open island" : {
+
+    },
+    "Sharper" : {
 
     },
     "Shelf" : {
@@ -613,6 +745,12 @@
     "Shuffle" : {
 
     },
+    "Size" : {
+
+    },
+    "Size & shape" : {
+
+    },
     "Skip" : {
 
     },
@@ -634,6 +772,9 @@
     "Stop" : {
 
     },
+    "Sunset" : {
+
+    },
     "Swipe gestures (two-finger down/up)" : {
 
     },
@@ -643,10 +784,19 @@
     "System" : {
 
     },
+    "Tab" : {
+
+    },
     "Tabs" : {
 
     },
+    "Themes" : {
+
+    },
     "They'll wait for you on the shelf" : {
+
+    },
+    "This file isn't a Blinko theme." : {
 
     },
     "Thunderstorm" : {
@@ -664,7 +814,7 @@
     "Timer" : {
 
     },
-    "Tint controls with album artwork colour" : {
+    "Tint the player with album artwork colour" : {
 
     },
     "Toggle island" : {
@@ -694,10 +844,19 @@
     "Updates are disabled in this development build." : {
 
     },
+    "Used for the selected tab, progress bars, the scrubber and timers. Battery, camera and microphone keep their own colours. “Wallpaper” samples your desktop picture when you switch spaces or displays." : {
+
+    },
     "VPN" : {
 
     },
     "Version %@" : {
+
+    },
+    "Violet" : {
+
+    },
+    "Wallpaper" : {
 
     },
     "Weather" : {
@@ -713,6 +872,9 @@
 
     },
     "Wi-Fi, VPN & Personal Hotspot" : {
+
+    },
+    "Width" : {
 
     },
     "World clocks" : {

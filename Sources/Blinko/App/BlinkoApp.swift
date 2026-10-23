@@ -23,6 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let prefs = Preferences.shared
 
         Motion.startObservingReducedMotion()
+        Theme.shared.start() // samples the wallpaper only while "Match wallpaper" is the accent
         ServiceHub.shared.start()
         _ = UpdateService.shared // starts Sparkle's scheduled checks
 

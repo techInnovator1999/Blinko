@@ -125,7 +125,7 @@ private struct ShelfTile: View {
         }
         .padding(6)
         .background(RoundedRectangle(cornerRadius: 10, style: .continuous)
-            .fill(selected ? Color.accentColor.opacity(0.3) : (hovering ? Color.fillSubtle : .clear)))
+            .fill(selected ? Theme.shared.accent.opacity(0.3) : (hovering ? Color.fillSubtle : .clear)))
         .onHover { hovering = $0 }
         .animation(Motion.micro, value: hovering)
         .onTapGesture(count: 2) { shelf.open(item) }
@@ -347,7 +347,7 @@ private struct StatCard: View {
                 .tracking(0.6)
                 .foregroundStyle(tint)
             Text(value)
-                .font(.system(size: 15, weight: .semibold).monospacedDigit())
+                .font(Theme.shared.font(15).monospacedDigit())
                 .foregroundStyle(Color.primaryText)
                 .contentTransition(.numericText())
                 .lineLimit(1)
@@ -376,7 +376,7 @@ private struct BatteryCard: View {
                 .foregroundStyle(.yellow)
             if b.hasBattery {
                 Text("\(b.level)%")
-                    .font(.system(size: 15, weight: .semibold).monospacedDigit())
+                    .font(Theme.shared.font(15).monospacedDigit())
                     .foregroundStyle(Color.primaryText)
                 Text(status(b))
                     .font(.system(size: 10, weight: .medium))
@@ -428,11 +428,11 @@ struct TimerView: View {
                         Button { withAnimation(Motion.micro) { page = p } } label: {
                             Text(LocalizedStringKey(p.rawValue))
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(page == p ? Color.black : .secondaryText)
+                                .foregroundStyle(page == p ? Theme.shared.onAccent : .secondaryText)
                                 .padding(.horizontal, 12)
                                 .frame(height: 22)
                                 .background {
-                                    if page == p { Capsule().fill(.white).matchedGeometryEffect(id: "page", in: pageNS) }
+                                    if page == p { Capsule().fill(Theme.shared.accent).matchedGeometryEffect(id: "page", in: pageNS) }
                                 }
                                 .contentShape(Capsule())
                         }
@@ -468,7 +468,7 @@ private struct RingFace: View {
             RingProgress(value: progress, tint: tint, lineWidth: 6)
             VStack(spacing: 2) {
                 Text(Format.time(remaining))
-                    .font(.system(size: 24, weight: .semibold, design: .rounded).monospacedDigit())
+                    .font(Theme.shared.font(24).monospacedDigit())
                     .foregroundStyle(Color.primaryText)
                     .contentTransition(.numericText(countsDown: true))
                 Text(status)
@@ -508,7 +508,7 @@ private struct CountdownRing: View {
             RingFace(progress: featured.map { 1 - $0.progress(at: ctx.date) } ?? 0,
                      remaining: featured?.remaining(at: ctx.date).rounded(.up) ?? 0,
                      status: featured.map { $0.isPaused ? String(localized: "Paused") : $0.label } ?? String(localized: "Ready"),
-                     tint: .orange)
+                     tint: Theme.shared.accent)
         }
     }
 }
@@ -564,7 +564,7 @@ private struct CountdownRow: View {
         let service = TimerService.shared
         HStack(spacing: 6) {
             Circle()
-                .fill(timer.isPaused ? Color.tertiaryText : .orange)
+                .fill(timer.isPaused ? Color.tertiaryText : Theme.shared.accent)
                 .frame(width: 6, height: 6)
             Text(timer.label)
                 .font(.system(size: 11, weight: .semibold))
@@ -578,7 +578,7 @@ private struct CountdownRow: View {
                     Text(Format.time(timer.remaining().rounded(.up)))
                 }
             }
-            .font(.system(size: 13, weight: .semibold, design: .rounded).monospacedDigit())
+            .font(Theme.shared.font(13).monospacedDigit())
             .foregroundStyle(timer.isPaused ? Color.tertiaryText : .primaryText)
             .multilineTextAlignment(.trailing)
             .frame(minWidth: 44, alignment: .trailing)
@@ -654,11 +654,11 @@ struct PresetChip: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: compact ? 12 : 13, weight: .semibold, design: .rounded))
+                .font(Theme.shared.font(compact ? 12 : 13))
                 .foregroundStyle(Color.primaryText)
                 .frame(width: compact ? 54 : 60, height: compact ? 26 : 30)
                 .background(RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(hovering ? Color.orange.opacity(0.35) : Color.fillSubtle))
+                    .fill(hovering ? Theme.shared.accent.opacity(0.35) : Color.fillSubtle))
         }
         .buttonStyle(PressableStyle(scale: 0.93))
         .onHover { hovering = $0 }

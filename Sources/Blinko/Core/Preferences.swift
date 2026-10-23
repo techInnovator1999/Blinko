@@ -53,6 +53,13 @@ final class Preferences {
     var showVisualizer: Bool { didSet { store.set(showVisualizer, forKey: "showVisualizer") } }
     /// Forces reduced motion on; the system Accessibility setting is always honoured as well.
     var reduceMotion: Bool { didSet { store.set(reduceMotion, forKey: "reduceMotion") } }
+    // Theme (derived values live in Theme.swift)
+    var accentPreset: AccentPreset { didSet { store.set(accentPreset.rawValue, forKey: "accentPreset") } }
+    var customAccentHex: String { didSet { store.set(customAccentHex, forKey: "customAccentHex") } }
+    var islandStyle: IslandStyle { didSet { store.set(islandStyle.rawValue, forKey: "islandStyle") } }
+    var openCornerRadius: Double { didSet { store.set(openCornerRadius, forKey: "openCornerRadius") } }
+    var closedCornerRadius: Double { didSet { store.set(closedCornerRadius, forKey: "closedCornerRadius") } }
+    var fontStyle: FontStyle { didSet { store.set(fontStyle.rawValue, forKey: "fontStyle") } }
 
     // Lyrics
     var showLyrics: Bool { didSet { store.set(showLyrics, forKey: "showLyrics") } }
@@ -136,6 +143,12 @@ final class Preferences {
             "openShadow": true,
             "showVisualizer": true,
             "reduceMotion": false,
+            "accentPreset": AccentPreset.blinko.rawValue,
+            "customAccentHex": "#FF5C94",
+            "islandStyle": IslandStyle.classic.rawValue,
+            "openCornerRadius": 26.0,
+            "closedCornerRadius": 14.0,
+            "fontStyle": FontStyle.system.rawValue,
             "showLyrics": true,
             "compactLyrics": false,
             "weatherEnabled": false,
@@ -192,6 +205,12 @@ final class Preferences {
         openShadow = store.bool(forKey: "openShadow")
         showVisualizer = store.bool(forKey: "showVisualizer")
         reduceMotion = store.bool(forKey: "reduceMotion")
+        accentPreset = AccentPreset(rawValue: store.string(forKey: "accentPreset") ?? "") ?? .blinko
+        customAccentHex = store.string(forKey: "customAccentHex") ?? "#FF5C94"
+        islandStyle = IslandStyle(rawValue: store.string(forKey: "islandStyle") ?? "") ?? .classic
+        openCornerRadius = store.double(forKey: "openCornerRadius")
+        closedCornerRadius = store.double(forKey: "closedCornerRadius")
+        fontStyle = FontStyle(rawValue: store.string(forKey: "fontStyle") ?? "") ?? .system
         showLyrics = store.bool(forKey: "showLyrics")
         compactLyrics = store.bool(forKey: "compactLyrics")
         weatherEnabled = store.bool(forKey: "weatherEnabled")

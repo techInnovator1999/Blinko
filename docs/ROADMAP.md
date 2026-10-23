@@ -87,7 +87,7 @@ Legend: ✅ shipped in v0.1 · ✅ v0.x shipped in that version · 🟡 partial 
 | Spring motion system, blur-reveal transitions | ✅ | `Motion.swift` |
 | Reduced motion | ✅ v0.3 | Follows `accessibilityDisplayShouldReduceMotion` (change notification) or the Appearance override: springs become short fades, the island reveal drops blur/scale |
 | Settings window, onboarding, menu bar icon, launch at login | ✅ | |
-| Snapshot renderer (`--snapshot <dir>`) for design QA | ✅ | v0.3 adds every new activity, tab and the busiest header |
+| Snapshot renderer (`--snapshot <dir>`) for design QA | ✅ | v0.3 adds every new activity, tab and the busiest header; v0.4 adds a theme matrix (styles × states, sizes × tabs, accents, themes, corners, the Appearance pane); `--themes-only` renders just that |
 | Customisable shortcut, reorderable / hideable tabs, island size tuning | ✅ v0.2 | Settings → General / Layout; new tabs are appended automatically |
 | Lock-screen widgets (SkyLight space) | ⏭ v0.5 | Private API |
 | Signed + notarized DMG (`scripts/release.sh`) | ✅ v0.2 | Needs a Developer ID cert + notary profile |
@@ -95,14 +95,25 @@ Legend: ✅ shipped in v0.1 · ✅ v0.x shipped in that version · 🟡 partial 
 | Localisation | 🟡 v0.3 | **Infrastructure, English only.** `Resources/Localizable.xcstrings` (≈240 keys) generated from the code by `scripts/extract-strings.sh` (compiler `-emit-localized-strings` + `xcstringstool sync`, i.e. what Xcode does). `build.sh` compiles it into `<lang>.lproj` in the main bundle, so plain `Text("…")` / `String(localized:)` pick translations up without a SwiftPM resource bundle. Add a language by translating the catalog in Xcode |
 | Extensions / plugins (JavaScriptCore) | ⏭ v0.6 | |
 
+### Themes & island styles (v0.4)
+| Feature | Status | Notes |
+|---|---|---|
+| App-wide accent colour | ✅ v0.4 | `Theme` (`Core/Theme.swift`), derived from Preferences and read at leaf views. Presets Blinko Pink / Violet / Ocean / Mint / Sunset / Mono, custom (system colour panel), Match album art, Match wallpaper. Used for the selected tab and Timer/Focus pills, volume / backlight / mic bars, scrubber + visualizer when album tint is off, countdown ring and rows, preset chips, shelf selection, pin, Notes focus ring. Semantic colours (battery, camera, mic, Pomodoro, Keep Awake, brightness) unchanged |
+| Match wallpaper | ✅ v0.4 | `NSWorkspace.desktopImageURL(for:)` read through an ImageIO thumbnail off-main, hue histogram → lifted dominant colour. Observes `activeSpaceDidChange` / screen-parameter changes **only while that preset is selected**; no timers. Folders / dynamic aerials that ImageIO can't read fall back to Blinko Pink |
+| Island styles | ✅ v0.4 | Classic; Minimal (header and credit hidden until the pointer is over them, 5 % smaller type, tighter radii — opacity only, layout and window never change with hover); Glass (frosted wash + inner rim light, top third kept pure black); Glow (accent halo under the open island, window padding 28 → 40 pt). The closed island always stays plain black |
+| Size presets | ✅ v0.4 | Compact 640 / Default 700 / Large 780 pt. A preset *is* a width: height and content scale (0.92 / 1 / 1.08, clamped 0.9–1.1) follow `openWidth`, so the Layout slider keeps working and shows as Custom. Tab content is laid out at the 700 pt design size and scaled; the header stays at true size and is split around the notch, with tab buttons narrowing (30 → 22 pt) so nothing slides under the notch |
+| Corner style, number font | ✅ v0.4 | Open bottom radius 16–36 pt, closed bottom radius 8–20 pt. SF Pro / SF Pro Rounded for clock, timers, stats, player title, compact clock and timer |
+| Appearance pane + live preview | ✅ v0.4 | `Views/Settings/AppearancePane.swift`: the real `NotchRootView` with its own preview view model (open / now playing / HUD, any tab) over your desktop picture, updating instantly; theme cards, accent swatches, style cards, size / corners / font, reset to defaults |
+| Themes: built-ins, JSON import / export | ✅ v0.4 | Midnight, Aurora (Glass), Paper (Minimal, Compact, Mono), Neon (Glow). `ThemeFile` JSON (`"format": "blinko-theme"`); unknown keys ignored, values clamped |
+
 ## 2. Performance budget
 
 | Metric | Target | Measured |
 |---|---|---|
-| Idle CPU (island closed, nothing playing) | ≈ 0 % | v0.3: 0.01–0.07 s CPU per 30 s (≈ 0.0–0.2 %) with the default v0.3 features on (Focus, privacy, network, AirPods) |
+| Idle CPU (island closed, nothing playing) | ≈ 0 % | v0.3: 0.01–0.07 s CPU per 30 s (≈ 0.0–0.2 %) with the default v0.3 features on (Focus, privacy, network, AirPods). v0.4 themes: 0.01 s per 30 s, unchanged |
 | Open island, idle | < 1 % | ~0.7 % (v0.1) |
 | Media bridge (perl) idle | 0 % | 0.0 %, ~5 MB |
-| RSS | < 80 MB | v0.3: ~63–66 MB idle |
+| RSS | < 80 MB | v0.3: ~63–66 MB idle; v0.4 themes: ~64 MB |
 
 Rules every feature must follow:
 1. **Event-driven first.** IOKit / CoreAudio / CoreMediaIO / EventKit / IOBluetooth / NWPathMonitor / DispatchSource, never polling when an event exists. The only v0.3 polls: download sizes (2 Hz, only while a partial file exists) and the Focus Status fallback (20 s, only when no database access).
@@ -117,6 +128,6 @@ Rules every feature must follow:
 
 - **v0.2 — Polish (shipped).** Shuffle/repeat, ±10 s seek, swipe for tracks, Caps Lock + mic HUD, shortcut recorder, tab reordering, size tuning, Pomodoro, clock widget, DMG/notarization script, pointer monitors that only run near the island, pre-blurred artwork glow, Sparkle.
 - **v0.3 — Awareness (shipped).** Focus/DND, camera/mic indicators, downloads activity, Wi-Fi/VPN/Hotspot alerts, AirPods battery, weather, synced lyrics, multiple timers, world clocks, Notes and Tools tabs (colour picker, Keep Awake), shelf expiry + multi-select drag-out, localisation infrastructure, reduced motion. Best-effort: AirPods levels, Focus without Full Disk Access; skipped: screen-recording indicator; postponed: LocalSend.
-- **v0.4 — Power user.** AI agent status and approvals (Claude Code / Codex hooks), real FFT visualizer, AirPlay routing, DDC brightness for external displays, per-app volume, first translations.
+- **v0.4 — Power user.** Themes & island styles (accent, Classic/Minimal/Glass/Glow, size presets, corners, font, Appearance preview, theme import/export — shipped), AI agent status and approvals (Claude Code / Codex hooks), real FFT visualizer, AirPlay routing, DDC brightness for external displays, per-app volume, first translations.
 - **v0.5 — Lock screen and notifications.** SkyLight lock-screen widgets; notification mirroring research.
 - **v0.6 — Platform.** JavaScriptCore extension API and an extension gallery.
