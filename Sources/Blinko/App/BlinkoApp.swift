@@ -29,6 +29,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let manager = NotchManager()
         manager.start()
         notchManager = manager
+        AppRouter.shared.attach(manager)
 
         statusItem = StatusItemController(manager: manager)
 

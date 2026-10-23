@@ -15,6 +15,10 @@ BIN="$(swift build -c "$CONFIG" "${ARCHS[@]}" --show-bin-path)/Blinko"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Blinko"
+# `blinko` CLI (automation + Claude Code hook client). Helpers/, not MacOS/: the volume is
+# case-insensitive, so "blinko" would collide with "Blinko".
+mkdir -p "$APP/Contents/Helpers"
+cp "$(dirname "$BIN")/blinko-cli" "$APP/Contents/Helpers/blinko"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 source scripts/release.env
 # Sparkle feed: the appcast is attached to the latest GitHub release.
@@ -51,6 +55,7 @@ FW="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
 "${SIGN[@]}" "$FW/XPCServices/Installer.xpc" "$FW/XPCServices/Downloader.xpc" >/dev/null 2>&1
 "${SIGN[@]}" "$FW/Autoupdate" "$FW/Updater.app" >/dev/null 2>&1
 "${SIGN[@]}" "$APP/Contents/Frameworks/Sparkle.framework" >/dev/null 2>&1
+"${SIGN[@]}" "$APP/Contents/Helpers/blinko" >/dev/null
 "${SIGN[@]}" --entitlements Resources/Blinko.entitlements "$APP" >/dev/null
 echo "Built $APP (signed with: ${IDENTITY:-ad-hoc})"
 

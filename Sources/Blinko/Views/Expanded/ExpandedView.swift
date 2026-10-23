@@ -63,6 +63,7 @@ private struct TabContent: View {
             case .timer: TimerView()
             case .notes: NotesView(vm: vm)
             case .tools: ToolsView(vm: vm)
+            case .agents: AgentsView(vm: vm)
             }
         }
         .id(tab)

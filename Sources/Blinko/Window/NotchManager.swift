@@ -46,6 +46,9 @@ final class NotchManager {
         target?.viewModel.open(tab: tab)
     }
 
+    /// Every island's view model (one per display), for app-level routing (URL scheme, Agent Hub).
+    var viewModels: [NotchViewModel] { controllers.values.map(\.viewModel) }
+
     // MARK: Displays
 
     private func makeController(for screen: NSScreen) -> NotchWindowController {

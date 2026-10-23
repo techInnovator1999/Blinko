@@ -61,6 +61,8 @@ struct CompactView: View {
             PrivacySymbols()
         case .activity(let a):
             ActivityLeading(activity: a)
+        case .agent:
+            AgentCompactLeading()
         }
     }
 
@@ -92,6 +94,8 @@ struct CompactView: View {
             PrivacyDots(compact: false)
         case .activity(let a):
             ActivityTrailing(activity: a)
+        case .agent:
+            AgentCompactTrailing()
         }
     }
 }
@@ -432,6 +436,8 @@ private struct ActivityLeading: View {
                 .symbolEffect(.bounce, options: .repeat(3), value: activity)
         case .nowPlayingChanged:
             EmptyView()
+        case .custom(let alert):
+            CustomAlertLeading(alert: alert)
         }
     }
 
@@ -512,6 +518,8 @@ private struct ActivityTrailing: View {
             Text("Done").font(.system(size: 12, weight: .semibold)).foregroundStyle(.orange)
         case .nowPlayingChanged:
             EmptyView()
+        case .custom(let alert):
+            CustomAlertTrailing(alert: alert)
         }
     }
 }

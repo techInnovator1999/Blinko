@@ -31,6 +31,7 @@ final class ServiceHub {
         NetworkService.shared.refresh()
         DownloadsService.shared.refresh()
         WeatherService.shared.refresh()
+        AgentHubService.shared.refresh()
     }
 
     private func observePreferences() {
@@ -44,6 +45,7 @@ final class ServiceHub {
             _ = prefs.networkActivity
             _ = prefs.downloadsActivity
             _ = prefs.weatherEnabled
+            _ = prefs.agentHubEnabled
         } onChange: { [weak self] in
             DispatchQueue.main.async {
                 self?.applyPreferences()
