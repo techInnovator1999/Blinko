@@ -6,7 +6,7 @@ import SwiftUI
 extension Metrics {
     /// Open island on the lock screen: just the player, below the notch.
     static func lockScreenOpenSize(notchHeight: CGFloat) -> CGSize {
-        CGSize(width: 430, height: notchHeight + 112)
+        CGSize(width: 470, height: notchHeight + 112)
     }
 }
 
@@ -98,7 +98,7 @@ struct LockScreenPlayerView: View {
                 .padding(.top, 2)
             }
         }
-        .padding(.horizontal, 18)
+        .padding(.horizontal, Theme.shared.openTopRadius + 16) // clear the top "ears"
         .padding(.top, vm.geometry.notchSize.height + 8)
         .padding(.bottom, 12)
         .task(id: presses) {

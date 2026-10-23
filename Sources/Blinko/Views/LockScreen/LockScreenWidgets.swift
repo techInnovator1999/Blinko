@@ -44,7 +44,7 @@ private struct LockCard<Content: View>: View {
 private struct LockMusicCard: View {
     var body: some View {
         let np = NowPlayingService.shared
-        LockCard(width: 330) {
+        LockCard(width: 310) {
             HStack(spacing: 12) {
                 ArtworkView(image: np.artwork, cornerRadius: 12)
                     .frame(width: 76, height: 76)
