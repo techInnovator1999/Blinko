@@ -144,15 +144,15 @@ struct CommandBarStep: View {
     private struct Example {
         let query: String
         let symbol: String
-        let result: LocalizedStringKey
+        let result: Text
         let kind: LocalizedStringKey
     }
 
     private let examples: [Example] = [
-        Example(query: "(12 + 4) * 3^2", symbol: "function", result: "144", kind: "Calculator"),
-        Example(query: "10 km to mi", symbol: "ruler", result: "6.21 mi", kind: "Units"),
-        Example(query: "t 25m", symbol: "timer", result: "Start a 25-minute timer", kind: "Timer"),
-        Example(query: "saf", symbol: "safari", result: "Safari", kind: "Apps"),
+        Example(query: "(12 + 4) * 3^2", symbol: "function", result: Text(verbatim: "144"), kind: "Calculator"),
+        Example(query: "10 km to mi", symbol: "ruler", result: Text(verbatim: "6.21 mi"), kind: "Units"),
+        Example(query: "t 25m", symbol: "timer", result: Text("Start a 25-minute timer"), kind: "Timer"),
+        Example(query: "saf", symbol: "safari", result: Text(verbatim: "Safari"), kind: "Apps"),
     ]
 
     var body: some View {
@@ -181,7 +181,7 @@ struct CommandBarStep: View {
                                 .foregroundStyle(.white)
                                 .frame(width: 24, height: 24)
                                 .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Theme.shared.accent.opacity(0.85)))
-                            Text(example.result).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
+                            example.result.font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
                                 .lineLimit(1)
                             Spacer(minLength: 4)
                             Text(example.kind).font(.system(size: 11)).foregroundStyle(.white.opacity(0.45))

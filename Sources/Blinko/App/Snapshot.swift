@@ -12,6 +12,7 @@ enum Snapshot {
         let dir = URL(fileURLWithPath: args[i + 1], isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         if args.contains("--launch-only") { renderLaunch(to: dir); return true }
+        if args.contains("--site-only") { renderSite(to: dir); return true }
         if !args.contains("--themes-only") { render(to: dir) }
         renderThemes(to: dir)
         renderLaunch(to: dir)

@@ -76,6 +76,7 @@ struct MediaPlayerView: View {
                     .padding(.top, LyricsService.shared.hasLyrics(for: LyricsService.key(title: np.title, artist: np.artist)) ? 7 : 12)
                     .opacity(np.hasTrack ? 1 : 0.35)
                     .disabled(!np.hasTrack)
+                    .environment(\.layoutDirection, .leftToRight) // playback runs left to right in every language (HIG)
 
                 HStack(spacing: 0) {
                     IslandIconButton(symbol: "shuffle", size: 11, plate: 26,
@@ -98,6 +99,7 @@ struct MediaPlayerView: View {
                     }
                 }
                 .padding(.top, 6)
+                .environment(\.layoutDirection, .leftToRight) // transport controls are never mirrored (HIG)
             }
             .padding(.top, 8)
         }

@@ -40,6 +40,8 @@ scripts/appintents-metadata.sh "$CONFIG" "$APP/Contents/Resources"
 mkdir -p "$APP/Contents/Resources/en.lproj"
 if xcrun --find xcstringstool >/dev/null 2>&1; then
   xcrun xcstringstool compile Resources/Localizable.xcstrings --output-directory "$APP/Contents/Resources" >/dev/null
+  # Permission prompts (usage descriptions) per language → <lang>.lproj/InfoPlist.strings.
+  xcrun xcstringstool compile Resources/InfoPlist.xcstrings --output-directory "$APP/Contents/Resources" >/dev/null
 else
   echo "warning: xcstringstool not found (needs Xcode); shipping English only" >&2
 fi
