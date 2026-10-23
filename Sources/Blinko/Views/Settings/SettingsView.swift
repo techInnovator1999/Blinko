@@ -6,6 +6,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
     case agents, automation
     case lockScreen
     case sounds
+    case notifications
     case about
     var id: String { rawValue }
 
@@ -24,6 +25,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .automation: String(localized: "Automation")
         case .lockScreen: String(localized: "Lock Screen")
         case .sounds: String(localized: "Sounds")
+        case .notifications: String(localized: "Notifications")
         case .homeLayout: String(localized: "Home Layout")
         }
     }
@@ -43,6 +45,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .automation: "bolt.horizontal.fill"
         case .lockScreen: "lock.fill"
         case .sounds: "speaker.wave.2.fill"
+        case .notifications: "bell.badge.fill"
         case .homeLayout: "square.grid.3x2.fill"
         }
     }
@@ -62,6 +65,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .automation: .green
         case .lockScreen: .blue
         case .sounds: .pink
+        case .notifications: .red
         case .homeLayout: .cyan
         }
     }
@@ -147,6 +151,7 @@ struct SettingsView: View {
                 case .automation: AutomationSettingsPane()
                 case .lockScreen: LockScreenPane()
                 case .sounds: SoundsPane()
+                case .notifications: NotificationsPane()
                 case .homeLayout: HomeLayoutPane()
                 }
             }

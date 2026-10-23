@@ -18,7 +18,7 @@ extension TransientActivity {
         case .volume, .brightness, .keyboardBacklight, .microphone, .capsLock, .focusSession, .power,
              .lowBattery, .bluetooth, .timerFinished, .nowPlayingChanged, .focusMode, .privacy, .mutedWarning:
             true
-        case .shelf, .network, .downloadFinished, .custom:
+        case .shelf, .network, .downloadFinished, .custom, .appNotification:   // messages are private
             false
         }
     }

@@ -153,6 +153,11 @@ final class Preferences {
     /// Thin spectrum along the bottom of the player's artwork (Real mode only).
     var expandedSpectrum: Bool { didSet { store.set(expandedSpectrum, forKey: "expandedSpectrum") } }
 
+    // Notification mirroring
+    var mirrorNotifications: Bool { didSet { store.set(mirrorNotifications, forKey: "mirrorNotifications") } }
+    var mirroredApps: [String] { didSet { store.set(mirroredApps, forKey: "mirroredApps") } }
+    var hideNotificationText: Bool { didSet { store.set(hideNotificationText, forKey: "hideNotificationText") } }
+
     // Sounds
     var soundsEnabled: Bool { didSet { store.set(soundsEnabled, forKey: "soundsEnabled") } }
     var soundVolume: Double { didSet { store.set(soundVolume, forKey: "soundVolume") } }
@@ -170,6 +175,9 @@ final class Preferences {
 
     private init() {
         store.register(defaults: [
+            "mirrorNotifications": true,
+            "mirroredApps": ["Slack"],
+            "hideNotificationText": false,
             "soundsEnabled": true,
             "soundVolume": 0.8,
             "silenceSoundsInFocus": true,
@@ -250,6 +258,9 @@ final class Preferences {
             "homeLayoutID": HomeLayout.defaultID,
             "expandedSpectrum": true,
         ])
+        mirrorNotifications = store.bool(forKey: "mirrorNotifications")
+        mirroredApps = store.stringArray(forKey: "mirroredApps") ?? ["Slack"]
+        hideNotificationText = store.bool(forKey: "hideNotificationText")
         soundsEnabled = store.bool(forKey: "soundsEnabled")
         soundVolume = store.double(forKey: "soundVolume")
         silenceSoundsInFocus = store.bool(forKey: "silenceSoundsInFocus")

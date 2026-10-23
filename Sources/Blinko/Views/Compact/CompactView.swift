@@ -444,6 +444,8 @@ private struct ActivityLeading: View {
             MutedWarningLeading()
         case .custom(let alert):
             CustomAlertLeading(alert: alert)
+        case .appNotification(let note):
+            NotificationLeading(note: note)
         }
     }
 
@@ -528,6 +530,8 @@ private struct ActivityTrailing: View {
             MutedWarningTrailing()
         case .custom(let alert):
             CustomAlertTrailing(alert: alert)
+        case .appNotification(let note):
+            NotificationTrailing(note: note)
         }
     }
 }
@@ -628,3 +632,42 @@ extension NetworkEvent {
         }
     }
 }
+
+// MARK: - Mirrored notifications (Slack…)
+
+private struct NotificationLeading: View {
+    let note: MirroredNotification
+
+    var body: some View {
+        HStack(spacing: 6) {
+            if let icon = NotificationMirrorService.icon(for: note.app) {
+                Image(nsImage: icon).resizable().interpolation(.high).frame(width: 17, height: 17)
+            } else {
+                Image(systemName: "bell.badge.fill").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.shared.accent)
+            }
+            Text(verbatim: note.title)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .truncationMode(.tail)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture { NotificationMirrorService.shared.open(note) }
+        .help("Open in \(note.app)")
+    }
+}
+
+private struct NotificationTrailing: View {
+    let note: MirroredNotification
+
+    var body: some View {
+        Text(verbatim: note.body ?? note.subtitle ?? "")
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(Color.secondaryText)
+            .lineLimit(1)
+            .truncationMode(.tail)
+            .contentShape(Rectangle())
+            .onTapGesture { NotificationMirrorService.shared.open(note) }
+    }
+}
+

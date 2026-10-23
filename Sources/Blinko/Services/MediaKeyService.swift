@@ -75,6 +75,7 @@ final class MediaKeyService {
                 t.invalidate()
                 self.permissionPoll = nil
                 self.refresh()
+                NotificationMirrorService.shared.refresh()
             }
         }
         timer.tolerance = 1

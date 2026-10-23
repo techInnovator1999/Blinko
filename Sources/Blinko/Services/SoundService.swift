@@ -29,6 +29,7 @@ enum SoundEvent: String, CaseIterable, Identifiable {
     case lowBattery, chargerConnected
     case deviceConnected, downloadFinished, shelfAdded
     case customAlert
+    case appNotification
 
     var id: String { rawValue }
 
@@ -47,6 +48,7 @@ enum SoundEvent: String, CaseIterable, Identifiable {
         case .downloadFinished: String(localized: "Download finished")
         case .shelfAdded: String(localized: "File added to Shelf")
         case .customAlert: String(localized: "Alerts from Shortcuts, URL scheme or CLI")
+        case .appNotification: String(localized: "Mirrored app notification (Slack…)")
         }
     }
 
@@ -56,7 +58,7 @@ enum SoundEvent: String, CaseIterable, Identifiable {
         case .agentApproval, .agentFinished, .agentNotification: String(localized: "AI Agents")
         case .meetingMuted: String(localized: "Meetings")
         case .lowBattery, .chargerConnected: String(localized: "Power")
-        case .deviceConnected, .downloadFinished, .shelfAdded, .customAlert: String(localized: "Other")
+        case .deviceConnected, .downloadFinished, .shelfAdded, .customAlert, .appNotification: String(localized: "Other")
         }
     }
 
@@ -67,7 +69,7 @@ enum SoundEvent: String, CaseIterable, Identifiable {
         case .focusSession: .halo
         case .agentApproval, .customAlert: .blink
         case .agentFinished: .orbit
-        case .agentNotification: .tap
+        case .agentNotification, .appNotification: .tap
         case .meetingMuted: .pulse
         case .lowBattery, .downloadFinished: .drop
         }
@@ -76,7 +78,7 @@ enum SoundEvent: String, CaseIterable, Identifiable {
     var enabledByDefault: Bool {
         switch self {
         case .timerStart, .timerEnd, .focusSession, .agentApproval, .agentFinished, .meetingMuted, .lowBattery, .customAlert: true
-        case .agentNotification, .chargerConnected, .deviceConnected, .downloadFinished, .shelfAdded: false
+        case .agentNotification, .chargerConnected, .deviceConnected, .downloadFinished, .shelfAdded, .appNotification: false
         }
     }
 

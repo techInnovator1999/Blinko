@@ -127,6 +127,7 @@ final class Theme {
     @ObservationIgnored private let prefs = Preferences.shared
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var sampling = false
+    @ObservationIgnored private var lastWallpaperKey = ""
 
     private init() {}
 
@@ -233,6 +234,11 @@ final class Theme {
         guard !sampling else { return }
         let screen = NSScreen.screens.first { $0.hasNotch } ?? NSScreen.main ?? NSScreen.screens.first
         guard let screen, let url = NSWorkspace.shared.desktopImageURL(for: screen) else { return }
+        // Space switches fire constantly; only decode when the picture itself changed.
+        let modified = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+        let key = url.path + "|" + (modified.map { String($0.timeIntervalSince1970) } ?? "")
+        guard key != lastWallpaperKey else { return }   // unreadable (dynamic) wallpapers aren't retried either
+        lastWallpaperKey = key
         sampling = true
         Task.detached(priority: .utility) {
             let sample = WallpaperSampler.sample(url)

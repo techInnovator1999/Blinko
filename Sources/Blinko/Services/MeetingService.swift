@@ -132,7 +132,12 @@ final class MeetingService {
         for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification,
                      NSWorkspace.didActivateApplicationNotification] {
             observers.append(ws.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.scheduleEvaluate() }
+                MainActor.assumeIsolated {
+                    // App switches/launches only matter while the mic is live or a call is up;
+                    // skipping them otherwise keeps everyday app switching free.
+                    guard let self, self.call != nil || PrivacyService.shared.micInUse else { return }
+                    self.scheduleEvaluate()
+                }
             })
         }
 

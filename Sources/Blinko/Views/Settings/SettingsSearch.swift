@@ -55,6 +55,7 @@ enum SettingsSearch {
         ("lock screen", "locked login"),
         ("language", "translation localization urdu spanish"),
         ("sound", "audio chime tone alert notification beep ding"),
+        ("notifications", "slack messages whatsapp teams discord banner mirror dm"),
         ("timer", "countdown alarm"),
         ("permission", "approve approval claude agent"),
     ]

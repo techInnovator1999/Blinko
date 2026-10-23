@@ -18,7 +18,7 @@ PANES = {
     "ModulesPane": "modules", "LayoutPane": "layout", "AppearancePane": "appearance",
     "MeetingsPane": "meetings", "CommandBarPane": "commandBar", "AboutPane": "about",
     "AgentsSettingsPane": "agents", "AutomationSettingsPane": "automation",
-    "HomeLayoutPane": "homeLayout", "LockScreenPane": "lockScreen", "SoundsPane": "sounds",
+    "HomeLayoutPane": "homeLayout", "LockScreenPane": "lockScreen", "SoundsPane": "sounds", "NotificationsPane": "notifications",
 }
 
 CONTROL = re.compile(r'\b(Toggle|Picker|Stepper|LabeledContent|Button|Section|Slider|PillButton)\(\s*"((?:[^"\\]|\\.)+)"')

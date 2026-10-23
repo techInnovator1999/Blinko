@@ -167,6 +167,7 @@ final class NotchViewModel {
             case .downloadFinished: return 128
             case .mutedWarning: return 128
             case .custom(let alert): return alert.body == nil ? 120 : 150
+            case .appNotification: return 160
             }
         }
     }

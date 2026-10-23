@@ -72,9 +72,10 @@ enum TransientActivity: Equatable {
     /// Speaking while muted in a call (Meeting mode).
     case mutedWarning
     case custom(CustomAlert)
+    case appNotification(MirroredNotification)
 
     /// Updates of the same kind morph in place instead of re-running the entrance transition.
-    enum Kind: Equatable { case hud, capsLock, power, lowBattery, bluetooth, shelf, timer, nowPlaying, focusMode, privacy, network, download, meeting, custom }
+    enum Kind: Equatable { case hud, capsLock, power, lowBattery, bluetooth, shelf, timer, nowPlaying, focusMode, privacy, network, download, meeting, custom, notification }
 
     var kind: Kind {
         switch self {
@@ -93,6 +94,7 @@ enum TransientActivity: Equatable {
         case .downloadFinished: .download
         case .mutedWarning: .meeting
         case .custom: .custom
+        case .appNotification: .notification
         }
     }
 
@@ -110,6 +112,7 @@ enum TransientActivity: Equatable {
         case .download: 5
         case .meeting: 4
         case .custom: 3
+        case .notification: 5
         }
     }
 }

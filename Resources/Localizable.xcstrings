@@ -10030,6 +10030,9 @@
         }
       }
     },
+    "Hide message text (show only who it's from)" : {
+
+    },
     "Hide when an app is fullscreen" : {
       "localizations" : {
         "de" : {
@@ -13516,6 +13519,9 @@
         }
       }
     },
+    "Mirrored app notification (Slack…)" : {
+
+    },
     "Mode names available" : {
       "localizations" : {
         "de" : {
@@ -14237,6 +14243,9 @@
         }
       }
     },
+    "Needs Accessibility permission" : {
+
+    },
     "Needs approval" : {
       "localizations" : {
         "de" : {
@@ -14396,6 +14405,9 @@
           }
         }
       }
+    },
+    "New notification" : {
+
     },
     "New snippet" : {
       "localizations" : {
@@ -15277,6 +15289,9 @@
         }
       }
     },
+    "Notifications" : {
+
+    },
     "Now" : {
       "localizations" : {
         "de" : {
@@ -16157,6 +16172,9 @@
         }
       }
     },
+    "Open in %@" : {
+
+    },
     "Open it your way" : {
       "localizations" : {
         "de" : {
@@ -16719,6 +16737,9 @@
           }
         }
       }
+    },
+    "Other app (name as shown on its banners)" : {
+
     },
     "Partly Cloudy" : {
       "localizations" : {
@@ -19926,6 +19947,9 @@
           }
         }
       }
+    },
+    "Show app notifications in the island" : {
+
     },
     "Show calendar details on lock screen" : {
       "localizations" : {
@@ -24622,6 +24646,9 @@
           }
         }
       }
+    },
+    "When a notification banner appears, Blinko shows it in the notch too. Click it to open the conversation. Messages never appear on the lock screen." : {
+
     },
     "When an app below starts using the microphone, the closed island shows the call's app, its length and your microphone, and Home shows mute, camera and leave controls with the calendar event happening now. Detection asks for no permission." : {
       "localizations" : {

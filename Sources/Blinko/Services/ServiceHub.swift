@@ -34,12 +34,15 @@ final class ServiceHub {
         WeatherService.shared.refresh()
         MeetingService.shared.refresh()
         AgentHubService.shared.refresh()
+        NotificationMirrorService.shared.refresh()
     }
 
     private func observePreferences() {
         let prefs = Preferences.shared
         withObservationTracking {
             _ = prefs.replaceSystemHUD
+            _ = prefs.mirrorNotifications
+            _ = prefs.mirroredApps
             _ = prefs.capsLockHUD
             _ = prefs.clipboardHistory
             _ = prefs.focusActivity
