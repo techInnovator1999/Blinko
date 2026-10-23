@@ -100,4 +100,9 @@ final class ShelfService {
     private func persist() {
         if let data = try? JSONEncoder().encode(items) { UserDefaults.standard.set(data, forKey: key) }
     }
+
+    /// Design-time state for snapshot rendering (not persisted).
+    func injectPreview(_ urls: [URL]) {
+        items = urls.map { ShelfItem(id: UUID(), url: $0, addedAt: .now) }
+    }
 }

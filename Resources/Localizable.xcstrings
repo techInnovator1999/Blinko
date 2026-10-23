@@ -4,6 +4,16 @@
     "" : {
 
     },
+    "%@ / %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ / %2$@"
+          }
+        }
+      }
+    },
     "%@ already exists and isn't Blinko's. Remove it first." : {
 
     },
@@ -46,7 +56,43 @@
         }
       }
     },
+    "%lld of %lld units" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld units"
+          }
+        }
+      }
+    },
+    "%lld of %lld units free" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld units free"
+          }
+        }
+      }
+    },
+    "%lld of %lld units used" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld units used"
+          }
+        }
+      }
+    },
     "%lld pt" : {
+
+    },
+    "%lld sessions" : {
+
+    },
+    "%lld to approve" : {
 
     },
     "%lld%%" : {
@@ -125,16 +171,25 @@
     "Add" : {
 
     },
+    "Add %@" : {
+
+    },
     "Add 1 Minute" : {
 
     },
     "Add Time Zone…" : {
 
     },
+    "Add Widget" : {
+
+    },
     "Add the downloaded file to the shelf" : {
 
     },
     "Add to Shelf" : {
+
+    },
+    "Add widgets in Settings → Home Layout" : {
 
     },
     "Adds Blinko's hooks to ~/.claude/settings.json (your other hooks and settings are kept; the previous file is saved as settings.json.blinko-backup). Disconnect removes only Blinko's entries. Sessions started before connecting appear after their next restart." : {
@@ -284,6 +339,9 @@
     "CPU" : {
 
     },
+    "CPU, memory and network" : {
+
+    },
     "Calculate" : {
 
     },
@@ -291,6 +349,9 @@
 
     },
     "Calculator" : {
+
+    },
+    "Calendar" : {
 
     },
     "Calendar & Reminders" : {
@@ -317,6 +378,9 @@
     "Camera mirror" : {
 
     },
+    "Camera mirror, on when you click it" : {
+
+    },
     "Camera status" : {
 
     },
@@ -338,10 +402,16 @@
     "Caps Lock indicator" : {
 
     },
+    "Charge and time remaining" : {
+
+    },
     "Charging" : {
 
     },
     "Check for Updates…" : {
+
+    },
+    "Chill" : {
 
     },
     "Choose a .json file exported from Blinko's Appearance settings." : {
@@ -377,6 +447,12 @@
     "Click the approval card to answer with ⌘↩ (approve) or esc (deny). If you don't answer in time, or Blinko isn't running, the agent asks in its own window as usual." : {
 
     },
+    "Click to add, or drag onto the preview." : {
+
+    },
+    "Click to copy" : {
+
+    },
     "Clipboard" : {
 
     },
@@ -386,7 +462,13 @@
     "Clock" : {
 
     },
+    "Clock & Agenda" : {
+
+    },
     "Clock on Home" : {
+
+    },
+    "Clock, world clocks, weather and your next events" : {
 
     },
     "Close" : {
@@ -405,6 +487,9 @@
 
     },
     "Codex, Cursor or your own scripts can report sessions and ask for approvals with the same newline-delimited JSON protocol (docs/AGENT_PROTOCOL.md), e.g. by piping lines into “blinko send”." : {
+
+    },
+    "Coding agents from the Agent Hub" : {
 
     },
     "Coding agents report their status to Blinko over a private socket on this Mac (readable by your user only). Nothing received is ever executed." : {
@@ -429,6 +514,9 @@
 
     },
     "Compact and Large scale the open island and its contents together. Moving the width slider (here or in Layout) makes the size Custom." : {
+
+    },
+    "Conditions and the next hours" : {
 
     },
     "Connect Claude Code" : {
@@ -473,6 +561,9 @@
     "Couldn't open the socket: %@" : {
 
     },
+    "Countdowns and Pomodoro" : {
+
+    },
     "Currency" : {
 
     },
@@ -486,6 +577,9 @@
 
     },
     "Default" : {
+
+    },
+    "Default is the classic Home and follows the Home toggles in Modules. Editing a built-in layout saves your version as a new layout. Right-click the Home tab button in the island to switch layouts." : {
 
     },
     "Delete" : {
@@ -533,7 +627,28 @@
     "Drizzle" : {
 
     },
+    "Drop a widget" : {
+
+    },
     "Drop files here" : {
+
+    },
+    "Drop files on the notch" : {
+
+    },
+    "Drop to insert" : {
+
+    },
+    "Drop to replace" : {
+
+    },
+    "Duplicate" : {
+
+    },
+    "Edit Home Layout…" : {
+
+    },
+    "Edit Layout…" : {
 
     },
     "Event" : {
@@ -617,6 +732,16 @@
     "Grant…" : {
 
     },
+    "H %@  L %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "H %1$@  L %2$@"
+          }
+        }
+      }
+    },
     "HUD" : {
 
     },
@@ -629,6 +754,19 @@
     "Hide when an app is fullscreen" : {
 
     },
+    "High %@, low %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "High %1$@, low %2$@"
+          }
+        }
+      }
+    },
+    "History is off" : {
+
+    },
     "History stays in memory only. Items marked as passwords by password managers are never recorded." : {
 
     },
@@ -636,6 +774,18 @@
 
     },
     "Home" : {
+
+    },
+    "Home Layout" : {
+
+    },
+    "Home is empty" : {
+
+    },
+    "Home is full: drop it on a widget to replace it." : {
+
+    },
+    "Home layout preview" : {
 
     },
     "Hotspot" : {
@@ -737,6 +887,12 @@
     "Later today" : {
 
     },
+    "Latest copied items" : {
+
+    },
+    "Latest files on the shelf" : {
+
+    },
     "Launch" : {
 
     },
@@ -752,6 +908,9 @@
     "Leave the call" : {
 
     },
+    "Left to right as on the island. Small takes 2 of the 10 units, Medium 3 and Large 5; Large widgets share the room that is left. Widgets that are not on Home do no work at all." : {
+
+    },
     "Let the agent show its own prompt" : {
 
     },
@@ -762,6 +921,9 @@
 
     },
     "Live Activities" : {
+
+    },
+    "Loading weather…" : {
 
     },
     "Location" : {
@@ -782,6 +944,9 @@
     "Low Battery" : {
 
     },
+    "Low Power" : {
+
+    },
     "Lyrics" : {
 
     },
@@ -798,6 +963,9 @@
 
     },
     "Match wallpaper" : {
+
+    },
+    "Medium" : {
 
     },
     "Meeting mode" : {
@@ -845,6 +1013,18 @@
     "Motion" : {
 
     },
+    "Move %@ left" : {
+
+    },
+    "Move %@ right" : {
+
+    },
+    "Move left" : {
+
+    },
+    "Move right" : {
+
+    },
     "Music visualizer" : {
 
     },
@@ -860,13 +1040,25 @@
     "Mutes the microphone for every app" : {
 
     },
+    "My %@" : {
+
+    },
     "My Blinko Theme" : {
+
+    },
+    "My Layout" : {
+
+    },
+    "Name" : {
 
     },
     "Needed to replace the volume & brightness HUD." : {
 
     },
     "Needs approval" : {
+
+    },
+    "Needs the Agent Hub (Settings → Agents)." : {
 
     },
     "Network" : {
@@ -894,6 +1086,15 @@
 
     },
     "No recent activity" : {
+
+    },
+    "No sessions" : {
+
+    },
+    "No settings match “%@”" : {
+
+    },
+    "No widgets yet." : {
 
     },
     "Not a number" : {
@@ -959,6 +1160,9 @@
     "On Battery" : {
 
     },
+    "On battery" : {
+
+    },
     "On the lock screen the island never opens on hover; a tap opens only the music player. Volume, brightness, Caps Lock and battery alerts still appear." : {
 
     },
@@ -993,6 +1197,12 @@
 
     },
     "Open source app" : {
+
+    },
+    "Open the Agents tab" : {
+
+    },
+    "Open the Shelf tab" : {
 
     },
     "Open the island when an agent asks" : {
@@ -1031,7 +1241,16 @@
     "Pick any pixel on screen, then click a value to copy it." : {
 
     },
+    "Play something" : {
+
+    },
+    "Player with lyrics; the meeting card during a call" : {
+
+    },
     "Plugged In" : {
+
+    },
+    "Plugged in" : {
 
     },
     "Power adapter" : {
@@ -1070,6 +1289,9 @@
     "Remove" : {
 
     },
+    "Remove %@" : {
+
+    },
     "Remove from Shelf" : {
 
     },
@@ -1089,6 +1311,9 @@
 
     },
     "Resume" : {
+
+    },
+    "Room" : {
 
     },
     "Rounder" : {
@@ -1115,6 +1340,9 @@
     "Search cities" : {
 
     },
+    "Search settings" : {
+
+    },
     "Search the web for “%@”" : {
 
     },
@@ -1136,7 +1364,10 @@
     "Set Up…" : {
 
     },
-    "Settings" : {
+    "Settings & Quit" : {
+
+    },
+    "Settings…" : {
 
     },
     "Shadow under the open island" : {
@@ -1211,7 +1442,20 @@
     "Size & shape" : {
 
     },
+    "Size of %@: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Size of %1$@: %2$@"
+          }
+        }
+      }
+    },
     "Skip" : {
+
+    },
+    "Small" : {
 
     },
     "Snow" : {
@@ -1224,6 +1468,9 @@
 
     },
     "Start" : {
+
+    },
+    "Start Claude Code in a terminal" : {
 
     },
     "Start Claude Code in a terminal: its status and permission requests show up here." : {
@@ -1239,6 +1486,9 @@
 
     },
     "Start a %@ timer" : {
+
+    },
+    "Start a Pomodoro focus session" : {
 
     },
     "Start as many as you like — they run side by side." : {
@@ -1277,10 +1527,16 @@
     "System" : {
 
     },
+    "System Stats" : {
+
+    },
     "Tab" : {
 
     },
     "Tabs" : {
+
+    },
+    "The Notes scratchpad" : {
 
     },
     "The blinko helper is missing from the app bundle. Build Blinko with scripts/build.sh." : {
@@ -1293,6 +1549,9 @@
 
     },
     "Then the agent asks in its own window" : {
+
+    },
+    "These shape the Default Home layout. Other layouts and your own are in Home Layout." : {
 
     },
     "They'll wait for you on the shelf" : {
@@ -1310,10 +1569,16 @@
     "Time in island header" : {
 
     },
+    "Time, date and world clocks" : {
+
+    },
     "Time-synced lyrics from LRCLIB, fetched when a new track starts while lyrics are on screen, and cached on this Mac." : {
 
     },
     "Timer" : {
+
+    },
+    "Timers & Focus" : {
 
     },
     "Timers & Pomodoro" : {
@@ -1323,6 +1588,9 @@
 
     },
     "Title" : {
+
+    },
+    "Today's events and reminders" : {
 
     },
     "Toggle island" : {
@@ -1379,6 +1647,9 @@
     "Updates are disabled in this development build." : {
 
     },
+    "Use Default" : {
+
+    },
     "Used for the selected tab, progress bars, the scrubber and timers. Battery, camera and microphone keep their own colours. “Wallpaper” samples your desktop picture when you switch spaces or displays." : {
 
     },
@@ -1407,6 +1678,12 @@
 
     },
     "Weather" : {
+
+    },
+    "Weather is off" : {
+
+    },
+    "Weather unavailable" : {
 
     },
     "Web" : {
@@ -1439,6 +1716,9 @@
     "Width" : {
 
     },
+    "Work" : {
+
+    },
     "Working" : {
 
     },
@@ -1451,10 +1731,7 @@
     "Your notch, alive. Hover it, swipe down on it, or press ⌃⌥Space." : {
 
     },
-    "gearshape.fill" : {
-
-    },
-    "info.circle.fill" : {
+    "idle" : {
 
     },
     "now" : {
@@ -1463,25 +1740,13 @@
     "optimageeks.com" : {
 
     },
-    "paintbrush.fill" : {
-
-    },
     "rates of %@" : {
-
-    },
-    "rectangle.3.group.fill" : {
-
-    },
-    "sparkles" : {
-
-    },
-    "square.grid.2x2.fill" : {
 
     },
     "wants to use %@" : {
 
     },
-    "waveform" : {
+    "working" : {
 
     },
     "“Designed by OptimaGeeks” credit" : {

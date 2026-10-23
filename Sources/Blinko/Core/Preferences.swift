@@ -139,6 +139,9 @@ final class Preferences {
     var agentCompact: Bool { didSet { store.set(agentCompact, forKey: "agentCompact") } }
     var agentFinishedAlert: Bool { didSet { store.set(agentFinishedAlert, forKey: "agentFinishedAlert") } }
     var agentNotifications: Bool { didSet { store.set(agentNotifications, forKey: "agentNotifications") } }
+    // Home layout (v0.5): user-saved layouts (JSON) and the selected layout's id
+    var homeLayouts: [HomeLayout] { didSet { store.set(HomeLayout.encodeList(homeLayouts), forKey: "homeLayouts") } }
+    var homeLayoutID: String { didSet { store.set(homeLayoutID, forKey: "homeLayoutID") } }
 
     private init() {
         store.register(defaults: [
@@ -216,6 +219,7 @@ final class Preferences {
             "agentCompact": true,
             "agentFinishedAlert": true,
             "agentNotifications": true,
+            "homeLayoutID": HomeLayout.defaultID,
         ])
         hasCompletedOnboarding = store.bool(forKey: "hasCompletedOnboarding")
         displayMode = DisplayMode(rawValue: store.string(forKey: "displayMode") ?? "") ?? .notchedOnly
@@ -295,5 +299,7 @@ final class Preferences {
         agentCompact = store.bool(forKey: "agentCompact")
         agentFinishedAlert = store.bool(forKey: "agentFinishedAlert")
         agentNotifications = store.bool(forKey: "agentNotifications")
+        homeLayouts = HomeLayout.decodeList(store.data(forKey: "homeLayouts"))
+        homeLayoutID = store.string(forKey: "homeLayoutID") ?? HomeLayout.defaultID
     }
 }

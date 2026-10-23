@@ -9,10 +9,17 @@ enum Snapshot {
         let args = CommandLine.arguments
         guard let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count else { return false }
         let dir = URL(fileURLWithPath: args[i + 1], isDirectory: true)
+        // The unbundled snapshot binary has its own defaults domain ("Blinko"); start each run
+        // clean so state left by an earlier run (e.g. a Home layout) can't skew the renders.
+        if Bundle.main.bundleIdentifier == nil, let domain = ProcessInfo.processInfo.processName as String? {
+            UserDefaults.standard.removePersistentDomain(forName: domain)
+        }
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         if args.contains("--lockscreen-only") { renderLockScreen(to: dir); return true }
+        if args.contains("--home-only") { renderHome(to: dir); return true }
         if !args.contains("--themes-only") { render(to: dir) }
         renderThemes(to: dir)
+        if !args.contains("--themes-only") { renderHome(to: dir) }
         return true
     }
 

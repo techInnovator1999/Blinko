@@ -1,6 +1,6 @@
 # Blinko
 
-A fast, native Dynamic Island for macOS, written in Swift with SwiftUI and AppKit. It sits on the notch (or draws a virtual one on displays without a notch). It shows live activities (media, HUDs, charging, Bluetooth and AirPods battery, Focus, camera/mic in use, Wi-Fi/VPN, downloads, timers) and opens into a panel with these tabs: home (media with synced lyrics, clock, world clocks, weather, calendar), file shelf, clipboard, system stats, timers, notes and tools (colour picker, Keep Awake).
+A fast, native Dynamic Island for macOS, written in Swift with SwiftUI and AppKit. It sits on the notch (or draws a virtual one on displays without a notch). It shows live activities (media, HUDs, charging, Bluetooth and AirPods battery, Focus, camera/mic in use, Wi-Fi/VPN, downloads, timers) and opens into a panel with these tabs: home (a widget grid you arrange: media with synced lyrics, clock, world clocks, weather, calendar, timers, stats, agents, notes, shelf, clipboard, mirror, battery), file shelf, clipboard, system stats, timers, notes and tools (colour picker, Keep Awake).
 
 The full feature matrix, performance budget and roadmap are in [docs/ROADMAP.md](docs/ROADMAP.md).
 
@@ -33,6 +33,7 @@ Lyrics come from [LRCLIB](https://lrclib.net), weather from [Open-Meteo](https:/
 - Hover over the notch, click it, two-finger swipe down on it, or press **⌃⌥Space** to open it. Swipe up or move the pointer away to close it.
 - Drag files onto the notch to put them on the shelf. From there you can drag them out again (click several to select them, then drag one to move them all) or AirDrop them.
 - The pin in the header keeps the island open. So does typing in Notes; click elsewhere to close it.
+- **Settings → Home Layout** arranges Home: drag widgets from the palette onto the live island preview, drag them to reorder, switch each between S / M / L, or use the list below the preview (keyboard and VoiceOver friendly). Home holds 10 units (S = 2, M = 3, L = 5). Built-in layouts: **Default** (the classic Home), **Work** (agenda, timers, agents, notes) and **Chill** (big player, weather, clock); editing one saves your version as a new named layout. Right-click the Home tab button in the island to switch layouts. During a call the meeting card takes over the Now Playing widget.
 - **Settings → Appearance** themes the island with a live preview: an accent colour (presets, custom, or matched to the album art or your wallpaper), a style (Classic, Minimal, Glass, Glow), a size (Compact, Default, Large), corner roundness and SF Pro or SF Pro Rounded numbers. Pick one of the built-in themes (Midnight, Aurora, Paper, Neon), or export yours as a JSON file and import it on another Mac.
 - Press **⌥Space** for the command bar: calculate (`(12+4)*3^2`), convert (`10 km to mi`, `100 usd in eur`), launch apps, run Shortcuts, find clipboard and shelf items, start a timer (`t 25m`) or search the web. ↑↓ choose, ↩ runs, ⎋ closes.
 - During a call (Zoom, Teams, Meet, FaceTime, Slack, Discord, Webex) the closed island shows the call's length and your microphone; open it for mute and leave controls.
@@ -81,7 +82,7 @@ It uses a private macOS window-server API (a SkyLight space above the lock scree
 ```
 Sources/Blinko
   App/        entry point, hotkey, status item, launch-at-login, snapshot renderer
-  Core/       Preferences, Theme + ThemeLibrary, NotchViewModel (per display), ActivityCenter, Motion/Metrics
+  Core/       Preferences, Theme + ThemeLibrary, HomeLayout, NotchViewModel (per display), ActivityCenter, Motion/Metrics
   Window/     NotchPanel (non-activating NSPanel), NotchWindowController, NotchManager (multi-display, gestures)
   Services/   NowPlaying, Lyrics, MediaKeys/SystemControls, Battery, Bluetooth, Calendar, Shelf, Clipboard, Stats,
               Timer, Camera, Focus, Privacy, Network, Downloads, Weather, Notes, Tools (colour picker, Keep Awake),
@@ -92,7 +93,7 @@ Sources/Blinko
   Services/   NowPlaying, Lyrics, MediaKeys/SystemControls, Battery, Bluetooth, Calendar, Shelf, Clipboard, Stats,
               Timer, Camera, Focus, Privacy, Network, Downloads, Weather, Notes, Tools (colour picker, Keep Awake),
               AgentHub (socket server + sessions/approvals)
-  Views/      NotchShape, root, compact wings, expanded tabs, components, settings
+  Views/      NotchShape, root, compact wings, expanded tabs (+ Expanded/Widgets for Home), components, settings
 Sources/BlinkoKit   Agent Hub protocol + Claude Code hook installer (shared by app and CLI)
 Sources/BlinkoCLI   the `blinko` command-line tool (Contents/Helpers/blinko)
 Helper/       BlinkoMedia.m + blinko-media.pl: MediaRemote bridge hosted by Apple's platform perl
@@ -104,3 +105,4 @@ Resources/    Info.plist, entitlements, icon, Localizable.xcstrings (String Cata
 **Logo:** `design/logo.swift` draws the mark in code (the island as an eyelid, mid-blink over an iris). Run `scripts/make-icon.sh` to regenerate `AppIcon.icns`.
 
 **Design QA:** `swift build && .build/debug/Blinko --snapshot /tmp/blinko-snaps` renders every state to PNG, plus a theme matrix (styles, size presets × tabs, accents, built-in themes, the Appearance pane). Add `--themes-only` to render just the theme matrix. `.build/debug/Blinko --selftest` runs the calculator, fuzzy-matcher and parser checks. Lock screen: `--snapshot DIR --lockscreen-only` renders the lock-screen island and widget states (with the privacy-redacted variants); `open -n build/Blinko.app --args --lockscreen-roundtrip-test [report.txt]` moves two test windows into the lock-screen space and back on the unlocked desktop and checks with the window server that they are restored.
+**Design QA:** `swift build && .build/debug/Blinko --snapshot /tmp/blinko-snaps` renders every state to PNG, plus a theme matrix (styles, size presets × tabs, accents, built-in themes, the Appearance pane). Add `--themes-only` to render just the theme matrix, or `--home-only` for the Home layouts (built-ins × size presets, dense layouts, meeting takeover, edit mode, the Home Layout pane). `.build/debug/Blinko --selftest` runs the calculator, fuzzy-matcher and parser checks.

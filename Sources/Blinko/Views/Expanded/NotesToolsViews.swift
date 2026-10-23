@@ -18,7 +18,7 @@ struct NotesView: View {
     }
 }
 
-private struct Scratchpad: View {
+struct Scratchpad: View {
     let vm: NotchViewModel
     @FocusState private var focused: Bool
 

@@ -2,6 +2,7 @@ import SwiftUI
 
 enum SettingsPane: String, CaseIterable, Identifiable {
     case welcome, general, activities, modules, layout, appearance, meetings, commandBar
+    case homeLayout
     case agents, automation
     case lockScreen
     case about
@@ -21,6 +22,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .agents: String(localized: "Agents")
         case .automation: String(localized: "Automation")
         case .lockScreen: String(localized: "Lock Screen")
+        case .homeLayout: String(localized: "Home Layout")
         }
     }
 
@@ -38,6 +40,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .agents: "sparkles.rectangle.stack.fill"
         case .automation: "bolt.horizontal.fill"
         case .lockScreen: "lock.fill"
+        case .homeLayout: "square.grid.3x2.fill"
         }
     }
 
@@ -55,6 +58,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .agents: .agentAccent
         case .automation: .green
         case .lockScreen: .blue
+        case .homeLayout: .cyan
         }
     }
 }
@@ -136,6 +140,7 @@ struct SettingsView: View {
                 case .agents: AgentsSettingsPane()
                 case .automation: AutomationSettingsPane()
                 case .lockScreen: LockScreenPane()
+                case .homeLayout: HomeLayoutPane()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -362,9 +367,14 @@ private struct ModulesPane: View {
                 Text("Time-synced lyrics from LRCLIB, fetched when a new track starts while lyrics are on screen, and cached on this Mac.")
                     .font(.caption).foregroundStyle(.secondary)
             }
-            Section("Home") {
+            Section {
                 Toggle("Calendar & reminders", isOn: $p.showCalendar)
                 Toggle("Camera mirror", isOn: $p.showMirror)
+            } header: {
+                Text("Home")
+            } footer: {
+                Text("These shape the Default Home layout. Other layouts and your own are in Home Layout.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Section {
                 Stepper("Focus: \(p.focusMinutes) min", value: $p.focusMinutes, in: 5...90, step: 5)
