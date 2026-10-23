@@ -26,12 +26,7 @@ codesign --verify --deep --strict "$APP"
 
 mkdir -p dist
 DMG="dist/Blinko-$VERSION.dmg"
-STAGE="$(mktemp -d)"
-cp -R "$APP" "$STAGE/"
-ln -s /Applications "$STAGE/Applications"
-rm -f "$DMG"
-hdiutil create -volname "Blinko $VERSION" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
-rm -rf "$STAGE"
+scripts/make-dmg.sh "$APP" "$DMG" "$VERSION"
 codesign --force --timestamp --sign "$IDENTITY" "$DMG"
 
 if [[ -n "${NOTARY_PROFILE:-}" ]]; then
