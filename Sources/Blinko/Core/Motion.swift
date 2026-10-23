@@ -3,8 +3,8 @@ import SwiftUI
 /// Every animation in the app comes from here so the motion language stays coherent.
 /// All springs are interruptible: retargeting mid-flight keeps velocity, no snapping.
 enum Motion {
-    static let open = Animation.spring(response: 0.42, dampingFraction: 0.8)
-    static let close = Animation.spring(response: 0.34, dampingFraction: 0.92)
+    static let open = Animation.spring(response: 0.4, dampingFraction: 0.8)
+    static let close = Animation.spring(response: 0.32, dampingFraction: 1)
     static let compact = Animation.spring(response: 0.4, dampingFraction: 0.76)
     static let peek = Animation.spring(response: 0.3, dampingFraction: 0.7)
     static let micro = Animation.spring(response: 0.24, dampingFraction: 0.86)

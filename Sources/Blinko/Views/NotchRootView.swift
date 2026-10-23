@@ -48,7 +48,6 @@ private struct IslandBody: View {
                 .allowsHitTesting(false)
         }
         .contentShape(shape)
-        .onHover { vm.setHovering($0) }
         .onTapGesture {
             if !vm.isOpen { vm.open() }
         }

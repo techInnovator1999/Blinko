@@ -1,5 +1,8 @@
 import AppKit
 import Observation
+import os
+
+private let log = Logger(subsystem: "app.blinko.Blinko", category: "island")
 
 enum NotchTab: String, CaseIterable, Identifiable {
     case home, shelf, clipboard, stats, timer
@@ -58,6 +61,7 @@ final class NotchViewModel {
     var isPinned = false
 
     @ObservationIgnored private var hoverWork: DispatchWorkItem?
+    @ObservationIgnored private var requiresExitBeforeHoverOpen = false
     @ObservationIgnored private let prefs = Preferences.shared
 
     init(geometry: NotchGeometry) {
@@ -130,6 +134,22 @@ final class NotchViewModel {
         return compact == .idle ? Metrics.closedBottomRadius : Metrics.closedBottomRadius + 2
     }
 
+    // MARK: Hover hit-testing
+
+    /// Whether a screen point (AppKit coordinates) is over the island. Computed from the
+    /// island's geometry rather than tracking areas, so window resizes can never produce
+    /// phantom enter/exit events. The open zone is larger than the shape (hysteresis), so
+    /// the pointer can graze the edge without the island collapsing.
+    func contains(screenPoint p: CGPoint) -> Bool {
+        let screen = geometry.screenFrame
+        let size = baseShapeSize
+        let margin: (x: CGFloat, bottom: CGFloat) = isOpen ? (12, 16) : (6, 4)
+        let halfWidth = size.width / 2 + margin.x
+        return abs(p.x - screen.midX) <= halfWidth
+            && p.y >= screen.maxY - size.height - margin.bottom
+            && p.y <= screen.maxY + 1
+    }
+
     // MARK: Intent
 
     func open(tab: NotchTab? = nil) {
@@ -137,6 +157,7 @@ final class NotchViewModel {
         if let tab { self.tab = tab }
         guard phase != .open else { return }
         phase = .open
+        log.info("open")
         if prefs.enableHaptics {
             NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
         }
@@ -146,25 +167,42 @@ final class NotchViewModel {
         hoverWork?.cancel()
         guard phase != .closed else { return }
         phase = .closed
+        log.info("close")
         isPinned = false
+        // Closed deliberately while the pointer is still on the notch (swipe, hotkey, click):
+        // don't hover-reopen until the pointer has left and come back.
+        if isHovering { requiresExitBeforeHoverOpen = true }
     }
 
     func toggle() { isOpen ? close() : open() }
 
+    /// Pointer is inside but moving fast (passing through on the way to the menu bar):
+    /// postpone opening until it settles, so sweeping across the notch never pops it open.
+    func pointerPassingThrough() {
+        guard isHovering, phase == .closed, prefs.openOnHover, !requiresExitBeforeHoverOpen else { return }
+        armHoverOpen()
+    }
+
+    private func armHoverOpen() {
+        schedule(after: max(prefs.hoverDelay, 0.06)) { [weak self] in
+            guard let self, self.isHovering else { return }
+            self.open()
+        }
+    }
+
     func setHovering(_ inside: Bool) {
         guard inside != isHovering else { return }
         isHovering = inside
+        log.debug("hover \(inside)")
         hoverWork?.cancel()
 
         if inside {
-            guard phase == .closed, prefs.openOnHover else { return }
-            schedule(after: prefs.hoverDelay) { [weak self] in
-                guard let self, self.isHovering else { return }
-                self.open()
-            }
+            guard phase == .closed, prefs.openOnHover, !requiresExitBeforeHoverOpen else { return }
+            armHoverOpen()
         } else {
+            requiresExitBeforeHoverOpen = false
             guard phase == .open, prefs.closeOnMouseExit, !isPinned else { return }
-            schedule(after: 0.16) { [weak self] in
+            schedule(after: 0.22) { [weak self] in
                 guard let self, !self.isHovering, !self.isPinned else { return }
                 self.close()
             }

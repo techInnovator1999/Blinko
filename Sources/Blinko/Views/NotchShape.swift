@@ -56,12 +56,12 @@ extension AnyTransition {
     /// Content blooms out of the notch: blur → sharp, slight scale from the top edge.
     static var islandReveal: AnyTransition {
         .asymmetric(
-            insertion: .modifier(active: IslandRevealModifier(blur: 10, opacity: 0, scale: 0.9),
+            insertion: .modifier(active: IslandRevealModifier(blur: 5, opacity: 0, scale: 0.95),
                                  identity: IslandRevealModifier(blur: 0, opacity: 1, scale: 1))
-                .animation(.spring(response: 0.42, dampingFraction: 0.86).delay(0.04)),
-            removal: .modifier(active: IslandRevealModifier(blur: 6, opacity: 0, scale: 0.96),
+                .animation(.spring(response: 0.34, dampingFraction: 0.92).delay(0.06)),
+            removal: .modifier(active: IslandRevealModifier(blur: 3, opacity: 0, scale: 0.97),
                                identity: IslandRevealModifier(blur: 0, opacity: 1, scale: 1))
-                .animation(.easeOut(duration: 0.14))
+                .animation(.easeIn(duration: 0.1))
         )
     }
 

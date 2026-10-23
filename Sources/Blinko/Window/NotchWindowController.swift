@@ -12,7 +12,7 @@ final class NotchWindowController {
 
     private var shrinkWork: DispatchWorkItem?
     private var currentSize: CGSize = .zero
-    private var isHiddenForFullscreen = false
+    private(set) var isHiddenForFullscreen = false
 
     init(screen: NSScreen) {
         self.screen = screen
@@ -82,7 +82,7 @@ final class NotchWindowController {
     private func scheduleShrink(to size: CGSize) {
         let work = DispatchWorkItem { [weak self] in self?.setFrame(size) }
         shrinkWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55, execute: work)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75, execute: work)
     }
 
     private func setFrame(_ size: CGSize) {

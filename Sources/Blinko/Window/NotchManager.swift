@@ -6,6 +6,7 @@ import AppKit
 final class NotchManager {
     private var controllers: [CGDirectDisplayID: NotchWindowController] = [:]
     private var scrollMonitor: Any?
+    private var mouseMonitors: [Any] = []
     private var observers: [NSObjectProtocol] = []
     private var scrollAccumulator: CGFloat = 0
     private let prefs = Preferences.shared
@@ -28,12 +29,14 @@ final class NotchManager {
 
         observePreferences()
         installScrollMonitor()
+        installHoverMonitors()
     }
 
     func toggleOnActiveScreen() {
         let mouse = NSEvent.mouseLocation
         let target = controllers.values.first { $0.screen.frame.contains(mouse) } ?? controllers.values.first
         target?.viewModel.toggle()
+        updateHover(at: mouse)
     }
 
     func open(tab: NotchTab) {
@@ -122,6 +125,41 @@ final class NotchManager {
             let cgFrame = CGRect(x: f.minX, y: primaryHeight - f.maxY, width: f.width, height: f.height)
             let covered = fullscreenBounds.contains { $0.equalTo(cgFrame) }
             controller.setHiddenForFullscreen(covered)
+        }
+    }
+
+    // MARK: Hover
+
+    /// Hover is derived from the pointer position and each island's geometry, never from
+    /// tracking areas (which macOS rebuilds on every window resize and which caused
+    /// open/close flicker). The handler is a few rect comparisons per mouse move.
+    private func installHoverMonitors() {
+        let mask: NSEvent.EventTypeMask = [.mouseMoved, .leftMouseDragged]
+        if let global = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: { [weak self] _ in
+            MainActor.assumeIsolated { self?.updateHover(at: NSEvent.mouseLocation) }
+        }) { mouseMonitors.append(global) }
+        if let local = NSEvent.addLocalMonitorForEvents(matching: mask, handler: { [weak self] event in
+            self?.updateHover(at: NSEvent.mouseLocation)
+            return event
+        }) { mouseMonitors.append(local) }
+    }
+
+    private var lastPointer: (point: CGPoint, time: TimeInterval)?
+
+    private func updateHover(at point: CGPoint) {
+        let now = ProcessInfo.processInfo.systemUptime
+        var speed: CGFloat = 0
+        if let last = lastPointer, now > last.time {
+            speed = hypot(point.x - last.point.x, point.y - last.point.y) / CGFloat(now - last.time)
+        }
+        lastPointer = (point, now)
+
+        for controller in controllers.values where !controller.isHiddenForFullscreen {
+            let vm = controller.viewModel
+            let inside = vm.contains(screenPoint: point)
+            vm.setHovering(inside)
+            // Still travelling (> ~280 pt/s): re-arm, so the island opens only once the pointer settles.
+            if inside, speed > 280 { vm.pointerPassingThrough() }
         }
     }
 
