@@ -37,7 +37,12 @@ struct CompactView: View {
         case .idle:
             EmptyView()
         case .music, .activity(.nowPlayingChanged):
-            CompactArtwork(size: vm.geometry.notchSize.height - 10)
+            HStack(spacing: 8) {
+                CompactArtwork(size: vm.geometry.notchSize.height - 10)
+                if vm.showsCompactLyrics {
+                    CompactVisualizer().frame(width: 14, height: 11)
+                }
+            }
         case .clock:
             TimelineView(.everyMinute) { ctx in
                 Text(ctx.date, format: .dateTime.hour().minute())
@@ -64,7 +69,13 @@ struct CompactView: View {
         switch content {
         case .idle:
             EmptyView()
-        case .music, .activity(.nowPlayingChanged):
+        case .music:
+            if Preferences.shared.compactLyrics {
+                CompactLyrics(showing: vm.showsCompactLyrics)
+            } else {
+                CompactVisualizer().frame(width: 16, height: 12)
+            }
+        case .activity(.nowPlayingChanged):
             CompactVisualizer().frame(width: 16, height: 12)
         case .clock:
             TimelineView(.everyMinute) { ctx in
@@ -259,6 +270,30 @@ private struct CompactVisualizer: View {
             Image(systemName: np.isPlaying ? "waveform" : "pause.fill")
                 .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(Color(nsColor: color))
+        }
+    }
+}
+
+/// Current lyric line in the music wing. Loads lyrics on track change while the closed
+/// island shows music; until they arrive (or if there are none) the visualizer stays.
+private struct CompactLyrics: View {
+    let showing: Bool
+
+    var body: some View {
+        let np = NowPlayingService.shared
+        let lyrics = LyricsService.shared
+        let key = LyricsService.key(title: np.title, artist: np.artist)
+        Group {
+            if showing {
+                TimelineView(LyricsSchedule(lines: lyrics.lines, player: np)) { ctx in
+                    LyricText(index: lyrics.lineIndex(at: np.elapsed(at: ctx.date)), size: 11, alignment: .trailing)
+                }
+            } else {
+                CompactVisualizer().frame(width: 16, height: 12)
+            }
+        }
+        .task(id: key) {
+            await lyrics.load(title: np.title, artist: np.artist, album: np.album, duration: np.duration)
         }
     }
 }

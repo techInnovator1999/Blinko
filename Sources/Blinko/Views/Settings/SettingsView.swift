@@ -316,6 +316,15 @@ private struct ModulesPane: View {
             }
             WorldClocksSection()
             WeatherSection()
+            Section {
+                Toggle("Synced lyrics in the player", isOn: $p.showLyrics)
+                Toggle("Lyrics in the closed island", isOn: $p.compactLyrics)
+            } header: {
+                Text("Lyrics")
+            } footer: {
+                Text("Time-synced lyrics from LRCLIB, fetched when a new track starts while lyrics are on screen, and cached on this Mac.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             Section("Home") {
                 Toggle("Calendar & reminders", isOn: $p.showCalendar)
                 Toggle("Camera mirror", isOn: $p.showMirror)

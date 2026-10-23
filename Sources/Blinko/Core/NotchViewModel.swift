@@ -96,6 +96,13 @@ final class NotchViewModel {
             && prefs.privacyIndicators && PrivacyService.shared.anyInUse
     }
 
+    /// "Lyrics in closed island": the music wing widens once the track's lyrics are loaded.
+    var showsCompactLyrics: Bool {
+        guard prefs.compactLyrics, compact == .music else { return false }
+        let np = NowPlayingService.shared
+        return LyricsService.shared.hasLyrics(for: LyricsService.key(title: np.title, artist: np.artist))
+    }
+
     var wingWidth: CGFloat {
         baseWingWidth + (showsPrivacyEdge ? 7 : 0)
     }
@@ -104,7 +111,7 @@ final class NotchViewModel {
         let h = geometry.notchSize.height
         switch compact {
         case .idle: return 0
-        case .music: return h + 10
+        case .music: return showsCompactLyrics ? 150 : h + 10
         case .download: return 76
         case .timer: return TimerService.shared.othersRunning > 0 ? 86 : 66
         case .privacy: return 40

@@ -68,8 +68,12 @@ struct MediaPlayerView: View {
                     .lineLimit(1)
                     .padding(.top, 2)
 
+                if Preferences.shared.showLyrics, np.hasTrack {
+                    PlayerLyricLine()
+                }
+
                 Scrubber(accent: accent)
-                    .padding(.top, 12)
+                    .padding(.top, LyricsService.shared.hasLyrics(for: LyricsService.key(title: np.title, artist: np.artist)) ? 7 : 12)
                     .opacity(np.hasTrack ? 1 : 0.35)
                     .disabled(!np.hasTrack)
 
@@ -97,6 +101,55 @@ struct MediaPlayerView: View {
             }
             .padding(.top, 8)
         }
+    }
+}
+
+/// The current synced-lyrics line under the artist, cross-fading line to line. Loads on
+/// track change while visible; redraws only at line boundaries (LyricsSchedule).
+private struct PlayerLyricLine: View {
+    var body: some View {
+        let np = NowPlayingService.shared
+        let lyrics = LyricsService.shared
+        let key = LyricsService.key(title: np.title, artist: np.artist)
+        ZStack(alignment: .leading) {
+            if lyrics.hasLyrics(for: key) {
+                TimelineView(LyricsSchedule(lines: lyrics.lines, player: np)) { ctx in
+                    LyricText(index: lyrics.lineIndex(at: np.elapsed(at: ctx.date)), size: 11.5)
+                }
+                .padding(.top, 5)
+                .transition(.opacity)
+            }
+        }
+        .animation(Motion.content, value: lyrics.hasLyrics(for: key))
+        .task(id: key) {
+            await lyrics.load(title: np.title, artist: np.artist, album: np.album, duration: np.duration)
+        }
+    }
+}
+
+/// One lyric line; a new line slides up and fades in while the old one fades out.
+struct LyricText: View {
+    let index: Int?
+    let size: CGFloat
+    var alignment: Alignment = .leading
+
+    var body: some View {
+        let lines = LyricsService.shared.lines
+        let text = index.flatMap { lines.indices.contains($0) ? lines[$0].text : nil } ?? ""
+        ZStack(alignment: alignment) {
+            Text(text.isEmpty ? "♪" : text)
+                .font(.system(size: size, weight: .medium))
+                .foregroundStyle(Color.white.opacity(0.78))
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .id(index ?? -1)
+                .transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: 5)),
+                                        removal: .opacity.combined(with: .offset(y: -5))))
+        }
+        .frame(maxWidth: .infinity, alignment: alignment)
+        .frame(height: size + 4)
+        .clipped()
+        .animation(Motion.content, value: index)
     }
 }
 

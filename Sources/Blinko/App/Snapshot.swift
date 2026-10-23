@@ -105,6 +105,15 @@ enum Snapshot {
         shot("19b-header-weather") { vm in vm.open(tab: .stats) }
         prefs.weatherEnabled = saved.0
         prefs.worldClocks = saved.1
+
+        // Synced lyrics: player line + closed-island wing. Line 3 is current at 1:37.
+        let lrc = "[01:20.00] First placeholder line\n[01:28.50] Second placeholder line\n[01:35.00] Neon lights over a sleeping town tonight\n[01:44.00] Fourth placeholder line"
+        LyricsService.shared.injectPreview(key: LyricsService.key(title: np.title, artist: np.artist), lrc: lrc)
+        let compactLyrics = prefs.compactLyrics
+        prefs.compactLyrics = true
+        shot("20-compact-lyrics") { _ in }
+        shot("20b-open-lyrics") { vm in vm.open(tab: .home) }
+        prefs.compactLyrics = compactLyrics
     }
 
     private static func sampleArtwork() -> NSImage {
