@@ -61,8 +61,10 @@ private struct IslandBody: View {
         .onChange(of: dropTargeted) { _, targeted in vm.dropTargetChanged(targeted) }
         .animation(isOpen ? Motion.open : Motion.close, value: isOpen)
         .animation(Motion.compact, value: vm.compact.key)
+        .animation(Motion.micro, value: vm.shapeSize.height) // command bar grows/shrinks with its results
         .animation(Motion.peek, value: vm.isHovering)
         .animation(Motion.compact, value: vm.geometry)
+        .animation(Motion.open, value: vm.isCommandBarActive)
     }
 }
 

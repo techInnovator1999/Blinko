@@ -4,9 +4,17 @@ struct ExpandedView: View {
     let vm: NotchViewModel
 
     var body: some View {
+        if vm.isCommandBarActive {
+            CommandBarView(vm: vm)
+        } else {
+            tabs
+        }
+    }
+
+    private var tabs: some View {
         let headerHeight = max(vm.geometry.notchSize.height, 30)
         let size = vm.shapeSize
-        VStack(spacing: 0) {
+        return VStack(spacing: 0) {
             ExpandedHeader(vm: vm)
                 .frame(height: headerHeight)
                 .minimalChrome()

@@ -119,6 +119,18 @@ final class Preferences {
     var longBreakMinutes: Int { didSet { store.set(longBreakMinutes, forKey: "longBreakMinutes") } }
     var autoStartNextSession: Bool { didSet { store.set(autoStartNextSession, forKey: "autoStartNextSession") } }
 
+    // Meeting mode (v0.4)
+    var meetingMode: Bool { didSet { store.set(meetingMode, forKey: "meetingMode") } }
+    var mutedWarning: Bool { didSet { store.set(mutedWarning, forKey: "mutedWarning") } }
+    /// `MeetingApp.id`s the user excluded from meeting detection.
+    var disabledMeetingApps: Set<String> { didSet { store.set(Array(disabledMeetingApps), forKey: "disabledMeetingApps") } }
+
+    // Command bar (v0.4): second global shortcut, Carbon key code + modifier mask
+    var commandBarEnabled: Bool { didSet { store.set(commandBarEnabled, forKey: "commandBarEnabled") } }
+    var commandHotkeyKeyCode: Int { didSet { store.set(commandHotkeyKeyCode, forKey: "commandHotkeyKeyCode") } }
+    var commandHotkeyModifiers: Int { didSet { store.set(commandHotkeyModifiers, forKey: "commandHotkeyModifiers") } }
+    var commandHotkeyKeyName: String { didSet { store.set(commandHotkeyKeyName, forKey: "commandHotkeyKeyName") } }
+
     private init() {
         store.register(defaults: [
             "displayMode": DisplayMode.notchedOnly.rawValue,
@@ -181,6 +193,13 @@ final class Preferences {
             "shortBreakMinutes": 5,
             "longBreakMinutes": 15,
             "autoStartNextSession": true,
+            "meetingMode": true,
+            "mutedWarning": false, // needs microphone access: opt-in
+            "disabledMeetingApps": [String](),
+            "commandBarEnabled": true,
+            "commandHotkeyKeyCode": 49,        // kVK_Space
+            "commandHotkeyModifiers": 0x0800,  // optionKey
+            "commandHotkeyKeyName": "Space",
         ])
         hasCompletedOnboarding = store.bool(forKey: "hasCompletedOnboarding")
         displayMode = DisplayMode(rawValue: store.string(forKey: "displayMode") ?? "") ?? .notchedOnly
@@ -246,5 +265,12 @@ final class Preferences {
         shortBreakMinutes = store.integer(forKey: "shortBreakMinutes")
         longBreakMinutes = store.integer(forKey: "longBreakMinutes")
         autoStartNextSession = store.bool(forKey: "autoStartNextSession")
+        meetingMode = store.bool(forKey: "meetingMode")
+        mutedWarning = store.bool(forKey: "mutedWarning")
+        disabledMeetingApps = Set(store.stringArray(forKey: "disabledMeetingApps") ?? [])
+        commandBarEnabled = store.bool(forKey: "commandBarEnabled")
+        commandHotkeyKeyCode = store.integer(forKey: "commandHotkeyKeyCode")
+        commandHotkeyModifiers = store.integer(forKey: "commandHotkeyModifiers")
+        commandHotkeyKeyName = store.string(forKey: "commandHotkeyKeyName") ?? "Space"
     }
 }

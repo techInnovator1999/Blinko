@@ -4,6 +4,9 @@
     "" : {
 
     },
+    "%@ call" : {
+
+    },
     "%@ · %@" : {
       "localizations" : {
         "en" : {
@@ -73,6 +76,9 @@
     "Accessibility" : {
 
     },
+    "Accessibility lets Blinko see Zoom's mute and leave calls" : {
+
+    },
     "Accessibility permission required" : {
 
     },
@@ -118,7 +124,16 @@
     "Appearance" : {
 
     },
+    "Application" : {
+
+    },
     "Applied “%@”" : {
+
+    },
+    "Apps & Shortcuts" : {
+
+    },
+    "Apps that count as a call" : {
 
     },
     "Automatically check for updates" : {
@@ -142,16 +157,43 @@
     "Blinko Pink" : {
 
     },
+    "Blinko Settings" : {
+
+    },
     "Blinko Theme" : {
 
     },
+    "Blinko listens only while you are in a call and muted in the meeting app, and never records. It can't hear you when the microphone itself is muted (Blinko's Mute button mutes it for every app), so the warning covers mutes made inside the meeting app: Zoom (read from its menu, needs Accessibility), and apps that release the microphone while muted." : {
+
+    },
     "Bluetooth devices" : {
+
+    },
+    "Bring the call to the front" : {
+
+    },
+    "Brings the call to the front (needs Accessibility to leave from here)" : {
+
+    },
+    "Browsers (Google Meet…)" : {
+
+    },
+    "Browsers count when a page uses the microphone (Google Meet, Teams or Zoom on the web); the calendar event happening now names the call. Leave uses Teams' and Slack's own shortcuts, and Zoom's (which asks to confirm), when Accessibility is granted; otherwise it brings the call to the front." : {
 
     },
     "Built-in display" : {
 
     },
     "CPU" : {
+
+    },
+    "Calculate" : {
+
+    },
+    "Calculate, convert, launch or search…" : {
+
+    },
+    "Calculator" : {
 
     },
     "Calendar & Reminders" : {
@@ -166,10 +208,22 @@
     "Camera & microphone in use" : {
 
     },
+    "Camera Off" : {
+
+    },
+    "Camera On" : {
+
+    },
     "Camera and microphone show a green or orange dot at the edge of the island while in use. Downloads from Safari, Chrome and Firefox are followed in ~/Downloads; macOS asks for access to that folder the first time. AirPods levels use undocumented Bluetooth properties and may not appear for every model." : {
 
     },
     "Camera mirror" : {
+
+    },
+    "Camera status" : {
+
+    },
+    "Can't divide by zero" : {
 
     },
     "Cancel" : {
@@ -244,6 +298,15 @@
     "Cloudy" : {
 
     },
+    "Command" : {
+
+    },
+    "Command Bar" : {
+
+    },
+    "Command bar" : {
+
+    },
     "Compact" : {
 
     },
@@ -253,7 +316,16 @@
     "Connected" : {
 
     },
+    "Convert" : {
+
+    },
+    "Convert units & currency" : {
+
+    },
     "Copied" : {
+
+    },
+    "Copied from %@" : {
 
     },
     "Copy" : {
@@ -269,6 +341,9 @@
 
     },
     "Couldn't load the weather. Blinko retries every 30 minutes." : {
+
+    },
+    "Currency" : {
 
     },
     "Current location" : {
@@ -319,10 +394,22 @@
     "Drop files here" : {
 
     },
+    "Exchange rates come from open.er-api.com, fetched at most once a day and only when you type a currency. Apps and Shortcuts are listed the first time you open the bar." : {
+
+    },
+    "Exchange rates unavailable" : {
+
+    },
     "Export Theme" : {
 
     },
     "Export…" : {
+
+    },
+    "Expression too complex" : {
+
+    },
+    "Fetching exchange rates…" : {
 
     },
     "Fine-tune makes the closed island exactly cover your notch — handy for scaled display resolutions." : {
@@ -442,6 +529,12 @@
     "Keep Awake is on" : {
 
     },
+    "Keep awake for %@" : {
+
+    },
+    "Keep awake for 1 hour" : {
+
+    },
     "Keep clipboard history" : {
 
     },
@@ -451,10 +544,19 @@
     "Large" : {
 
     },
+    "Launch" : {
+
+    },
     "Launch at login" : {
 
     },
     "Layout" : {
+
+    },
+    "Leave" : {
+
+    },
+    "Leave the call" : {
 
     },
     "Live Activities" : {
@@ -490,10 +592,19 @@
     "Match wallpaper" : {
 
     },
+    "Meeting mode" : {
+
+    },
+    "Meetings" : {
+
+    },
     "Memory" : {
 
     },
     "Microphone" : {
+
+    },
+    "Microphone access denied" : {
 
     },
     "Microphone volume & mute" : {
@@ -526,6 +637,18 @@
     "Music visualizer" : {
 
     },
+    "Mute" : {
+
+    },
+    "Mute microphone" : {
+
+    },
+    "Muted in %@" : {
+
+    },
+    "Mutes the microphone for every app" : {
+
+    },
     "My Blinko Theme" : {
 
     },
@@ -550,6 +673,9 @@
     "No more events today" : {
 
     },
+    "Not a number" : {
+
+    },
     "Notes" : {
 
     },
@@ -571,6 +697,9 @@
     "Now Playing" : {
 
     },
+    "Number too large" : {
+
+    },
     "Numbers & titles" : {
 
     },
@@ -589,10 +718,22 @@
     "On Battery" : {
 
     },
+    "On the shelf · ⌘↩ shows in Finder" : {
+
+    },
     "Open" : {
 
     },
+    "Open %@" : {
+
+    },
+    "Open Clipboard" : {
+
+    },
     "Open Settings" : {
+
+    },
+    "Open Shelf" : {
 
     },
     "Open corners" : {
@@ -608,6 +749,9 @@
 
     },
     "Open width" : {
+
+    },
+    "Opens the island as a command bar from any app. ↑ ↓ choose, ↩ runs, ⌘↩ shows files and apps in Finder, ⎋ or a click elsewhere closes it and returns to the app you were in." : {
 
     },
     "OptimaGeeks" : {
@@ -685,6 +829,9 @@
     "Rounder" : {
 
     },
+    "Run" : {
+
+    },
     "SF Pro" : {
 
     },
@@ -698,6 +845,9 @@
 
     },
     "Search cities" : {
+
+    },
+    "Search the web for “%@”" : {
 
     },
     "See your next events here." : {
@@ -715,10 +865,19 @@
     "Shelf" : {
 
     },
+    "Shelf & clipboard" : {
+
+    },
     "Short Break" : {
 
     },
     "Short break: %lld min" : {
+
+    },
+    "Shortcut" : {
+
+    },
+    "Show" : {
 
     },
     "Show Names…" : {
@@ -760,16 +919,28 @@
     "Springs become short fades and the island opens without blur or scaling. Blinko also follows System Settings → Accessibility → Display → Reduce motion." : {
 
     },
+    "Start" : {
+
+    },
     "Start Focus" : {
 
     },
+    "Start a %@ timer" : {
+
+    },
     "Start as many as you like — they run side by side." : {
+
+    },
+    "Start focus session" : {
 
     },
     "Start the next session automatically" : {
 
     },
     "Stop" : {
+
+    },
+    "Stop Keep Awake" : {
 
     },
     "Sunset" : {
@@ -832,6 +1003,18 @@
     "Turn it on in Settings → Modules" : {
 
     },
+    "Type “t 25m” for any length" : {
+
+    },
+    "Units" : {
+
+    },
+    "Unmute" : {
+
+    },
+    "Unmute microphone" : {
+
+    },
     "Until %@" : {
 
     },
@@ -859,13 +1042,25 @@
     "Wallpaper" : {
 
     },
+    "Warn when I talk while muted" : {
+
+    },
     "Weather" : {
+
+    },
+    "Web" : {
 
     },
     "Welcome" : {
 
     },
     "Welcome to Blinko" : {
+
+    },
+    "What you can type" : {
+
+    },
+    "When an app below starts using the microphone, the closed island shows the call's app, its length and your microphone, and Home shows mute, camera and leave controls with the calendar event happening now. Detection asks for no permission." : {
 
     },
     "Wi-Fi" : {
@@ -878,6 +1073,9 @@
 
     },
     "World clocks" : {
+
+    },
+    "You're muted" : {
 
     },
     "Your notch, alive. Hover it, swipe down on it, or press ⌃⌥Space." : {
@@ -893,6 +1091,9 @@
 
     },
     "paintbrush.fill" : {
+
+    },
+    "rates of %@" : {
 
     },
     "rectangle.3.group.fill" : {

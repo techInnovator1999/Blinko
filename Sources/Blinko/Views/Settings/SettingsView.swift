@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum SettingsPane: String, CaseIterable, Identifiable {
-    case welcome, general, activities, modules, layout, appearance, about
+    case welcome, general, activities, modules, layout, appearance, meetings, commandBar, about
     var id: String { rawValue }
 
     var title: String {
@@ -12,6 +12,8 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .modules: String(localized: "Modules")
         case .layout: String(localized: "Layout")
         case .appearance: String(localized: "Appearance")
+        case .meetings: String(localized: "Meetings")
+        case .commandBar: String(localized: "Command Bar")
         case .about: String(localized: "About")
         }
     }
@@ -24,6 +26,8 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .modules: String(localized: "square.grid.2x2.fill")
         case .layout: String(localized: "rectangle.3.group.fill")
         case .appearance: String(localized: "paintbrush.fill")
+        case .meetings: "video.fill"
+        case .commandBar: "command"
         case .about: String(localized: "info.circle.fill")
         }
     }
@@ -36,6 +40,8 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .modules: .blue
         case .layout: .indigo
         case .appearance: .purple
+        case .meetings: .green
+        case .commandBar: .pink
         case .about: .teal
         }
     }
@@ -98,6 +104,8 @@ struct SettingsView: View {
                 case .modules: ModulesPane()
                 case .layout: LayoutPane()
                 case .appearance: AppearancePane()
+                case .meetings: MeetingsPane()
+                case .commandBar: CommandBarPane()
                 case .about: AboutPane()
                 }
             }

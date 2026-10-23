@@ -46,6 +46,10 @@ enum Metrics {
     static let openTopRadius: CGFloat = 19
     static let openBottomRadius: CGFloat = 26
     static let openSize = CGSize(width: 700, height: 210)
+    /// The open island grows to this height only while the command bar is up.
+    static let commandBarHeight: CGFloat = 280
+    /// Command bar hugs its results: header + input row + one 29 pt row per result.
+    static func commandBarHeight(rows: Int) -> CGFloat { 98 + CGFloat(min(max(rows, 1), 6)) * 29 }
     /// Transparent room around the open island so its shadow is not clipped by the window.
     static let shadowPadding: CGFloat = 28
     static let peekGrowth = CGSize(width: 18, height: 5)

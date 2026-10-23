@@ -5,7 +5,7 @@ struct HomeView: View {
     var body: some View {
         let prefs = Preferences.shared
         HStack(alignment: .top, spacing: 14) {
-            MediaPlayerView()
+            HomePrimaryView() // media player, or the meeting card during a call
                 .frame(maxWidth: .infinity, alignment: .leading)
             if prefs.showCalendar || prefs.showClock || prefs.weatherEnabled {
                 Divider().overlay(Color.hairline).frame(height: 120).padding(.top, 8)

@@ -6,6 +6,7 @@ enum BlinkoMain {
     static func main() {
         let app = NSApplication.shared
         if Snapshot.runIfRequested() { return }
+        if SelfTest.runIfRequested() { return }
         let delegate = AppDelegate()
         app.delegate = delegate
         app.setActivationPolicy(.accessory)
@@ -18,6 +19,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var notchManager: NotchManager?
     private var statusItem: StatusItemController?
     private let hotkey = HotkeyManager()
+    private let commandHotkey = HotkeyManager(id: 2)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let prefs = Preferences.shared
@@ -35,6 +37,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         hotkey.onPress = { [weak manager] in manager?.toggleOnActiveScreen() }
         syncHotkey()
+        commandHotkey.onPress = { [weak manager] in manager?.toggleCommandBar() }
+        syncCommandHotkey()
 
         if !prefs.hasCompletedOnboarding {
             SettingsWindowController.shared.show(pane: .welcome)
@@ -52,6 +56,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         } onChange: { [weak self] in
             DispatchQueue.main.async { self?.syncHotkey() }
+        }
+    }
+
+    /// The command bar's shortcut (⌥Space by default), registered beside the island toggle.
+    private func syncCommandHotkey() {
+        let prefs = Preferences.shared
+        withObservationTracking {
+            if prefs.commandBarEnabled, !HotkeyRecorderState.isRecording {
+                commandHotkey.register(keyCode: UInt32(prefs.commandHotkeyKeyCode),
+                                       modifiers: UInt32(prefs.commandHotkeyModifiers))
+            } else {
+                commandHotkey.unregister()
+            }
+        } onChange: { [weak self] in
+            DispatchQueue.main.async { self?.syncCommandHotkey() }
         }
     }
 

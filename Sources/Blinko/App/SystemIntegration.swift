@@ -16,22 +16,31 @@ enum LaunchAtLogin {
 }
 
 /// Global hotkey via Carbon (no Accessibility permission needed). Default: ⌃⌥Space.
+/// Several managers can coexist (island toggle, command bar): each handler only claims
+/// presses of its own hotkey ID and passes the others on.
 @MainActor
 final class HotkeyManager {
     var onPress: (() -> Void)?
     private var hotKeyRef: EventHotKeyRef?
     private var handlerRef: EventHandlerRef?
+    private let hotkeyID: UInt32
+
+    init(id: UInt32 = 1) { self.hotkeyID = id }
 
     func register(keyCode: UInt32 = UInt32(kVK_Space), modifiers: UInt32 = UInt32(controlKey | optionKey)) {
         unregister()
         var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-        InstallEventHandler(GetApplicationEventTarget(), { _, _, userData in
+        InstallEventHandler(GetApplicationEventTarget(), { _, event, userData in
             guard let userData else { return noErr }
             let me = Unmanaged<HotkeyManager>.fromOpaque(userData).takeUnretainedValue()
+            var pressed = EventHotKeyID()
+            GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID),
+                              nil, MemoryLayout<EventHotKeyID>.size, nil, &pressed)
+            guard pressed.id == me.hotkeyID else { return OSStatus(eventNotHandledErr) }
             DispatchQueue.main.async { me.onPress?() }
             return noErr
         }, 1, &spec, Unmanaged.passUnretained(self).toOpaque(), &handlerRef)
-        let id = EventHotKeyID(signature: OSType(0x424C_4E4B), id: 1) // 'BLNK'
+        let id = EventHotKeyID(signature: OSType(0x424C_4E4B), id: hotkeyID) // 'BLNK'
         RegisterEventHotKey(keyCode, modifiers, id, GetApplicationEventTarget(), 0, &hotKeyRef)
     }
 
