@@ -125,8 +125,10 @@ final class SkyLightSpace {
     @discardableResult
     func add(_ window: NSWindow) -> Bool {
         guard let s = symbols, spaceID != 0, window.windowNumber > 0 else { return false }
+        // The result is not a reliable CGError on every macOS (other projects discard it), so
+        // it is only logged; `spaces(of:)` is the ground truth.
         let err = s.addWindows(connection, spaceID, [NSNumber(value: window.windowNumber)] as CFArray, 7)
-        if err != 0 { log.error("SLSSpaceAddWindowsAndRemoveFromSpaces error \(err)"); return false }
+        if err != 0 { log.debug("SLSSpaceAddWindowsAndRemoveFromSpaces returned \(err)") }
         members.insert(window.windowNumber)
         return true
     }
@@ -141,17 +143,17 @@ final class SkyLightSpace {
         guard let s = symbols, spaceID != 0, windowNumber > 0 else { return }
         let err = s.removeWindows(connection, [NSNumber(value: windowNumber)] as CFArray,
                                   [NSNumber(value: spaceID)] as CFArray)
-        if err != 0 { log.error("SLSRemoveWindowsFromSpaces error \(err)") }
+        if err != 0 { log.debug("SLSRemoveWindowsFromSpaces returned \(err)") }
         members.remove(windowNumber)
     }
 
     func contains(_ window: NSWindow) -> Bool { members.contains(window.windowNumber) }
 
     /// Space IDs the window server reports for a window (diagnostics / round-trip test).
-    func spaces(of window: NSWindow) -> [UInt64]? {
+    func spaces(of window: NSWindow, mask: Int32 = 0xFFFF) -> [UInt64]? {
         guard let s = symbols, let copy = s.copySpacesForWindows, window.windowNumber > 0 else { return nil }
         let cid = connection != 0 ? connection : s.mainConnectionID()
-        guard let array = copy(cid, 7, [NSNumber(value: window.windowNumber)] as CFArray)?.takeRetainedValue()
+        guard let array = copy(cid, mask, [NSNumber(value: window.windowNumber)] as CFArray)?.takeRetainedValue()
                 as? [NSNumber] else { return [] }
         return array.map(\.uint64Value)
     }

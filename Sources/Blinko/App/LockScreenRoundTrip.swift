@@ -4,10 +4,12 @@ import SwiftUI
 /// Hidden diagnostic: `open -n Blinko.app --args --lockscreen-roundtrip-test [report.txt]`.
 ///
 /// Proves the lock-screen plumbing on the *unlocked* desktop without locking anything: it
-/// resolves the private SkyLight symbols, shows a small test panel (configured exactly like
-/// the island's `NotchPanel`) in the top-left corner, moves it into the lock-screen space for
-/// ~2 s with the same code the lock-screen controller uses, restores it, and compares what
-/// the window server reports (layer, on-screen, alpha, spaces) before / during / after.
+/// resolves the private SkyLight symbols, shows two small test panels in the top-left corner
+/// — one configured exactly like the island's `NotchPanel`, one at the normal window level —
+/// moves both into the lock-screen space for ~2 s with the code the lock-screen controller
+/// uses, restores them, and compares what the window server reports before / during / after:
+/// layer, on-screen, alpha, z-order and spaces. The normal-level panel jumping in front of
+/// higher-layer windows (menu bar, Dock…) shows the space's absolute level is in effect.
 /// Writes a report and exits 0 on success, 1 on a mismatch, 2 if SkyLight is unavailable.
 @MainActor
 enum LockScreenRoundTrip {
@@ -29,20 +31,54 @@ enum LockScreenRoundTrip {
         var level: Int
         var collection: UInt
         var spaces: [UInt64]?
+        /// Position in the front-to-back list of on-screen windows.
+        var zIndex: Int?
+        /// On-screen windows with a higher layer drawn in front of this one.
+        var higherLayersInFront: Int
+        /// Owner:layer of every window in front (front to back).
+        var inFront: [String] = []
+
         var description: String {
             "layer=\(layer.map(String.init) ?? "nil") onscreen=\(onscreen) alpha=\(alpha.map { String($0) } ?? "nil") "
-                + "level=\(level) collectionBehavior=0x\(String(collection, radix: 16)) spaces=\(spaces.map { "\($0)" } ?? "n/a")"
+                + "level=\(level) collectionBehavior=0x\(String(collection, radix: 16)) "
+                + "z=\(zIndex.map(String.init) ?? "nil") higherLayersInFront=\(higherLayersInFront) "
+                + "spaces=\(spaces.map { "\($0)" } ?? "n/a")"
+                + " inFront=\(inFront)"
         }
     }
 
     private static func sample(_ window: NSWindow) -> WindowSample {
-        let info = (CGWindowListCopyWindowInfo([.optionIncludingWindow], CGWindowID(window.windowNumber)) as? [[String: Any]])?.first
-        return WindowSample(layer: info?[kCGWindowLayer as String] as? Int,
+        let number = window.windowNumber
+        let info = (CGWindowListCopyWindowInfo([.optionIncludingWindow], CGWindowID(number)) as? [[String: Any]])?.first
+        let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
+        let z = list.firstIndex { ($0[kCGWindowNumber as String] as? Int) == number }
+        let layer = info?[kCGWindowLayer as String] as? Int
+        let higher = z.map { idx in
+            list[..<idx].filter { ($0[kCGWindowLayer as String] as? Int ?? 0) > (layer ?? 0) }.count
+        } ?? 0
+        return WindowSample(layer: layer,
                             onscreen: info?[kCGWindowIsOnscreen as String] as? Bool ?? false,
                             alpha: info?[kCGWindowAlpha as String] as? Double,
                             level: window.level.rawValue,
                             collection: window.collectionBehavior.rawValue,
-                            spaces: SkyLightSpace.shared.spaces(of: window))
+                            spaces: SkyLightSpace.shared.spaces(of: window),
+                            zIndex: z, higherLayersInFront: higher,
+                            inFront: z.map { list[..<$0].map { "\($0[kCGWindowOwnerName as String] as? String ?? "?"):\($0[kCGWindowLayer as String] as? Int ?? 0)" } } ?? [])
+    }
+
+    private static func makePanel(_ title: String, color: Color, y: CGFloat, level: NSWindow.Level?) -> NotchPanel {
+        let panel = NotchPanel()
+        if let level { panel.level = level }
+        panel.contentView = NSHostingView(rootView:
+            Text(verbatim: title)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 180, height: 26)
+                .background(Capsule().fill(color)))
+        let screen = NSScreen.screens.first?.frame ?? .zero
+        panel.setFrame(CGRect(x: screen.minX + 12, y: screen.maxY - y, width: 180, height: 26), display: true)
+        panel.orderFrontRegardless()
+        return panel
     }
 
     private static func run(report: URL) {
@@ -63,54 +99,64 @@ enum LockScreenRoundTrip {
         let sky = SkyLightSpace.shared
         guard sky.isAvailable else { lines.append("SkyLight unavailable"); finish(2) }
 
-        // Same configuration as an island panel, tiny and in a corner.
-        let panel = NotchPanel()
-        let hosting = NSHostingView(rootView:
-            Text(verbatim: "Blinko lock-screen test")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 180, height: 26)
-                .background(Capsule().fill(Color.pink)))
-        panel.contentView = hosting
-        let screen = NSScreen.screens.first?.frame ?? .zero
-        panel.setFrame(CGRect(x: screen.minX + 12, y: screen.maxY - 70, width: 180, height: 26), display: true)
-        panel.orderFrontRegardless()
+        let panels: [(name: String, panel: NotchPanel)] = [
+            ("island-like panel", makePanel("Blinko lock-screen test", color: .pink, y: 70, level: nil)),
+            ("normal-level panel", makePanel("Blinko lock-screen test 2", color: .indigo, y: 104, level: .normal)),
+        ]
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            let before = sample(panel)
-            lines.append("before:  \(before)")
+            let before = panels.map { sample($0.panel) }
             guard sky.show() else { lines.append("could not create / show the space"); finish(1) }
             lines.append("space id: \(sky.spaceID) (absolute level \(SkyLightSpace.lockScreenLevel))")
-            let state = LockScreenController.capture(panel)
-            let moved = LockScreenController.moveToLockSpace(panel)
-            lines.append("moved into space: \(moved)")
+            let states = panels.map { LockScreenController.capture($0.panel) }
+            panels.forEach { LockScreenController.moveToLockSpace($0.panel) }
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                let during = sample(panel)
-                lines.append("during:  \(during)")
+                let during = panels.map { sample($0.panel) }
 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    LockScreenController.restore(panel, state, reorder: true)
+                    for (entry, state) in zip(panels, states) {
+                        LockScreenController.restore(entry.panel, state, reorder: true)
+                    }
                     sky.hide()
 
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        let after = sample(panel)
-                        lines.append("after:   \(after)")
                         var ok = true
                         func check(_ cond: Bool, _ what: String) {
-                            lines.append("\(cond ? "ok  " : "FAIL") \(what)")
+                            lines.append("  \(cond ? "ok  " : "FAIL") \(what)")
                             ok = ok && cond
                         }
-                        check(moved, "window accepted by SLSSpaceAddWindowsAndRemoveFromSpaces")
-                        if let spaces = during.spaces { check(spaces.contains(sky.spaceID), "window in the lock-screen space while delegated") }
-                        if let spaces = after.spaces { check(!spaces.contains(sky.spaceID), "window left the lock-screen space") }
-                        if let b = before.spaces, let a = after.spaces { check(Set(a) == Set(b), "window back in its original spaces \(b)") }
-                        check(after.onscreen, "window on screen after restore")
-                        check(after.layer == before.layer, "window-server layer restored (\(before.layer ?? -1))")
-                        check(after.level == before.level, "NSWindow level restored")
-                        check(after.collection == before.collection, "collection behaviour restored")
-                        check(panel.canBecomeVisibleWithoutLogin == state.canBecomeVisibleWithoutLogin, "canBecomeVisibleWithoutLogin restored")
-                        panel.orderOut(nil)
+                        for (i, entry) in panels.enumerated() {
+                            let (b, d, a, state) = (before[i], during[i], sample(entry.panel), states[i])
+                            lines.append("\(entry.name):")
+                            lines.append("  before: \(b)")
+                            lines.append("  during: \(d)")
+                            lines.append("  after:  \(a)")
+                            if let spaces = d.spaces { check(spaces == [sky.spaceID], "only in the lock-screen space while delegated") }
+                            check(d.onscreen, "on screen while delegated")
+                            // Only the other test panel (same space, higher layer) and window-server
+                            // overlays (cursor, screen shields: their own top spaces) may be in front;
+                            // the space's absolute level lifts it above the menu bar, Dock and every
+                            // app window whatever their layer.
+                            let foreign = d.inFront.filter { !$0.hasPrefix("Blinko:") && !$0.hasPrefix("Window Server:2147") }
+                            let lifted = b.inFront.filter { !$0.hasPrefix("Blinko:") && !$0.hasPrefix("Window Server:2147") }
+                            check(foreign.isEmpty, "drawn above \(lifted) while delegated")
+                            if let s = a.spaces { check(!s.contains(sky.spaceID), "left the lock-screen space") }
+                            if let bs = b.spaces, let s = a.spaces { check(Set(s) == Set(bs), "back in its original \(bs.count) space(s)") }
+                            check(a.onscreen, "on screen after restore")
+                            check(a.layer == b.layer, "window-server layer restored (\(b.layer ?? -1))")
+                            check(a.alpha == b.alpha, "alpha restored")
+                            check(a.level == b.level, "NSWindow level restored")
+                            check(a.collection == b.collection, "collection behaviour restored")
+                            // Back under the system overlays it was under before (the Dock may come
+                            // and go on its own, so compare the front-most system window only).
+                            if let top = b.inFront.first(where: { !$0.hasPrefix("Blinko:") }) {
+                                check(a.inFront.contains(top), "back below \(top) as before")
+                            }
+                            check(entry.panel.canBecomeVisibleWithoutLogin == state.canBecomeVisibleWithoutLogin,
+                                  "canBecomeVisibleWithoutLogin restored")
+                        }
+                        panels.forEach { $0.panel.orderOut(nil) }
                         finish(ok ? 0 : 1)
                     }
                 }
