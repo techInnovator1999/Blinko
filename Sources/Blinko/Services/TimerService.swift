@@ -164,6 +164,6 @@ final class TimerService {
         }
         cancel()
         NSSound(named: "Glass")?.play()
-        ActivityCenter.shared.show(.timerFinished)
+        ActivityCenter.shared.show(.timerFinished())
     }
 }

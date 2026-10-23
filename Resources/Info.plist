@@ -30,6 +30,8 @@
 	<string>Blinko shows your upcoming events in the notch.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Blinko uses the camera for the quick mirror.</string>
+	<key>NSFocusStatusUsageDescription</key>
+	<string>Blinko shows a live activity when a Focus or Do Not Disturb turns on or off.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSRemindersFullAccessUsageDescription</key>

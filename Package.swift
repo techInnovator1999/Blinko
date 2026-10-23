@@ -24,6 +24,11 @@ let package = Package(
                 .linkedFramework("Carbon"),
                 .linkedFramework("AVFoundation"),
                 .linkedFramework("QuickLookThumbnailing"),
+                .linkedFramework("CoreMediaIO"),
+                .linkedFramework("CoreWLAN"),
+                .linkedFramework("CoreLocation"),
+                .linkedFramework("Network"),
+                .linkedFramework("Intents"),
                 // Sparkle.framework is embedded in Contents/Frameworks by scripts/build.sh.
                 .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"]),
             ]

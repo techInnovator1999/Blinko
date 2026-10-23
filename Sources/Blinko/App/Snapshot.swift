@@ -45,10 +45,30 @@ enum Snapshot {
         shot("05-capslock") { _ in ActivityCenter.shared.show(.capsLock(on: true)) }
         shot("06-mic") { _ in ActivityCenter.shared.show(.microphone(level: 0.4, muted: false)) }
         shot("07-focus") { _ in ActivityCenter.shared.show(.focusSession(title: "Short Break", isBreak: true)) }
+        // v0.3 awareness activities
+        let airpods = DeviceBattery(left: 82, right: 76, caseLevel: 54)
+        shot("11-airpods-battery") { _ in ActivityCenter.shared.show(.bluetooth(name: "AirPods Pro", kind: .headphones, connected: true, battery: airpods)) }
+        shot("12-focus-mode") { _ in ActivityCenter.shared.show(.focusMode(on: true, name: "Do Not Disturb", symbol: "moon.fill")) }
+        shot("12b-focus-off") { _ in ActivityCenter.shared.show(.focusMode(on: false, name: nil, symbol: nil)) }
+        shot("13-privacy-camera") { _ in ActivityCenter.shared.show(.privacy(sensor: .camera)) }
+        shot("14-wifi") { _ in ActivityCenter.shared.show(.network(.wifi(connected: true, ssid: "Studio 5G"))) }
+        shot("14b-vpn") { _ in ActivityCenter.shared.show(.network(.vpn(on: true))) }
+        shot("14c-hotspot") { _ in ActivityCenter.shared.show(.network(.hotspot(name: "iPhone"))) }
+        let downloaded = URL(fileURLWithPath: "/tmp/Blinko-0.3.0.dmg")
+        shot("15-download-finished") { _ in ActivityCenter.shared.show(.downloadFinished(name: downloaded.lastPathComponent, url: downloaded)) }
         ActivityCenter.shared.dismiss()
+        PrivacyService.shared.injectPreview(camera: true, mic: true)
+        shot("16-privacy-over-music") { _ in }
+        DownloadsService.shared.injectPreview(.init(name: "Xcode.xip", received: 1_200_000_000, total: 3_000_000_000), count: 2)
+        shot("17-download-progress") { _ in }
+        DownloadsService.shared.injectPreview(.init(name: "video.mp4", received: 48_500_000, total: nil))
+        shot("17b-download-indeterminate") { _ in }
+        DownloadsService.shared.injectPreview(nil, recent: downloaded)
         let idleClock = Preferences.shared.showClockWhenIdle
         let np = NowPlayingService.shared
         np.injectPreview(title: np.title, artist: np.artist, duration: np.duration, elapsed: 97, playing: false, artwork: np.artwork)
+        shot("16b-privacy-idle") { _ in }
+        PrivacyService.shared.injectPreview(camera: false, mic: false)
         Preferences.shared.showClockWhenIdle = true
         shot("09-idle-clock") { _ in }
         Preferences.shared.showClockWhenIdle = idleClock

@@ -228,8 +228,22 @@ private struct ActivitiesPane: View {
                 Toggle("Now Playing", isOn: $p.musicActivity)
                 Toggle("Battery & charging", isOn: $p.batteryActivity)
                 Toggle("Bluetooth devices", isOn: $p.bluetoothActivity)
+                Toggle("AirPods battery levels", isOn: $p.airPodsBattery)
+                    .disabled(!p.bluetoothActivity)
             } header: {
                 Text("Show in the closed island")
+            }
+            Section {
+                Toggle("Focus & Do Not Disturb", isOn: $p.focusActivity)
+                if p.focusActivity { FocusAccessRow() }
+                Toggle("Camera & microphone in use", isOn: $p.privacyIndicators)
+                Toggle("Wi-Fi, VPN & Personal Hotspot", isOn: $p.networkActivity)
+                Toggle("Download progress", isOn: $p.downloadsActivity)
+            } header: {
+                Text("Awareness")
+            } footer: {
+                Text("Camera and microphone show a green or orange dot at the edge of the island while in use. Downloads from Safari, Chrome and Firefox are followed in ~/Downloads; macOS asks for access to that folder the first time. AirPods levels use undocumented Bluetooth properties and may not appear for every model.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Section {
                 Toggle("Replace system volume & brightness HUD", isOn: $p.replaceSystemHUD)
@@ -254,6 +268,40 @@ private struct ActivitiesPane: View {
         .onReceive(Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()) { _ in
             trusted = MediaKeyService.shared.isTrusted
         }
+    }
+}
+
+/// Focus needs either the user's Focus Status authorization (on/off only) or Full Disk
+/// Access (adds the mode's name and icon). Shows what is available and how to get more.
+private struct FocusAccessRow: View {
+    var body: some View {
+        let focus = FocusService.shared
+        HStack {
+            if focus.readsDatabase {
+                Label("Mode names available", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+            } else if focus.authorization == .authorized {
+                Label("On / off only", systemImage: "checkmark.circle").foregroundStyle(.secondary)
+            } else {
+                Label("Focus Status access needed", systemImage: "moon.fill").foregroundStyle(.secondary)
+            }
+            Spacer()
+            if focus.authorization != .authorized, !focus.readsDatabase {
+                Button(focus.authorization == .denied ? "Open Settings" : "Allow…") {
+                    if focus.authorization == .denied {
+                        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Focus")!)
+                    } else {
+                        focus.requestAuthorization()
+                    }
+                }
+            } else if !focus.readsDatabase {
+                Button("Show Names…") {
+                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!)
+                }
+                .help("Grant Full Disk Access to Blinko to show the Focus mode's name")
+            }
+        }
+        .font(.callout)
+        .onAppear { focus.recheckAccess() }
     }
 }
 

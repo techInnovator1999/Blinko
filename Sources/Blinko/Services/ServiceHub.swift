@@ -26,6 +26,10 @@ final class ServiceHub {
     private func applyPreferences() {
         MediaKeyService.shared.refresh()
         ClipboardService.shared.refresh()
+        FocusService.shared.refresh()
+        PrivacyService.shared.refresh()
+        NetworkService.shared.refresh()
+        DownloadsService.shared.refresh()
     }
 
     private func observePreferences() {
@@ -34,6 +38,10 @@ final class ServiceHub {
             _ = prefs.replaceSystemHUD
             _ = prefs.capsLockHUD
             _ = prefs.clipboardHistory
+            _ = prefs.focusActivity
+            _ = prefs.privacyIndicators
+            _ = prefs.networkActivity
+            _ = prefs.downloadsActivity
         } onChange: { [weak self] in
             DispatchQueue.main.async {
                 self?.applyPreferences()

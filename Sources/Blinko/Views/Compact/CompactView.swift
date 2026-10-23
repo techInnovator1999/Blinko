@@ -9,16 +9,24 @@ struct CompactView: View {
         let wing = vm.wingWidth
         let content = vm.compact
 
+        let privacyEdge = vm.showsPrivacyEdge
+
         HStack(spacing: 0) {
             leading(content)
                 .padding(.leading, 12)
                 .frame(width: wing, height: notch.height, alignment: .leading)
             Color.clear.frame(width: vm.closedNotchWidth)
             trailing(content)
-                .padding(.trailing, 12)
+                .padding(.trailing, privacyEdge ? 19 : 12)
                 .frame(width: wing, height: notch.height, alignment: .trailing)
         }
         .frame(height: notch.height)
+        .overlay(alignment: .trailing) {
+            // Camera / mic stay visible at the wing's edge whatever else the island shows.
+            if privacyEdge {
+                PrivacyDots(compact: true).padding(.trailing, 8)
+            }
+        }
         .id(content.key)
         .transition(.wingReveal)
     }
@@ -42,6 +50,10 @@ struct CompactView: View {
             Image(systemName: mode.isBreak ? "cup.and.saucer.fill" : (mode == .focus ? "brain.head.profile.fill" : "timer"))
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(mode.isBreak ? .green : .orange)
+        case .download:
+            CompactDownloadRing()
+        case .privacy:
+            PrivacySymbols()
         case .activity(let a):
             ActivityLeading(activity: a)
         }
@@ -63,9 +75,165 @@ struct CompactView: View {
             }
         case .timer:
             CompactTimer()
+        case .download:
+            CompactDownloadLabel()
+        case .privacy:
+            PrivacyDots(compact: false)
         case .activity(let a):
             ActivityTrailing(activity: a)
         }
+    }
+}
+
+// MARK: - Downloads
+
+private struct CompactDownloadRing: View {
+    var body: some View {
+        let progress = DownloadsService.shared.active
+        ZStack {
+            if let fraction = progress?.fraction {
+                RingProgress(value: fraction, tint: .blue, lineWidth: 2.5)
+                    .animation(.linear(duration: 0.5), value: fraction)
+            } else {
+                IndeterminateRing(tint: .blue)
+            }
+            Image(systemName: "arrow.down")
+                .font(.system(size: 8, weight: .heavy))
+                .foregroundStyle(.white)
+        }
+        .frame(width: 17, height: 17)
+    }
+}
+
+/// Spinning arc for downloads of unknown size.
+private struct IndeterminateRing: View {
+    let tint: Color
+
+    var body: some View {
+        ZStack {
+            Circle().stroke(tint.opacity(0.22), lineWidth: 2.5)
+            SpinnerArc(color: NSColor(tint), lineWidth: 2.5)
+        }
+    }
+}
+
+/// Rotating arc animated by the render server (CABasicAnimation): zero per-frame app work,
+/// unlike a SwiftUI `repeatForever` animation which re-evaluates every frame.
+private struct SpinnerArc: NSViewRepresentable {
+    let color: NSColor
+    let lineWidth: CGFloat
+
+    func makeNSView(context: Context) -> SpinnerArcView { SpinnerArcView(color: color, lineWidth: lineWidth) }
+    func updateNSView(_ view: SpinnerArcView, context: Context) {}
+}
+
+final class SpinnerArcView: NSView {
+    private let arc = CAShapeLayer()
+
+    init(color: NSColor, lineWidth: CGFloat) {
+        super.init(frame: .zero)
+        wantsLayer = true
+        arc.fillColor = nil
+        arc.strokeColor = color.cgColor
+        arc.lineWidth = lineWidth
+        arc.lineCap = .round
+        arc.strokeEnd = 0.3
+        layer?.addSublayer(arc)
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func layout() {
+        super.layout()
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        arc.frame = bounds
+        let inset = arc.lineWidth / 2
+        arc.path = CGPath(ellipseIn: bounds.insetBy(dx: inset, dy: inset), transform: nil)
+        CATransaction.commit()
+        if arc.animation(forKey: "spin") == nil {
+            let spin = CABasicAnimation(keyPath: "transform.rotation.z")
+            spin.fromValue = 0
+            spin.toValue = -2 * Double.pi
+            spin.duration = 1
+            spin.repeatCount = .infinity
+            spin.isRemovedOnCompletion = false
+            arc.add(spin, forKey: "spin")
+        }
+    }
+}
+
+private struct CompactDownloadLabel: View {
+    var body: some View {
+        let downloads = DownloadsService.shared
+        if let progress = downloads.active {
+            HStack(spacing: 3) {
+                Text(progress.fraction.map { "\(Int(($0 * 100).rounded()))%" } ?? Format.bytes(Double(progress.received)))
+                    .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(.white)
+                    .contentTransition(.numericText())
+                    .lineLimit(1)
+                    .fixedSize()
+                if downloads.activeCount > 1 {
+                    CountBadge(count: downloads.activeCount - 1)
+                }
+            }
+        }
+    }
+}
+
+/// "+N" capsule for additional items (downloads, timers) behind the one shown.
+struct CountBadge: View {
+    let count: Int
+    var body: some View {
+        Text("+\(count)")
+            .font(.system(size: 9, weight: .bold).monospacedDigit())
+            .foregroundStyle(.black)
+            .padding(.horizontal, 4)
+            .frame(height: 13)
+            .background(Capsule().fill(Color.white.opacity(0.85)))
+    }
+}
+
+// MARK: - Privacy
+
+/// Green dot = camera, orange dot = microphone (the system's colour language).
+private struct PrivacyDots: View {
+    let compact: Bool
+
+    var body: some View {
+        let privacy = PrivacyService.shared
+        if Preferences.shared.privacyIndicators, privacy.anyInUse {
+            // Stacked vertically at the wing edge so they never crowd the content.
+            let layout = compact ? AnyLayout(VStackLayout(spacing: 3)) : AnyLayout(HStackLayout(spacing: 3))
+            layout {
+                if privacy.cameraInUse { dot(.green) }
+                if privacy.micInUse { dot(.orange) }
+            }
+            .transition(.opacity)
+        }
+    }
+
+    private func dot(_ color: Color) -> some View {
+        Circle().fill(color)
+            .frame(width: compact ? 5 : 7, height: compact ? 5 : 7)
+            .shadow(color: color.opacity(0.7), radius: 3)
+    }
+}
+
+private struct PrivacySymbols: View {
+    var body: some View {
+        let privacy = PrivacyService.shared
+        HStack(spacing: 3) {
+            if privacy.cameraInUse {
+                Image(systemName: "video.fill").foregroundStyle(.green)
+            }
+            if privacy.micInUse {
+                Image(systemName: "mic.fill").foregroundStyle(.orange)
+            }
+        }
+        .font(.system(size: 10, weight: .bold))
+        .fixedSize()
     }
 }
 
@@ -165,10 +333,51 @@ private struct ActivityLeading: View {
                     .foregroundStyle(.red)
                 Text("Low Battery").font(.system(size: 11, weight: .semibold)).foregroundStyle(.white).fixedSize()
             }
-        case .bluetooth(let name, let kind, _):
+        case .bluetooth(let name, let kind, _, _):
             HStack(spacing: 6) {
                 Image(systemName: kind.symbol).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white)
                 Text(name).font(.system(size: 11, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
+            }
+        case .focusMode(let on, let name, let symbol):
+            HStack(spacing: 6) {
+                Image(systemName: on ? (symbol ?? "moon.fill") : "moon")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(on ? Color.indigo : .secondaryText)
+                    .symbolEffect(.bounce, value: on)
+                Text(on ? (name ?? "Focus") : "Focus")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+            }
+        case .privacy(let sensor):
+            HStack(spacing: 6) {
+                Image(systemName: sensor.symbol)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(sensor == .camera ? .green : .orange)
+                Text(sensor.title).font(.system(size: 11, weight: .semibold)).foregroundStyle(.white).fixedSize()
+            }
+        case .network(let event):
+            HStack(spacing: 6) {
+                Image(systemName: event.symbol)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(event.tint)
+                    .symbolEffect(.bounce, value: activity)
+                Text(event.title)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+            }
+        case .downloadFinished(let name, _):
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.down.circle.fill")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.blue)
+                    .symbolEffect(.bounce, value: activity)
+                Text(name)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
             }
         case .shelf:
             Image(systemName: "tray.and.arrow.down.fill")
@@ -221,11 +430,38 @@ private struct ActivityTrailing: View {
             BatteryGlyph(level: level, charging: plugged)
         case .lowBattery(let level):
             BatteryGlyph(level: level, charging: false)
-        case .bluetooth(_, _, let connected):
-            Text(connected ? "Connected" : "Disconnected")
+        case .bluetooth(_, _, let connected, let battery):
+            if connected, let battery {
+                HeadphoneBattery(battery: battery)
+            } else {
+                Text(connected ? "Connected" : "Disconnected")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(connected ? Color.secondaryText : .red.opacity(0.85))
+                    .fixedSize()
+            }
+        case .focusMode(let on, _, _):
+            Text(on ? "On" : "Off")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(on ? Color.indigo : .secondaryText)
+        case .privacy:
+            HStack(spacing: 5) {
+                Text("In Use").font(.system(size: 11, weight: .medium)).foregroundStyle(Color.secondaryText).fixedSize()
+                PrivacyDots(compact: false)
+            }
+        case .network(let event):
+            Text(event.detail)
                 .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(connected ? Color.secondaryText : .red.opacity(0.85))
-                .fixedSize()
+                .foregroundStyle(Color.secondaryText)
+                .lineLimit(1)
+        case .downloadFinished:
+            HStack(spacing: 4) {
+                Text("Add").font(.system(size: 11, weight: .semibold)).foregroundStyle(.blue)
+                Image(systemName: "tray.and.arrow.down.fill")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.blue)
+            }
+            .fixedSize()
+            .help("Add to Shelf")
         case .shelf(let count):
             Text("\(count)")
                 .font(.system(size: 12, weight: .bold).monospacedDigit())
@@ -269,5 +505,69 @@ struct BatteryGlyph: View {
         if level <= 10 { return .red }
         if level <= 20 { return .orange }
         return .white
+    }
+}
+
+/// L / R / case levels for AirPods-style headphones; a single gauge for one-piece headsets.
+private struct HeadphoneBattery: View {
+    let battery: DeviceBattery
+
+    var body: some View {
+        if battery.hasBuds {
+            HStack(spacing: 6) {
+                if let l = battery.left { level("L", l) }
+                if let r = battery.right { level("R", r) }
+                if let c = battery.caseLevel { level("", c, symbol: "airpodspro.chargingcase.wireless.fill") }
+            }
+            .fixedSize()
+        } else if let single = battery.single ?? battery.caseLevel {
+            BatteryGlyph(level: single, charging: false)
+        }
+    }
+
+    private func level(_ label: String, _ value: Int, symbol: String? = nil) -> some View {
+        HStack(spacing: 2) {
+            if let symbol {
+                Image(systemName: symbol).font(.system(size: 9, weight: .semibold))
+            } else {
+                Text(label).font(.system(size: 9, weight: .bold)).foregroundStyle(Color.secondaryText)
+            }
+            Text("\(value)").font(.system(size: 11, weight: .semibold).monospacedDigit())
+        }
+        .foregroundStyle(value <= 20 ? Color.red : .white)
+    }
+}
+
+extension NetworkEvent {
+    var symbol: String {
+        switch self {
+        case .wifi(let connected, _): connected ? "wifi" : "wifi.slash"
+        case .vpn(let on): on ? "lock.shield.fill" : "lock.open.fill"
+        case .hotspot: "personalhotspot"
+        }
+    }
+
+    var tint: Color {
+        switch self {
+        case .wifi(let connected, _): connected ? .blue : .red
+        case .vpn(let on): on ? .green : .secondaryText
+        case .hotspot: .green
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .wifi(let connected, let ssid): connected ? (ssid ?? "Wi-Fi") : "Wi-Fi"
+        case .vpn: "VPN"
+        case .hotspot(let name): name ?? "Hotspot"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .wifi(let connected, _): connected ? "Connected" : "Disconnected"
+        case .vpn(let on): on ? "Connected" : "Disconnected"
+        case .hotspot: "Hotspot"
+        }
     }
 }

@@ -33,16 +33,20 @@ enum NotchTab: String, CaseIterable, Identifiable {
 enum CompactContent: Equatable {
     case idle
     case activity(TransientActivity)
+    case download
     case music
     case timer
+    case privacy
     case clock
 
     var key: String {
         switch self {
         case .idle: "idle"
         case .activity(let a): "activity-\(a.kind)"
+        case .download: "download"
         case .music: "music"
         case .timer: "timer"
+        case .privacy: "privacy"
         case .clock: "clock"
         }
     }
@@ -76,18 +80,34 @@ final class NotchViewModel {
 
     var compact: CompactContent {
         if let activity = ActivityCenter.shared.current { return .activity(activity) }
+        if DownloadsService.shared.active != nil { return .download }
         if TimerService.shared.isRunning { return .timer }
         if prefs.musicActivity, NowPlayingService.shared.isPlaying { return .music }
+        if prefs.privacyIndicators, PrivacyService.shared.anyInUse { return .privacy }
         if prefs.showClockWhenIdle { return .clock }
         return .idle
     }
 
+    /// Camera / mic dots shown at the trailing edge on top of other compact content.
+    var showsPrivacyEdge: Bool {
+        let content = compact
+        if case .activity(.privacy) = content { return false } // already shows them
+        return content != .idle && content != .privacy
+            && prefs.privacyIndicators && PrivacyService.shared.anyInUse
+    }
+
     var wingWidth: CGFloat {
+        baseWingWidth + (showsPrivacyEdge ? 7 : 0)
+    }
+
+    private var baseWingWidth: CGFloat {
         let h = geometry.notchSize.height
         switch compact {
         case .idle: return 0
         case .music: return h + 10
+        case .download: return 76
         case .timer: return 66
+        case .privacy: return 40
         case .clock: return 76
         case .activity(let a):
             switch a {
@@ -95,10 +115,14 @@ final class NotchViewModel {
             case .capsLock: return 100
             case .focusSession: return 96
             case .power, .lowBattery: return 86
-            case .bluetooth: return 116
+            case .bluetooth(_, _, _, let battery): return battery == nil ? 116 : 138
             case .shelf: return 58
             case .timerFinished: return 78
             case .nowPlayingChanged: return h + 10
+            case .focusMode: return 116
+            case .privacy: return 108
+            case .network: return 124
+            case .downloadFinished: return 128
             }
         }
     }
@@ -165,7 +189,12 @@ final class NotchViewModel {
 
     func open(tab: NotchTab? = nil) {
         hoverWork?.cancel()
-        if let tab { self.tab = tab }
+        if let tab {
+            self.tab = tab
+        } else if phase == .closed, case .activity(.downloadFinished) = compact, prefs.visibleTabs.contains(.shelf) {
+            // Opening on a finished download lands on the shelf, where it can be added.
+            self.tab = .shelf
+        }
         guard phase != .open else { return }
         phase = .open
         log.info("open")

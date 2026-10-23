@@ -34,6 +34,7 @@ struct ShelfView: View {
                 }
             }
             .frame(maxWidth: .infinity)
+            .overlay(alignment: .bottom) { DownloadSuggestion().padding(.bottom, 8) }
 
             VStack(spacing: 8) {
                 DropActionTile(symbol: "airplayaudio", title: "AirDrop", tint: .blue,
@@ -47,6 +48,39 @@ struct ShelfView: View {
                 }
             }
             .frame(width: 96)
+        }
+    }
+}
+
+/// Offers the most recent finished download (from the Downloads activity) for the shelf.
+private struct DownloadSuggestion: View {
+    var body: some View {
+        let shelf = ShelfService.shared
+        if let url = DownloadsService.shared.recent, !shelf.items.contains(where: { $0.url == url }) {
+            Button {
+                withAnimation(Motion.micro) {
+                    shelf.add([url])
+                    DownloadsService.shared.clearRecent()
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.down.circle.fill").foregroundStyle(.blue)
+                    Text(url.lastPathComponent)
+                        .foregroundStyle(Color.primaryText)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .frame(maxWidth: 220)
+                    Text("Add").foregroundStyle(.blue)
+                }
+                .font(.system(size: 11, weight: .semibold))
+                .padding(.horizontal, 10)
+                .frame(height: 24)
+                .background(Capsule().fill(Color(white: 0.16)))
+                .overlay(Capsule().stroke(Color.hairline))
+            }
+            .buttonStyle(PressableStyle(scale: 0.95))
+            .help("Add the downloaded file to the shelf")
+            .transition(.opacity.combined(with: .offset(y: 4)))
         }
     }
 }

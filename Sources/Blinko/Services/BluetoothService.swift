@@ -23,7 +23,34 @@ final class BluetoothService: NSObject {
         }
         // IOBluetooth replays already-connected devices at registration; skip that burst.
         guard Date().timeIntervalSince(startedAt) > 3, Preferences.shared.bluetoothActivity else { return }
-        ActivityCenter.shared.show(.bluetooth(name: device.nameOrAddress ?? "Device", kind: kind(of: device), connected: true))
+        let name = device.nameOrAddress ?? "Device"
+        let kind = kind(of: device)
+        let battery = kind == .headphones ? Self.battery(of: device) : nil
+        ActivityCenter.shared.show(.bluetooth(name: name, kind: kind, connected: true, battery: battery))
+
+        // Levels usually arrive a moment after the link comes up: look once more, and morph
+        // the activity in place if it is still showing this device.
+        guard kind == .headphones, battery == nil, Preferences.shared.airPodsBattery else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            guard let battery = Self.battery(of: device),
+                  case .bluetooth(name, kind, true, _)? = ActivityCenter.shared.current else { return }
+            ActivityCenter.shared.show(.bluetooth(name: name, kind: kind, connected: true, battery: battery))
+        }
+    }
+
+    /// AirPods / Beats battery via private IOBluetoothDevice properties. Best-effort: each
+    /// key is checked with `responds(to:)` first, so a missing property can never throw.
+    private static func battery(of device: IOBluetoothDevice) -> DeviceBattery? {
+        guard Preferences.shared.airPodsBattery else { return nil }
+        func level(_ key: String) -> Int? {
+            guard device.responds(to: NSSelectorFromString(key)),
+                  let value = (device.value(forKey: key) as? NSNumber)?.intValue,
+                  (1...100).contains(value) else { return nil }
+            return value
+        }
+        let battery = DeviceBattery(left: level("batteryPercentLeft"), right: level("batteryPercentRight"),
+                                    caseLevel: level("batteryPercentCase"), single: level("batteryPercentSingle"))
+        return battery.isEmpty ? nil : battery
     }
 
     @objc private func deviceDisconnected(_ note: IOBluetoothUserNotification, device: IOBluetoothDevice) {
