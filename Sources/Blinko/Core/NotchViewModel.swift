@@ -81,7 +81,7 @@ final class NotchViewModel {
     var compact: CompactContent {
         if let activity = ActivityCenter.shared.current { return .activity(activity) }
         if DownloadsService.shared.active != nil { return .download }
-        if TimerService.shared.isRunning { return .timer }
+        if TimerService.shared.hasRunning { return .timer }
         if prefs.musicActivity, NowPlayingService.shared.isPlaying { return .music }
         if prefs.privacyIndicators, PrivacyService.shared.anyInUse { return .privacy }
         if prefs.showClockWhenIdle { return .clock }
@@ -106,7 +106,7 @@ final class NotchViewModel {
         case .idle: return 0
         case .music: return h + 10
         case .download: return 76
-        case .timer: return 66
+        case .timer: return TimerService.shared.othersRunning > 0 ? 86 : 66
         case .privacy: return 40
         case .clock: return 76
         case .activity(let a):

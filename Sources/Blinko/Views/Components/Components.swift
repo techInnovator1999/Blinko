@@ -259,6 +259,32 @@ enum Format {
                          : String(format: "%d:%02d", s / 60, s % 60)
     }
 
+    /// "5 min", "1 hr" — readable timer names.
+    static func duration(_ seconds: TimeInterval) -> String {
+        durationFormatter.string(from: seconds) ?? time(seconds)
+    }
+
+    /// "5m", "1h" — compact preset labels.
+    static func shortDuration(_ seconds: TimeInterval) -> String {
+        shortDurationFormatter.string(from: seconds) ?? time(seconds)
+    }
+
+    private static let durationFormatter: DateComponentsFormatter = {
+        let f = DateComponentsFormatter()
+        f.allowedUnits = [.hour, .minute, .second]
+        f.unitsStyle = .short
+        f.maximumUnitCount = 2
+        return f
+    }()
+
+    private static let shortDurationFormatter: DateComponentsFormatter = {
+        let f = DateComponentsFormatter()
+        f.allowedUnits = [.hour, .minute, .second]
+        f.unitsStyle = .abbreviated
+        f.maximumUnitCount = 1
+        return f
+    }()
+
     private static let byteFormatter: ByteCountFormatter = {
         let f = ByteCountFormatter()
         f.allowsNonnumericFormatting = false

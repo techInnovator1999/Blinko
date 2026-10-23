@@ -46,7 +46,7 @@ struct CompactView: View {
                     .fixedSize()
             }
         case .timer:
-            let mode = TimerService.shared.mode
+            let mode = TimerService.shared.soonest?.mode ?? .countdown
             Image(systemName: mode.isBreak ? "cup.and.saucer.fill" : (mode == .focus ? "brain.head.profile.fill" : "timer"))
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(mode.isBreak ? .green : .orange)
@@ -192,6 +192,7 @@ struct CountBadge: View {
             .padding(.horizontal, 4)
             .frame(height: 13)
             .background(Capsule().fill(Color.white.opacity(0.85)))
+            .fixedSize()
     }
 }
 
@@ -265,11 +266,16 @@ private struct CompactVisualizer: View {
 private struct CompactTimer: View {
     var body: some View {
         let timer = TimerService.shared
-        if let end = timer.endDate {
-            Text(timerInterval: Date.now...max(end, .now), countsDown: true)
-                .font(.system(size: 12, weight: .semibold).monospacedDigit())
-                .foregroundStyle(timer.mode.isBreak ? .green : .orange)
-                .frame(width: 50, alignment: .trailing)
+        if let next = timer.soonest {
+            HStack(spacing: 4) {
+                Text(timerInterval: Date.now...max(next.end, .now), countsDown: true)
+                    .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(next.mode.isBreak ? .green : .orange)
+                    .frame(width: 50, alignment: .trailing)
+                if timer.othersRunning > 0 {
+                    CountBadge(count: timer.othersRunning)
+                }
+            }
         }
     }
 }

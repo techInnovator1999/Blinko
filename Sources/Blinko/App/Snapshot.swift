@@ -78,6 +78,16 @@ enum Snapshot {
         for tab in NotchTab.allCases {
             shot("10-open-\(tab.rawValue)") { vm in vm.open(tab: tab) }
         }
+        // Several countdowns: the closed island shows the soonest with a "+N" badge.
+        let timers = TimerService.shared
+        timers.cancel()
+        timers.start(300, label: Format.duration(300))
+        timers.start(1500, label: Format.duration(1500))
+        timers.start(3600, label: Format.duration(3600))
+        if let last = timers.timers.last { timers.pause(last.id) }
+        shot("18-compact-timers") { _ in }
+        shot("18b-open-timers") { vm in vm.open(tab: .timer) }
+        timers.cancelAllCountdowns()
     }
 
     private static func sampleArtwork() -> NSImage {

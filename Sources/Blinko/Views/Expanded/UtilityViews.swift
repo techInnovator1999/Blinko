@@ -367,9 +367,14 @@ struct TimerView: View {
 
     var body: some View {
         let timer = TimerService.shared
-        let tint: Color = timer.mode.isBreak ? .green : .orange
         HStack(spacing: 18) {
-            TimerRing(tint: tint)
+            Group {
+                switch page {
+                case .timer: CountdownRing()
+                case .focus: PomodoroRing(tint: timer.mode.isBreak ? .green : .orange)
+                }
+            }
+            .frame(width: 124, height: 124)
 
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 2) {
@@ -404,54 +409,150 @@ struct TimerView: View {
     }
 }
 
-private struct TimerRing: View {
+/// Big ring + remaining time. Ticks 4×/s only while something runs and the tab is visible.
+private struct RingFace: View {
+    let progress: Double
+    let remaining: TimeInterval
+    let status: String
+    let tint: Color
+    var statusTint: Color = .tertiaryText
+
+    var body: some View {
+        ZStack {
+            RingProgress(value: progress, tint: tint, lineWidth: 6)
+            VStack(spacing: 2) {
+                Text(Format.time(remaining))
+                    .font(.system(size: 24, weight: .semibold, design: .rounded).monospacedDigit())
+                    .foregroundStyle(Color.primaryText)
+                    .contentTransition(.numericText(countsDown: true))
+                Text(status)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(statusTint)
+                    .lineLimit(1)
+            }
+        }
+        .animation(.linear(duration: 0.25), value: progress)
+    }
+}
+
+private struct PomodoroRing: View {
     let tint: Color
 
     var body: some View {
         let timer = TimerService.shared
         TimelineView(.periodic(from: .now, by: timer.isRunning ? 0.25 : 3600)) { ctx in
-            ZStack {
-                RingProgress(value: timer.isActive ? 1 - timer.progress(at: ctx.date) : 0, tint: tint, lineWidth: 6)
-                VStack(spacing: 2) {
-                    Text(Format.time(timer.isActive ? timer.remaining(at: ctx.date).rounded(.up) : 0))
-                        .font(.system(size: 24, weight: .semibold, design: .rounded).monospacedDigit())
-                        .foregroundStyle(Color.primaryText)
-                        .contentTransition(.numericText(countsDown: true))
-                    Text(status(timer))
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(timer.mode.isPomodoro ? tint : Color.tertiaryText)
-                }
-            }
-            .frame(width: 124, height: 124)
-            .animation(.linear(duration: 0.25), value: timer.progress(at: ctx.date))
+            RingFace(progress: timer.isActive ? 1 - timer.progress(at: ctx.date) : 0,
+                     remaining: timer.isActive ? timer.remaining(at: ctx.date).rounded(.up) : 0,
+                     status: status(timer), tint: tint,
+                     statusTint: timer.mode.isPomodoro ? tint : .tertiaryText)
         }
     }
 
     private func status(_ t: TimerService) -> String {
-        if t.mode.isPomodoro { return t.isPaused ? "\(t.mode.title) · Paused" : t.mode.title }
-        return t.isPaused ? "Paused" : (t.isRunning ? "Remaining" : "Ready")
+        guard t.mode.isPomodoro else { return String(localized: "Ready") }
+        return t.isPaused ? String(localized: "\(t.mode.title) · Paused") : t.mode.title
+    }
+}
+
+/// Follows the countdown that ends first (or the latest one when all are paused).
+private struct CountdownRing: View {
+    var body: some View {
+        let featured = TimerService.shared.featured
+        TimelineView(.periodic(from: .now, by: featured?.isRunning == true ? 0.25 : 3600)) { ctx in
+            RingFace(progress: featured.map { 1 - $0.progress(at: ctx.date) } ?? 0,
+                     remaining: featured?.remaining(at: ctx.date).rounded(.up) ?? 0,
+                     status: featured.map { $0.isPaused ? String(localized: "Paused") : $0.label } ?? String(localized: "Ready"),
+                     tint: .orange)
+        }
     }
 }
 
 private struct CountdownControls: View {
-    private let presets: [(String, TimeInterval)] = [("1m", 60), ("5m", 300), ("10m", 600), ("25m", 1500), ("45m", 2700), ("1h", 3600)]
+    private let presets: [TimeInterval] = [60, 300, 600, 1500, 2700, 3600]
 
     var body: some View {
         let timer = TimerService.shared
-        VStack(alignment: .leading, spacing: 10) {
+        HStack(alignment: .top, spacing: 14) {
             Grid(horizontalSpacing: 8, verticalSpacing: 8) {
                 ForEach(0..<2, id: \.self) { row in
                     GridRow {
-                        ForEach(presets[(row * 3)..<(row * 3 + 3)], id: \.1) { preset in
-                            PresetChip(title: preset.0) { timer.start(preset.1) }
+                        ForEach(presets[(row * 3)..<(row * 3 + 3)], id: \.self) { seconds in
+                            PresetChip(title: Format.shortDuration(seconds)) {
+                                withAnimation(Motion.micro) { timer.start(seconds, label: Format.duration(seconds)) }
+                            }
                         }
                     }
                 }
             }
             .fixedSize()
-            if timer.isActive, !timer.mode.isPomodoro {
-                RunControls()
+
+            if timer.timers.isEmpty {
+                Text("Start as many as you like — they run side by side.")
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(Color.tertiaryText)
+                    .frame(width: 150, alignment: .leading)
+                    .padding(.top, 6)
+            } else if timer.timers.count <= 3 {
+                rows(timer.timers).frame(maxWidth: 260)
+            } else {
+                ScrollView(.vertical, showsIndicators: false) { rows(timer.timers) }
+                    .frame(maxWidth: 260, maxHeight: 108)
             }
+        }
+    }
+
+    private func rows(_ timers: [CountdownTimer]) -> some View {
+        VStack(spacing: 4) {
+            ForEach(timers) { t in
+                CountdownRow(timer: t)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+    }
+}
+
+private struct CountdownRow: View {
+    let timer: CountdownTimer
+
+    var body: some View {
+        let service = TimerService.shared
+        HStack(spacing: 6) {
+            Circle()
+                .fill(timer.isPaused ? Color.tertiaryText : .orange)
+                .frame(width: 6, height: 6)
+            Text(timer.label)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Color.secondaryText)
+                .lineLimit(1)
+            Spacer(minLength: 4)
+            Group {
+                if let end = timer.endDate {
+                    Text(timerInterval: Date.now...max(end, .now), countsDown: true)
+                } else {
+                    Text(Format.time(timer.remaining().rounded(.up)))
+                }
+            }
+            .font(.system(size: 13, weight: .semibold, design: .rounded).monospacedDigit())
+            .foregroundStyle(timer.isPaused ? Color.tertiaryText : .primaryText)
+            .multilineTextAlignment(.trailing)
+            .frame(minWidth: 44, alignment: .trailing)
+            IslandIconButton(symbol: timer.isPaused ? "play.fill" : "pause.fill", size: 9, plate: 22,
+                             help: timer.isPaused ? String(localized: "Resume") : String(localized: "Pause")) {
+                timer.isPaused ? service.resume(timer.id) : service.pause(timer.id)
+            }
+            IslandIconButton(symbol: "xmark", size: 9, plate: 22, tint: .secondaryText, help: String(localized: "Cancel")) {
+                withAnimation(Motion.micro) { service.cancel(timer.id) }
+            }
+        }
+        .padding(.leading, 10)
+        .padding(.trailing, 3)
+        .frame(height: 30)
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.fillSubtle))
+        .contextMenu {
+            Button("Add 1 Minute") { service.add(60, to: timer.id) }
+            Button("Cancel Timer") { service.cancel(timer.id) }
+            Divider()
+            Button("Cancel All Timers") { service.cancelAllCountdowns() }
         }
     }
 }
@@ -493,10 +594,7 @@ private struct RunControls: View {
                        symbol: timer.isPaused ? "play.fill" : "pause.fill", prominent: true) {
                 timer.isPaused ? timer.resume() : timer.pause()
             }
-            if !timer.mode.isPomodoro {
-                PillButton(title: "+1 min", symbol: "plus") { timer.add(60) }
-            }
-            PillButton(title: timer.mode.isPomodoro ? "Stop" : "Cancel", symbol: "xmark") { timer.cancel() }
+            PillButton(title: "Stop", symbol: "xmark") { timer.cancel() }
         }
     }
 }
