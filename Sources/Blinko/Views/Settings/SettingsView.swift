@@ -314,6 +314,8 @@ private struct ModulesPane: View {
                 Toggle("Time in island header", isOn: $p.showClockInHeader)
                 Toggle("Time & date in the closed island when idle", isOn: $p.showClockWhenIdle)
             }
+            WorldClocksSection()
+            WeatherSection()
             Section("Home") {
                 Toggle("Calendar & reminders", isOn: $p.showCalendar)
                 Toggle("Camera mirror", isOn: $p.showMirror)
@@ -345,6 +347,168 @@ private struct ModulesPane: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+private struct WorldClocksSection: View {
+    @State private var picking = false
+
+    var body: some View {
+        @Bindable var p = Preferences.shared
+        Section {
+            ForEach(p.worldClocks, id: \.self) { id in
+                HStack {
+                    if let zone = TimeZone(identifier: id) {
+                        Text(WorldClock.city(zone))
+                        Text(zone.localizedName(for: .shortGeneric, locale: .current) ?? "")
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button {
+                        p.worldClocks.removeAll { $0 == id }
+                    } label: {
+                        Image(systemName: "minus.circle.fill").foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Remove")
+                }
+            }
+            if p.worldClocks.count < 3 {
+                Button("Add Time Zone…") { picking = true }
+                    .popover(isPresented: $picking, arrowEdge: .trailing) {
+                        TimeZonePicker { id in
+                            if !p.worldClocks.contains(id), p.worldClocks.count < 3 { p.worldClocks.append(id) }
+                            picking = false
+                        }
+                    }
+            }
+        } header: {
+            Text("World clocks")
+        } footer: {
+            Text("Up to three, shown under the clock on Home.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+}
+
+private struct TimeZonePicker: View {
+    let choose: (String) -> Void
+    @State private var query = ""
+
+    private static let all = TimeZone.knownTimeZoneIdentifiers.filter { $0.contains("/") && !$0.hasPrefix("Etc/") }
+
+    var body: some View {
+        let q = query.trimmingCharacters(in: .whitespaces).lowercased()
+        let matches = q.isEmpty ? Self.all : Self.all.filter {
+            $0.lowercased().replacingOccurrences(of: "_", with: " ").contains(q)
+        }
+        VStack(spacing: 0) {
+            TextField("Search cities", text: $query)
+                .textFieldStyle(.roundedBorder)
+                .padding(10)
+            List(matches, id: \.self) { id in
+                Button {
+                    choose(id)
+                } label: {
+                    HStack {
+                        Text(WorldClock.city(TimeZone(identifier: id)!))
+                        Spacer()
+                        Text(id.split(separator: "/").first.map(String.init) ?? "")
+                            .foregroundStyle(.secondary)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .frame(width: 300, height: 340)
+    }
+}
+
+private struct WeatherSection: View {
+    @State private var query = ""
+    @State private var results: [WeatherService.City] = []
+    @State private var searching = false
+
+    var body: some View {
+        @Bindable var p = Preferences.shared
+        let weather = WeatherService.shared
+        Section {
+            Toggle("Show weather", isOn: $p.weatherEnabled)
+            if p.weatherEnabled {
+                Picker("Location", selection: Binding(get: { p.weatherUseLocation }, set: {
+                    p.weatherUseLocation = $0
+                    weather.locationSettingsChanged()
+                })) {
+                    Text("Current location").tag(true)
+                    Text("City").tag(false)
+                }
+                if p.weatherUseLocation, weather.locationStatus == .denied || weather.locationStatus == .restricted {
+                    HStack {
+                        Label("Location access is off — the city below is used instead.", systemImage: "location.slash")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Open Settings") {
+                            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices")!)
+                        }
+                    }
+                    .font(.callout)
+                }
+                if !p.weatherUseLocation || weather.locationStatus == .denied || weather.locationStatus == .restricted {
+                    LabeledContent("City") {
+                        HStack {
+                            TextField("Search", text: $query, prompt: Text(p.weatherCity.isEmpty ? "Search for a city" : p.weatherCity))
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 200)
+                                .onSubmit(search)
+                            Button("Search", action: search).disabled(query.count < 2 || searching)
+                        }
+                    }
+                    ForEach(results) { city in
+                        Button {
+                            p.weatherCity = city.name
+                            p.weatherLatitude = city.latitude
+                            p.weatherLongitude = city.longitude
+                            results = []
+                            query = ""
+                            weather.locationSettingsChanged()
+                        } label: {
+                            HStack {
+                                Text(city.name)
+                                Text(city.detail).foregroundStyle(.secondary)
+                                Spacer()
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                if let report = weather.report {
+                    LabeledContent("Now") {
+                        Text("\(Temperature.format(report.temperature)) · \(WeatherCode.description(report.code))")
+                            .foregroundStyle(.secondary)
+                    }
+                } else if weather.failed {
+                    Text("Couldn't load the weather. Blinko retries every 30 minutes.")
+                        .font(.callout).foregroundStyle(.secondary)
+                }
+            }
+        } header: {
+            Text("Weather")
+        } footer: {
+            Text("Forecasts from Open-Meteo, refreshed every 30 minutes while Blinko runs. Your location is used once per session and only sent to Open-Meteo as rounded coordinates.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private func search() {
+        let q = query
+        searching = true
+        Task {
+            let found = await WeatherService.searchCities(q)
+            results = found
+            searching = false
+        }
     }
 }
 

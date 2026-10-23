@@ -30,6 +30,7 @@ final class ServiceHub {
         PrivacyService.shared.refresh()
         NetworkService.shared.refresh()
         DownloadsService.shared.refresh()
+        WeatherService.shared.refresh()
     }
 
     private func observePreferences() {
@@ -42,6 +43,7 @@ final class ServiceHub {
             _ = prefs.privacyIndicators
             _ = prefs.networkActivity
             _ = prefs.downloadsActivity
+            _ = prefs.weatherEnabled
         } onChange: { [weak self] in
             DispatchQueue.main.async {
                 self?.applyPreferences()

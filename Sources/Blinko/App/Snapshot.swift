@@ -88,6 +88,23 @@ enum Snapshot {
         shot("18-compact-timers") { _ in }
         shot("18b-open-timers") { vm in vm.open(tab: .timer) }
         timers.cancelAllCountdowns()
+
+        // Weather + world clocks on Home, weather in the header elsewhere.
+        let prefs = Preferences.shared
+        let saved = (prefs.weatherEnabled, prefs.worldClocks)
+        let hour = Calendar.current.dateInterval(of: .hour, for: .now)!.start
+        let codes = [2, 3, 61, 3, 1]
+        WeatherService.shared.injectPreview(.init(
+            temperature: 18.4, code: 2, isDay: true, high: 21, low: 12,
+            hours: (1...5).map { i in .init(date: hour.addingTimeInterval(Double(i) * 3600), temperature: 18 + Double(i % 3),
+                                             code: codes[i - 1], isDay: true) },
+            place: "Brussels", fetchedAt: .now))
+        prefs.weatherEnabled = true
+        prefs.worldClocks = ["America/New_York", "Asia/Tokyo", "Europe/London"]
+        shot("19-open-home-weather") { vm in vm.open(tab: .home) }
+        shot("19b-header-weather") { vm in vm.open(tab: .stats) }
+        prefs.weatherEnabled = saved.0
+        prefs.worldClocks = saved.1
     }
 
     private static func sampleArtwork() -> NSImage {

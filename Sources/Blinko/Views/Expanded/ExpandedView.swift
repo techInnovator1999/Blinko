@@ -90,6 +90,10 @@ private struct ExpandedHeader: View {
             Spacer(minLength: vm.geometry.hasNotch ? vm.geometry.notchSize.width + 16 : 16)
 
             HStack(spacing: 4) {
+                // Home shows weather next to its clock already.
+                if !(vm.tab == .home && Preferences.shared.showClock) {
+                    HeaderWeather()
+                }
                 // Hidden on Home when the big clock is already showing.
                 if Preferences.shared.showClockInHeader, !(vm.tab == .home && Preferences.shared.showClock) {
                     TimelineView(.everyMinute) { ctx in
@@ -139,6 +143,23 @@ private struct TabButton: View {
         .buttonStyle(PressableStyle(scale: 0.92))
         .onHover { hovering = $0 }
         .help(tab.title)
+    }
+}
+
+private struct HeaderWeather: View {
+    var body: some View {
+        if Preferences.shared.weatherEnabled, let report = WeatherService.shared.report {
+            HStack(spacing: 4) {
+                Image(systemName: WeatherCode.symbol(report.code, isDay: report.isDay))
+                    .symbolRenderingMode(.multicolor)
+                    .font(.system(size: 11))
+                Text(Temperature.format(report.temperature))
+                    .font(.system(size: 11.5, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(Color.secondaryText)
+            }
+            .padding(.trailing, 8)
+            .help(WeatherCode.description(report.code))
+        }
     }
 }
 

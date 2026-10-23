@@ -32,6 +32,10 @@
 	<string>Blinko uses the camera for the quick mirror.</string>
 	<key>NSFocusStatusUsageDescription</key>
 	<string>Blinko shows a live activity when a Focus or Do Not Disturb turns on or off.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Blinko uses your approximate location once to show local weather.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Blinko uses your approximate location once to show local weather.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSRemindersFullAccessUsageDescription</key>
