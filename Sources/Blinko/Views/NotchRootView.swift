@@ -31,6 +31,9 @@ private struct IslandBody: View {
                 ExpandedView(vm: vm)
                     .frame(width: size.width, height: size.height, alignment: .top)
                     .transition(.islandReveal)
+                // A message (Slack…) arriving while the island is open slides in as a toast
+                // over the content for a few seconds, without disturbing what's underneath.
+                OpenIslandToast(notchHeight: vm.geometry.notchSize.height)
             } else {
                 CompactView(vm: vm)
                     .transition(.opacity.animation(.easeOut(duration: 0.12)))

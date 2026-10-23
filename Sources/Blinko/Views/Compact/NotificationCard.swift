@@ -97,7 +97,7 @@ struct NotificationCard: View {
             }
         }
         .onAppear {
-            withAnimation(.linear(duration: TransientActivity.appNotification(note).duration)) { remaining = 0 }
+            withAnimation(.linear(duration: ActivityCenter.shared.currentDuration)) { remaining = 0 }
         }
         .help("Open in \(note.app)")
     }
@@ -173,6 +173,71 @@ private struct AppBadge: View {
                 .font(.system(size: size * 0.7, weight: .semibold))
                 .foregroundStyle(Theme.shared.accent)
                 .frame(width: size, height: size)
+        }
+    }
+}
+
+/// Slim message toast shown over the open island (e.g. Slack while Claude's approval card is up).
+struct OpenIslandToast: View {
+    let notchHeight: CGFloat
+    @State private var hovering = false
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            if case .appNotification(let note) = ActivityCenter.shared.current {
+                let parts = MessageParts(note)
+                HStack(spacing: 10) {
+                    ToastIcon(app: note.app)
+                    VStack(alignment: .leading, spacing: 1) {
+                        HStack(spacing: 5) {
+                            Text(verbatim: parts.sender).font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
+                            if let place = parts.place {
+                                Text(verbatim: place).font(.system(size: 10.5, weight: .semibold)).foregroundStyle(Color.white.opacity(0.6))
+                            }
+                        }
+                        .lineLimit(1)
+                        Text(verbatim: parts.message)
+                            .font(.system(size: 11.5)).foregroundStyle(Color.white.opacity(0.8)).lineLimit(1)
+                    }
+                    Spacer(minLength: 6)
+                    Text(hovering ? "Reply" : "now")
+                        .font(.system(size: 10.5, weight: .semibold))
+                        .foregroundStyle(hovering ? Color.black : Color.tertiaryText)
+                        .padding(.horizontal, hovering ? 9 : 0)
+                        .frame(height: 22)
+                        .background(Capsule().fill(hovering ? Color.white : .clear))
+                }
+                .padding(.horizontal, 12)
+                .frame(height: 46)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color(white: 0.11))
+                        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color.white.opacity(0.08)))
+                        .shadow(color: .black.opacity(0.5), radius: 10, y: 4)
+                )
+                .padding(.horizontal, 40)
+                .padding(.top, notchHeight + 6)
+                .contentShape(Rectangle())
+                .onTapGesture { NotificationMirrorService.shared.open(note) }
+                .onHover { inside in
+                    withAnimation(Motion.micro) { hovering = inside }
+                    ActivityCenter.shared.hold(inside)
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .id(note.id)
+            }
+        }
+        .animation(Motion.open, value: ActivityCenter.shared.current)
+    }
+}
+
+private struct ToastIcon: View {
+    let app: String
+    var body: some View {
+        if let icon = NotificationMirrorService.icon(for: app) {
+            Image(nsImage: icon).resizable().interpolation(.high).frame(width: 26, height: 26)
+        } else {
+            Image(systemName: "bell.badge.fill").font(.system(size: 16)).foregroundStyle(Theme.shared.accent).frame(width: 26, height: 26)
         }
     }
 }

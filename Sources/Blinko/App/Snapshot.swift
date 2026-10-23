@@ -177,6 +177,14 @@ enum Snapshot {
                                receivedAt: now, deadline: now + 80)
         hub.injectPreview(sessions: [waiting, site, api], approvals: [approval, second])
         shot("25c-open-approval-queue") { vm in vm.open(tab: .agents) }
+        let slack = MirroredNotification(id: "s1", app: "Slack", title: "#engineering", subtitle: nil,
+                                         body: "Ayesha Khan: Ship it! QA signed off on v0.5 🚀")
+        shot("62-slack-interrupts-agent") { _ in ActivityCenter.shared.show(.appNotification(slack), duration: 3) }
+        shot("63-slack-toast-over-approval") { vm in
+            vm.open(tab: .agents)
+            ActivityCenter.shared.show(.appNotification(slack), duration: 3)
+        }
+        ActivityCenter.shared.dismiss()
         hub.injectPreview(sessions: [], approvals: [])
         shot("26-open-agents-empty") { vm in vm.open(tab: .agents) }
         shot("60-slack-channel") { _ in

@@ -124,7 +124,12 @@ final class NotificationMirrorService {
                                             body: String(localized: "New notification"))
             }
             log.info("mirrored a notification from \(note.app, privacy: .public)")
-            ActivityCenter.shared.show(.appNotification(note))
+            // Something else on show (Claude working, a call, a timer, music, the open
+            // island)? Interrupt briefly, then hand the island back.
+            let busy = AppRouter.shared.anyIslandOpen || AgentHubService.shared.hasActivity
+                || MeetingService.shared.isInCall || TimerService.shared.hasRunning
+                || DownloadsService.shared.active != nil || NowPlayingService.shared.isPlaying
+            ActivityCenter.shared.show(.appNotification(note), duration: busy ? 3 : nil)
             SoundService.shared.play(.appNotification)
         }
     }

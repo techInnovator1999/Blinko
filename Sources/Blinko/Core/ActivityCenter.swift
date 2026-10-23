@@ -128,22 +128,41 @@ final class ActivityCenter {
 
     @ObservationIgnored private var dismissWork: DispatchWorkItem?
 
-    func show(_ activity: TransientActivity) {
+    /// How long the current activity stays (its default, or a shorter priority interruption).
+    private(set) var currentDuration: TimeInterval = 0
+    /// Alerts that arrived while a message card was up; they show right after it.
+    @ObservationIgnored private var queued: [TransientActivity] = []
+
+    func show(_ activity: TransientActivity, duration: TimeInterval? = nil) {
+        // A message card (Slack…) has priority: other alerts wait their turn instead of
+        // replacing it. User-driven HUDs (volume, brightness…) and newer messages still win.
+        if case .appNotification = current, !activity.isUserDriven, activity.kind != .notification {
+            if queued.count < 3, !queued.contains(activity) { queued.append(activity) }
+            return
+        }
         if current?.kind != activity.kind, let event = activity.soundEvent { SoundService.shared.play(event) }
         if current != activity { current = activity }
+        currentDuration = duration ?? activity.duration
+        scheduleDismiss(after: currentDuration)
+    }
+
+    private func scheduleDismiss(after seconds: TimeInterval) {
         dismissWork?.cancel()
-        let work = DispatchWorkItem { [weak self] in self?.current = nil }
+        let work = DispatchWorkItem { [weak self] in self?.finishCurrent() }
         dismissWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + activity.duration, execute: work)
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: work)
+    }
+
+    private func finishCurrent() {
+        current = nil
+        if !queued.isEmpty { show(queued.removeFirst()) }
     }
 
     /// Pauses the auto-dismiss while the pointer rests on the activity; resumes briefly after.
     func hold(_ on: Bool) {
         dismissWork?.cancel()
         guard !on, current != nil else { return }
-        let work = DispatchWorkItem { [weak self] in self?.current = nil }
-        dismissWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5, execute: work)
+        scheduleDismiss(after: 2.5)
     }
 
     func dismiss() {
@@ -164,6 +183,16 @@ extension TransientActivity {
         case .downloadFinished: .downloadFinished
         case .shelf: .shelfAdded
         default: nil
+        }
+    }
+}
+
+extension TransientActivity {
+    /// Pressed by the user right now (keys, gestures): always shown immediately.
+    var isUserDriven: Bool {
+        switch self {
+        case .volume, .brightness, .keyboardBacklight, .microphone, .capsLock: true
+        default: false
         }
     }
 }

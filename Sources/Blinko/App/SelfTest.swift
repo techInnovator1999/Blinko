@@ -181,6 +181,17 @@ enum SelfTest {
         expect(SettingsSearch.search("sound").contains { $0.pane == .sounds }, "search sound → Sounds pane")
         expect(SettingsSearch.search("permission").contains { $0.pane == .sounds || $0.pane == .agents }, "search permission")
 
+        // Message priority: a Slack card isn't replaced by other alerts, but a key press (HUD) wins.
+        let center = ActivityCenter.shared
+        let slack = MirroredNotification(id: "t", app: "Slack", title: "#dev", subtitle: nil, body: "A: hi")
+        center.show(.appNotification(slack), duration: 3)
+        center.show(.custom(CustomAlert(title: "Finished", body: nil, symbol: "checkmark", color: "green", duration: 3)))
+        expect(center.current == .appNotification(slack), "alerts wait behind a message card")
+        expect(center.currentDuration == 3, "priority interruption is brief")
+        center.show(.volume(level: 0.5, muted: false))
+        expect(center.current?.kind == .hud, "a key press still shows immediately")
+        center.dismiss()
+
         return failed
     }
 

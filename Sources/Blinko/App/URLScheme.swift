@@ -26,6 +26,9 @@ final class AppRouter {
         if manager != nil { block() } else { pending.append(block) }
     }
 
+    /// True while any island is open (e.g. an approval card is up).
+    var anyIslandOpen: Bool { manager?.viewModels.contains { $0.isOpen } ?? false }
+
     /// The island on the display under the pointer.
     private var activeIsland: NotchViewModel? {
         let models = manager?.viewModels ?? []
