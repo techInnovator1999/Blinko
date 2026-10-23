@@ -35,17 +35,12 @@ private struct IslandBody: View {
         .frame(width: size.width, height: size.height, alignment: .top)
         .clipShape(shape)
         .background {
-            shape
-                .fill(Color.notchBackground)
-                .shadow(color: .black.opacity(isOpen && Preferences.shared.openShadow ? 0.6 : 0),
-                        radius: isOpen ? 18 : 0, y: isOpen ? 8 : 0)
+            // Fill, shadow and the island style's layers (Theme.swift).
+            IslandBackdrop(shape: shape, isOpen: isOpen)
         }
         .overlay {
-            // Hairline that catches light along the bottom edge when open — subtle depth.
-            shape
-                .stroke(LinearGradient(colors: [.clear, .white.opacity(isOpen ? 0.07 : 0)],
-                                       startPoint: .top, endPoint: .bottom), lineWidth: 1)
-                .allowsHitTesting(false)
+            // Edge light along the bottom when open — subtle depth, per island style.
+            IslandRim(shape: shape, isOpen: isOpen)
         }
         .contentShape(shape)
         .onTapGesture {

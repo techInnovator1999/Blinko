@@ -46,7 +46,7 @@ struct CompactView: View {
         case .clock:
             TimelineView(.everyMinute) { ctx in
                 Text(ctx.date, format: .dateTime.hour().minute())
-                    .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                    .font(Theme.shared.font(12).monospacedDigit())
                     .foregroundStyle(.white)
                     .fixedSize()
             }
@@ -263,7 +263,7 @@ private struct CompactVisualizer: View {
     var body: some View {
         let np = NowPlayingService.shared
         let prefs = Preferences.shared
-        let color = prefs.artworkTint ? np.accent : .white
+        let color = prefs.artworkTint && np.hasTrack ? np.accent : Theme.shared.accentNSColor
         if prefs.showVisualizer {
             AudioVisualizer(isPlaying: np.isPlaying, color: color)
         } else {
@@ -304,7 +304,7 @@ private struct CompactTimer: View {
         if let next = timer.soonest {
             HStack(spacing: 4) {
                 Text(timerInterval: Date.now...max(next.end, .now), countsDown: true)
-                    .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                    .font(Theme.shared.font(12).monospacedDigit())
                     .foregroundStyle(next.mode.isBreak ? .green : .orange)
                     .frame(width: 50, alignment: .trailing)
                 if timer.othersRunning > 0 {
@@ -449,13 +449,13 @@ private struct ActivityTrailing: View {
     var body: some View {
         switch activity {
         case .volume(let level, let muted):
-            LevelBar(value: muted ? 0 : Double(level), tint: .white, height: 5).frame(width: 64)
+            LevelBar(value: muted ? 0 : Double(level), tint: Theme.shared.accent, height: 5).frame(width: 64)
         case .brightness(let level):
             LevelBar(value: Double(level), tint: .yellow, height: 5).frame(width: 64)
         case .keyboardBacklight(let level):
-            LevelBar(value: Double(level), tint: .white, height: 5).frame(width: 64)
+            LevelBar(value: Double(level), tint: Theme.shared.accent, height: 5).frame(width: 64)
         case .microphone(let level, let muted):
-            LevelBar(value: muted ? 0 : Double(level), tint: muted ? .red : .white, height: 5).frame(width: 64)
+            LevelBar(value: muted ? 0 : Double(level), tint: muted ? .red : Theme.shared.accent, height: 5).frame(width: 64)
         case .capsLock(let on):
             Text(on ? "On" : "Off")
                 .font(.system(size: 11, weight: .semibold))

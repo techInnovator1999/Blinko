@@ -23,7 +23,7 @@ struct HomeView: View {
 struct MediaPlayerView: View {
     var body: some View {
         let np = NowPlayingService.shared
-        let accent = Preferences.shared.artworkTint ? Color(nsColor: np.accent) : .white
+        let accent = Preferences.shared.artworkTint && np.hasTrack ? Color(nsColor: np.accent) : Theme.shared.accent
 
         HStack(alignment: .center, spacing: 14) {
             ZStack(alignment: .bottomTrailing) {
@@ -59,7 +59,7 @@ struct MediaPlayerView: View {
 
             VStack(alignment: .leading, spacing: 0) {
                 Text(np.hasTrack ? np.title : "Nothing Playing")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(Theme.shared.font(15))
                     .foregroundStyle(Color.primaryText)
                     .lineLimit(1)
                 Text(np.hasTrack ? np.artist : "Play something to see it here")
@@ -307,7 +307,7 @@ private struct ClockWidget: View {
         TimelineView(.everyMinute) { ctx in
             VStack(alignment: .leading, spacing: 0) {
                 Text(ctx.date, format: .dateTime.hour().minute())
-                    .font(.system(size: 30, weight: .semibold, design: .rounded).monospacedDigit())
+                    .font(Theme.shared.font(30).monospacedDigit())
                     .foregroundStyle(Color.primaryText)
                     .contentTransition(.numericText())
                     .animation(Motion.micro, value: ctx.date)

@@ -4,16 +4,25 @@ struct ExpandedView: View {
     let vm: NotchViewModel
 
     var body: some View {
+        let headerHeight = max(vm.geometry.notchSize.height, 30)
+        let size = vm.shapeSize
         VStack(spacing: 0) {
             ExpandedHeader(vm: vm)
-                .frame(height: max(vm.geometry.notchSize.height, 30))
-            TabContent(vm: vm, tab: Preferences.shared.visibleTabs.contains(vm.tab) ? vm.tab : Preferences.shared.visibleTabs[0])
-                .padding(.horizontal, Metrics.openTopRadius + 12)
-                .padding(.top, 10)
-                .padding(.bottom, Preferences.shared.showCredit ? 8 : 16)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            if Preferences.shared.showCredit {
-                CreditFooter().padding(.bottom, 7)
+                .frame(height: headerHeight)
+                .minimalChrome()
+            // The header stays at true size (it lines up with the notch); the tab content
+            // follows the size preset's scale.
+            ThemeScaled(size: CGSize(width: size.width, height: max(0, size.height - headerHeight))) {
+                VStack(spacing: 0) {
+                    TabContent(vm: vm, tab: Preferences.shared.visibleTabs.contains(vm.tab) ? vm.tab : Preferences.shared.visibleTabs[0])
+                        .padding(.horizontal, Metrics.openTopRadius + 12)
+                        .padding(.top, 10)
+                        .padding(.bottom, Preferences.shared.showCredit ? 8 : 16)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    if Preferences.shared.showCredit {
+                        CreditFooter().padding(.bottom, 7).minimalChrome()
+                    }
+                }
             }
         }
     }
@@ -79,18 +88,26 @@ private struct ExpandedHeader: View {
     @Namespace private var tabNS
 
     var body: some View {
+        // Each side of the notch gets half of what is left, so neither the tabs nor the
+        // status items can ever slide under the notch (Compact size, many tabs).
+        let tabs = Preferences.shared.visibleTabs
+        let padding = Theme.shared.openTopRadius + 8
+        let gap = vm.geometry.hasNotch ? vm.geometry.notchSize.width + 16 : 16
+        let side = max(0, (vm.shapeSize.width - padding * 2 - gap) / 2)
+        let tabWidth = min(30, max(22, ((side - 4 - 2 * CGFloat(tabs.count - 1)) / CGFloat(tabs.count)).rounded(.down)))
         HStack(spacing: 0) {
             HStack(spacing: 2) {
-                ForEach(Preferences.shared.visibleTabs) { tab in
-                    TabButton(tab: tab, selected: vm.tab == tab, namespace: tabNS) {
+                ForEach(tabs) { tab in
+                    TabButton(tab: tab, selected: vm.tab == tab, namespace: tabNS, width: tabWidth) {
                         withAnimation(Motion.micro) { vm.tab = tab }
                     }
                 }
             }
             .padding(2)
             .background(Capsule().fill(Color.white.opacity(0.05)))
+            .frame(maxWidth: side, alignment: .leading)
 
-            Spacer(minLength: vm.geometry.hasNotch ? vm.geometry.notchSize.width + 16 : 16)
+            Spacer(minLength: gap)
 
             // With many tabs and every status item on, a 700 pt island runs out of room:
             // drop the weather first, then the time, rather than squeezing text.
@@ -99,9 +116,10 @@ private struct ExpandedHeader: View {
                 statusItems(weather: false, time: true)
                 statusItems(weather: false, time: false)
             }
+            .frame(maxWidth: side, alignment: .trailing)
             .layoutPriority(1)
         }
-        .padding(.horizontal, Metrics.openTopRadius + 8)
+        .padding(.horizontal, padding)
         .padding(.top, 2)
     }
 
@@ -124,7 +142,7 @@ private struct ExpandedHeader: View {
             }
             HeaderBattery()
             IslandIconButton(symbol: vm.isPinned ? "pin.fill" : "pin", size: 11, plate: 24,
-                             tint: vm.isPinned ? .orange : .secondaryText,
+                             tint: vm.isPinned ? Theme.shared.accent : .secondaryText,
                              help: "Keep open") { vm.isPinned.toggle() }
             IslandIconButton(symbol: "gearshape.fill", size: 11, plate: 24, tint: .secondaryText, help: "Settings") {
                 vm.close()
@@ -139,18 +157,20 @@ private struct TabButton: View {
     let tab: NotchTab
     let selected: Bool
     let namespace: Namespace.ID
+    var width: CGFloat = 30
     let action: () -> Void
     @State private var hovering = false
 
     var body: some View {
+        let theme = Theme.shared
         Button(action: action) {
             Image(systemName: tab.symbol)
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(selected ? Color.black : (hovering ? .primaryText : .secondaryText))
-                .frame(width: 30, height: 22)
+                .foregroundStyle(selected ? theme.onAccent : (hovering ? .primaryText : .secondaryText))
+                .frame(width: width, height: 22)
                 .background {
                     if selected {
-                        Capsule().fill(Color.white).matchedGeometryEffect(id: "tab", in: namespace)
+                        Capsule().fill(theme.accent).matchedGeometryEffect(id: "tab", in: namespace)
                     } else if hovering {
                         Capsule().fill(Color.fillSubtle)
                     }

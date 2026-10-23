@@ -78,6 +78,9 @@ final class NotchViewModel {
     /// Wired by the window controller: make the panel key / hand keyboard focus back.
     @ObservationIgnored var requestKey: (() -> Void)?
     @ObservationIgnored var relinquishKey: (() -> Void)?
+    /// Appearance preview / snapshots: a fixed closed-island state and no haptics.
+    var compactOverride: CompactContent?
+    @ObservationIgnored var isPreview = false
 
     @ObservationIgnored private var hoverWork: DispatchWorkItem?
     @ObservationIgnored private var requiresExitBeforeHoverOpen = false
@@ -92,6 +95,7 @@ final class NotchViewModel {
     var isOpen: Bool { phase == .open }
 
     var compact: CompactContent {
+        if let compactOverride { return compactOverride }
         if let activity = ActivityCenter.shared.current { return .activity(activity) }
         if DownloadsService.shared.active != nil { return .download }
         if TimerService.shared.hasRunning { return .timer }
@@ -156,7 +160,7 @@ final class NotchViewModel {
     private var baseShapeSize: CGSize {
         if isOpen {
             return CGSize(width: max(prefs.openWidth, geometry.notchSize.width + 360),
-                          height: Metrics.openSize.height)
+                          height: Theme.shared.openHeight)
         }
         return CGSize(width: closedNotchWidth + wingWidth * 2, height: geometry.notchSize.height)
     }
@@ -176,17 +180,18 @@ final class NotchViewModel {
     var canvasSize: CGSize {
         let shape = baseShapeSize
         if isOpen {
-            let pad = Metrics.shadowPadding
+            let pad = Theme.shared.shadowPadding
             return CGSize(width: shape.width + pad * 2, height: shape.height + pad)
         }
         return CGSize(width: shape.width + Metrics.peekGrowth.width,
                       height: shape.height + Metrics.peekGrowth.height)
     }
 
-    var topRadius: CGFloat { isOpen ? Metrics.openTopRadius : Metrics.closedTopRadius }
+    var topRadius: CGFloat { isOpen ? Theme.shared.openTopRadius : Metrics.closedTopRadius }
     var bottomRadius: CGFloat {
-        if isOpen { return Metrics.openBottomRadius }
-        return compact == .idle ? Metrics.closedBottomRadius : Metrics.closedBottomRadius + 2
+        if isOpen { return Theme.shared.openBottomRadius }
+        let closed = Theme.shared.closedBottomRadius
+        return compact == .idle ? closed : closed + 2
     }
 
     // MARK: Hover hit-testing
@@ -218,7 +223,7 @@ final class NotchViewModel {
         guard phase != .open else { return }
         phase = .open
         log.info("open")
-        if prefs.enableHaptics {
+        if prefs.enableHaptics, !isPreview {
             NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
         }
     }
