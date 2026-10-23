@@ -83,6 +83,7 @@ final class SettingsWindowController {
 @Observable
 final class SettingsSelection {
     var pane: SettingsPane = .general
+    var query = ""
 }
 
 struct SettingsView: View {
@@ -90,6 +91,16 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationSplitView {
+          Group {
+            if !selection.query.trimmingCharacters(in: .whitespaces).isEmpty {
+                SettingsSearchResults(query: selection.query) { entry in
+                    selection.pane = entry.pane
+                    let window = NSApp.keyWindow
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        SettingsHighlighter.reveal(entry.title, in: window)
+                    }
+                }
+            } else {
             List(SettingsPane.allCases, selection: Binding(get: { selection.pane }, set: { if let p = $0 { selection.pane = p } })) { pane in
                 Label {
                     Text(pane.title)
@@ -102,7 +113,10 @@ struct SettingsView: View {
                 }
                 .tag(pane)
             }
-            .navigationSplitViewColumnWidth(190)
+            }
+          }
+          .searchable(text: $selection.query, placement: .sidebar, prompt: Text("Search settings"))
+          .navigationSplitViewColumnWidth(220)
         } detail: {
             Group {
                 switch selection.pane {

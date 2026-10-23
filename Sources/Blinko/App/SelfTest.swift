@@ -164,6 +164,15 @@ enum SelfTest {
         for _ in 0..<8 { if meter.feed(db: -25, duration: 0.085) { fired += 1 } }
         expect(fired == 2, "a new utterance after a pause fires again")
 
+        // Settings search: everyday words find the right control.
+        let top = { (q: String) in SettingsSearch.search(q).first?.title ?? "" }
+        expect(top("weather") == "Show weather", "search weather → \(top("weather"))")
+        expect(SettingsSearch.search("volume").contains { $0.title.contains("volume & brightness HUD") }, "search volume")
+        expect(SettingsSearch.search("startup").contains { $0.title == "Launch at login" }, "search startup")
+        expect(SettingsSearch.search("airpods").contains { $0.pane == .activities }, "search airpods")
+        expect(SettingsSearch.search("zzzz nothing").isEmpty, "search no match")
+        expect(SettingsSearch.entries.count > 60, "settings index populated (\(SettingsSearch.entries.count))")
+
         return failed
     }
 }

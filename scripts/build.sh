@@ -9,6 +9,7 @@ APP="build/Blinko.app"
 # BLINKO_UNIVERSAL=1 builds Apple Silicon + Intel (for distribution).
 ARCHS=(--arch arm64)
 [[ -n "${BLINKO_UNIVERSAL:-}" ]] && ARCHS=(--arch arm64 --arch x86_64)
+python3 scripts/gen-settings-index.py
 swift build -c "$CONFIG" "${ARCHS[@]}"
 BIN="$(swift build -c "$CONFIG" "${ARCHS[@]}" --show-bin-path)/Blinko"
 
