@@ -17,10 +17,9 @@ if [[ -z "$IDENTITY" ]]; then
 fi
 
 VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Resources/Info.plist)
-BLINKO_SIGN_IDENTITY="$IDENTITY" scripts/build.sh release
+# build.sh signs everything inside-out; BLINKO_TIMESTAMP adds the secure timestamp notarization requires.
+BLINKO_UNIVERSAL=1 BLINKO_SIGN_IDENTITY="$IDENTITY" BLINKO_TIMESTAMP=1 scripts/build.sh release
 APP="build/Blinko.app"
-
-# Re-sign inside-out with a secure timestamp (required by the notary service).
 codesign --force --timestamp --options runtime --sign "$IDENTITY" "$APP/Contents/Resources/BlinkoMedia.dylib"
 codesign --force --timestamp --options runtime --entitlements Resources/Blinko.entitlements --sign "$IDENTITY" "$APP"
 codesign --verify --deep --strict "$APP"

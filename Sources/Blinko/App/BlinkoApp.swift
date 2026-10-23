@@ -23,6 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let prefs = Preferences.shared
 
         ServiceHub.shared.start()
+        _ = UpdateService.shared // starts Sparkle's scheduled checks
 
         let manager = NotchManager()
         manager.start()

@@ -36,5 +36,13 @@
 	<string>Blinko shows your reminders in the notch.</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<true/>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string></string>
+	<key>SUPublicEDKey</key>
+	<string>pPomno6Q9yy8Iq3s4/w+95GATtrpQPF/a1NpKBigGF8=</string>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
 </dict>
 </plist>

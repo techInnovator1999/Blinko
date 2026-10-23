@@ -369,9 +369,31 @@ private struct AppearancePane: View {
                 Toggle("Music visualizer", isOn: $p.showVisualizer)
                 Toggle("Shadow under the open island", isOn: $p.openShadow)
                 Toggle("Battery in island header", isOn: $p.showBatteryInHeader)
+                Toggle("“Designed by OptimaGeeks” credit", isOn: $p.showCredit)
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+private struct UpdatesSection: View {
+    @State private var automatic = UpdateService.shared.automaticallyChecks
+
+    var body: some View {
+        let updates = UpdateService.shared
+        if updates.isConfigured {
+            VStack(spacing: 8) {
+                Button("Check for Updates…") { updates.checkForUpdates() }
+                    .disabled(!updates.canCheckForUpdates)
+                Toggle("Automatically check for updates", isOn: $automatic)
+                    .onChange(of: automatic) { _, v in updates.automaticallyChecks = v }
+                    .toggleStyle(.checkbox)
+            }
+        } else {
+            Text("Updates are disabled in this development build.")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
     }
 }
 
@@ -385,6 +407,7 @@ private struct AboutPane: View {
                 .foregroundStyle(.secondary)
             Text("A fast, native Dynamic Island for the Mac.")
                 .foregroundStyle(.secondary)
+            UpdatesSection().padding(.top, 12)
             Spacer()
             Button("Quit Blinko") { NSApp.terminate(nil) }.padding(.bottom, 24)
         }

@@ -6,25 +6,41 @@ cd "$(dirname "$0")/.."
 CONFIG="${1:-release}"
 APP="build/Blinko.app"
 
-swift build -c "$CONFIG" --arch arm64
-BIN="$(swift build -c "$CONFIG" --arch arm64 --show-bin-path)/Blinko"
+# BLINKO_UNIVERSAL=1 builds Apple Silicon + Intel (for distribution).
+ARCHS=(--arch arm64)
+[[ -n "${BLINKO_UNIVERSAL:-}" ]] && ARCHS=(--arch arm64 --arch x86_64)
+swift build -c "$CONFIG" "${ARCHS[@]}"
+BIN="$(swift build -c "$CONFIG" "${ARCHS[@]}" --show-bin-path)/Blinko"
 
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Blinko"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+source scripts/release.env
+# Sparkle feed: the appcast is attached to the latest GitHub release.
+/usr/libexec/PlistBuddy -c "Set :SUFeedURL https://github.com/$GITHUB_REPO/releases/latest/download/appcast.xml" "$APP/Contents/Info.plist"
+
+# Embed Sparkle.framework (symlinks preserved) and sign its helpers inside-out.
+SPARKLE_FW=".build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
+mkdir -p "$APP/Contents/Frameworks"
+ditto "$SPARKLE_FW" "$APP/Contents/Frameworks/Sparkle.framework"
 [ -f Resources/AppIcon.icns ] && cp Resources/AppIcon.icns "$APP/Contents/Resources/"
+cp Resources/optimageeks-mark.png "$APP/Contents/Resources/"
 
 # MediaRemote bridge: a dylib loaded by Apple's platform perl (see Helper/BlinkoMedia.m).
-clang -dynamiclib -fobjc-arc -O2 -arch arm64 -arch arm64e -mmacosx-version-min=14.0 \
+clang -dynamiclib -fobjc-arc -O2 -arch arm64 -arch arm64e -arch x86_64 -mmacosx-version-min=14.0 \
   -framework Foundation -o "$APP/Contents/Resources/BlinkoMedia.dylib" Helper/BlinkoMedia.m 2>/dev/null
 cp Helper/blinko-media.pl "$APP/Contents/Resources/"
 codesign --force --sign - "$APP/Contents/Resources/BlinkoMedia.dylib" >/dev/null
 
 # Prefer a real signing identity so TCC grants (Accessibility, Calendar) survive rebuilds.
 IDENTITY="${BLINKO_SIGN_IDENTITY:-$(security find-identity -v -p codesigning 2>/dev/null | awk -F'"' '/Apple Development|Developer ID Application/ {print $2; exit}')}"
-codesign --force --sign "${IDENTITY:--}" --options runtime \
-  --entitlements Resources/Blinko.entitlements "$APP" >/dev/null
+SIGN=(codesign --force --sign "${IDENTITY:--}" --options runtime ${BLINKO_TIMESTAMP:+--timestamp})
+FW="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
+"${SIGN[@]}" "$FW/XPCServices/Installer.xpc" "$FW/XPCServices/Downloader.xpc" >/dev/null 2>&1
+"${SIGN[@]}" "$FW/Autoupdate" "$FW/Updater.app" >/dev/null 2>&1
+"${SIGN[@]}" "$APP/Contents/Frameworks/Sparkle.framework" >/dev/null 2>&1
+"${SIGN[@]}" --entitlements Resources/Blinko.entitlements "$APP" >/dev/null
 echo "Built $APP (signed with: ${IDENTITY:-ad-hoc})"
 
 if [[ "${2:-}" == "--run" ]]; then

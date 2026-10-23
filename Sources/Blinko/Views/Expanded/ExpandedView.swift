@@ -10,9 +10,46 @@ struct ExpandedView: View {
             TabContent(tab: Preferences.shared.visibleTabs.contains(vm.tab) ? vm.tab : Preferences.shared.visibleTabs[0])
                 .padding(.horizontal, Metrics.openTopRadius + 12)
                 .padding(.top, 10)
-                .padding(.bottom, 16)
+                .padding(.bottom, Preferences.shared.showCredit ? 8 : 16)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            if Preferences.shared.showCredit {
+                CreditFooter().padding(.bottom, 7)
+            }
         }
+    }
+}
+
+/// "Designed by OptimaGeeks" — quiet credit line along the bottom edge.
+private struct CreditFooter: View {
+    @State private var hovering = false
+    private static let mark: NSImage? = Bundle.main.url(forResource: "optimageeks-mark", withExtension: "png")
+        .flatMap(NSImage.init(contentsOf:))
+
+    var body: some View {
+        Button {
+            NSWorkspace.shared.open(URL(string: "https://www.optimageeks.com")!)
+        } label: {
+            HStack(spacing: 4) {
+                Text("Designed by")
+                    .foregroundStyle(Color.white.opacity(hovering ? 0.5 : 0.28))
+                if let mark = Self.mark {
+                    Image(nsImage: mark)
+                        .resizable()
+                        .interpolation(.high)
+                        .frame(width: 11, height: 11)
+                        .opacity(hovering ? 1 : 0.75)
+                }
+                Text("OptimaGeeks")
+                    .foregroundStyle(Color.white.opacity(hovering ? 0.75 : 0.42))
+            }
+            .font(.system(size: 9, weight: .semibold))
+            .tracking(0.2)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .animation(Motion.micro, value: hovering)
+        .help("optimageeks.com")
     }
 }
 

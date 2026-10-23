@@ -73,6 +73,9 @@ final class StatusItemController: NSObject {
             menu.addItem(withTitle: "Open Shelf", action: #selector(openShelf), keyEquivalent: "").target = self
             menu.addItem(.separator())
             menu.addItem(withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ",").target = self
+            if UpdateService.shared.isConfigured {
+                menu.addItem(withTitle: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "").target = self
+            }
             menu.addItem(.separator())
             menu.addItem(withTitle: "Quit Blinko", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
             item.menu = menu
@@ -86,4 +89,5 @@ final class StatusItemController: NSObject {
     @objc private func openIsland() { manager?.toggleOnActiveScreen() }
     @objc private func openShelf() { manager?.open(tab: .shelf) }
     @objc private func openSettings() { SettingsWindowController.shared.show() }
+    @objc private func checkForUpdates() { UpdateService.shared.checkForUpdates() }
 }

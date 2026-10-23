@@ -54,6 +54,8 @@ final class Preferences {
     var clipboardLimit: Int { didSet { store.set(clipboardLimit, forKey: "clipboardLimit") } }
     var shelfAutoOpenOnDrag: Bool { didSet { store.set(shelfAutoOpenOnDrag, forKey: "shelfAutoOpenOnDrag") } }
 
+    var showCredit: Bool { didSet { store.set(showCredit, forKey: "showCredit") } }
+
     // Clock
     var showClock: Bool { didSet { store.set(showClock, forKey: "showClock") } }
     var showClockInHeader: Bool { didSet { store.set(showClockInHeader, forKey: "showClockInHeader") } }
@@ -109,6 +111,7 @@ final class Preferences {
             "clipboardHistory": true,
             "clipboardLimit": 30,
             "shelfAutoOpenOnDrag": true,
+            "showCredit": true,
             "showClock": true,
             "showClockInHeader": true,
             "showClockWhenIdle": false,
@@ -149,6 +152,7 @@ final class Preferences {
         clipboardHistory = store.bool(forKey: "clipboardHistory")
         clipboardLimit = store.integer(forKey: "clipboardLimit")
         shelfAutoOpenOnDrag = store.bool(forKey: "shelfAutoOpenOnDrag")
+        showCredit = store.bool(forKey: "showCredit")
         showClock = store.bool(forKey: "showClock")
         showClockInHeader = store.bool(forKey: "showClockInHeader")
         showClockWhenIdle = store.bool(forKey: "showClockWhenIdle")
