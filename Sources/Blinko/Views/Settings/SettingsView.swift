@@ -116,9 +116,7 @@ private struct WelcomePane: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 14) {
-                Capsule().fill(.black).frame(width: 74, height: 26)
-                    .overlay(Capsule().stroke(.white.opacity(0.15)))
-                    .shadow(color: .black.opacity(0.3), radius: 8, y: 4)
+                AppIconView(size: 72)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Welcome to Blinko").font(.system(size: 24, weight: .bold))
                     Text("Your notch, alive. Hover it, swipe down on it, or press ⌃⌥Space.")
@@ -380,10 +378,8 @@ private struct AppearancePane: View {
 private struct AboutPane: View {
     var body: some View {
         VStack(spacing: 10) {
-            Capsule().fill(.black).frame(width: 120, height: 38)
-                .overlay(Capsule().stroke(.white.opacity(0.15)))
-                .shadow(color: .black.opacity(0.35), radius: 14, y: 6)
-                .padding(.top, 40)
+            AppIconView(size: 128)
+                .padding(.top, 28)
             Text("Blinko").font(.system(size: 26, weight: .bold))
             Text("Version \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev")")
                 .foregroundStyle(.secondary)

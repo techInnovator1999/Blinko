@@ -66,8 +66,8 @@ final class StatusItemController: NSObject {
         if Preferences.shared.showMenuBarIcon {
             guard item == nil else { return }
             let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-            item.button?.image = NSImage(systemSymbolName: "capsule.fill", accessibilityDescription: "Blinko")
-            item.button?.image?.isTemplate = true
+            item.button?.image = BrandMark.menuBarImage()
+            item.button?.image?.accessibilityDescription = "Blinko"
             let menu = NSMenu()
             menu.addItem(withTitle: "Open Island", action: #selector(openIsland), keyEquivalent: "").target = self
             menu.addItem(withTitle: "Open Shelf", action: #selector(openShelf), keyEquivalent: "").target = self
