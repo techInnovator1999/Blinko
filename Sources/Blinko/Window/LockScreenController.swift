@@ -184,12 +184,15 @@ final class LockScreenController {
             panel.orderOut(nil)
             panel.contentView = nil // no SwiftUI work while unlocked
         }
+        // Islands torn down while locked (display unplugged) are only taken out of the space,
+        // never ordered back in.
+        let live = Set((manager?.islandControllers ?? []).map { ObjectIdentifier($0.panel) })
         var restored: [NSWindow] = []
-        for (_, state) in saved {
+        for (key, state) in saved {
             guard let window = state.window else { continue }
-            let isIsland = window !== widgetPanel
-            Self.restore(window, state, reorder: isIsland)
-            if isIsland { restored.append(window) }
+            let isLiveIsland = live.contains(key)
+            Self.restore(window, state, reorder: isLiveIsland)
+            if isLiveIsland { restored.append(window) }
         }
         saved.removeAll()
         SkyLightSpace.shared.hide()
