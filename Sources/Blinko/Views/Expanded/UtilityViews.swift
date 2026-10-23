@@ -599,17 +599,18 @@ private struct RunControls: View {
     }
 }
 
-private struct PresetChip: View {
+struct PresetChip: View {
     let title: String
+    var compact = false
     let action: () -> Void
     @State private var hovering = false
 
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .font(.system(size: compact ? 12 : 13, weight: .semibold, design: .rounded))
                 .foregroundStyle(Color.primaryText)
-                .frame(width: 60, height: 30)
+                .frame(width: compact ? 54 : 60, height: compact ? 26 : 30)
                 .background(RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(hovering ? Color.orange.opacity(0.35) : Color.fillSubtle))
         }

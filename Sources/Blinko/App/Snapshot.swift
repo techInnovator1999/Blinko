@@ -114,6 +114,15 @@ enum Snapshot {
         shot("20-compact-lyrics") { _ in }
         shot("20b-open-lyrics") { vm in vm.open(tab: .home) }
         prefs.compactLyrics = compactLyrics
+
+        // Notes + Tools tabs with sample content.
+        NotesService.shared.injectPreview(
+            text: "Call Sam about the launch deck\n— ship v0.3 build to beta testers\n— renew domain before Friday",
+            snippets: ["hello@blinko.app", "https://github.com/techInnovator1999/Blinko", "Thanks — talk soon!"])
+        ColorPickerService.shared.injectPreview(["#FF5A5F", "#3A7BFF", "#34C759", "#FFD60A", "#AF52DE", "#1C1C1E"])
+        KeepAwakeService.shared.injectPreview(until: Date().addingTimeInterval(3600))
+        shot("21-open-notes") { vm in vm.open(tab: .notes) }
+        shot("21b-open-tools") { vm in vm.open(tab: .tools) }
     }
 
     private static func sampleArtwork() -> NSImage {

@@ -29,6 +29,20 @@ final class NotchPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
 
+    /// Key status only changes for text editing (`becomesKeyOnlyIfNeeded`): buttons never
+    /// make the panel key, text views do.
+    var onKeyChange: ((Bool) -> Void)?
+
+    override func becomeKey() {
+        super.becomeKey()
+        onKeyChange?(true)
+    }
+
+    override func resignKey() {
+        super.resignKey()
+        onKeyChange?(false)
+    }
+
     /// AppKit normally pushes windows below the menu bar; the island must sit on top of it.
     override func constrainFrameRect(_ frameRect: NSRect, to screen: NSScreen?) -> NSRect { frameRect }
 }

@@ -5,7 +5,7 @@ import os
 private let log = Logger(subsystem: "app.blinko.Blinko", category: "island")
 
 enum NotchTab: String, CaseIterable, Identifiable {
-    case home, shelf, clipboard, stats, timer
+    case home, shelf, clipboard, stats, timer, notes, tools
     var id: String { rawValue }
 
     var symbol: String {
@@ -15,16 +15,20 @@ enum NotchTab: String, CaseIterable, Identifiable {
         case .clipboard: "doc.on.clipboard.fill"
         case .stats: "gauge.with.dots.needle.67percent"
         case .timer: "timer"
+        case .notes: "note.text"
+        case .tools: "eyedropper.halffull"
         }
     }
 
     var title: String {
         switch self {
-        case .home: "Home"
-        case .shelf: "Shelf"
-        case .clipboard: "Clipboard"
-        case .stats: "System"
-        case .timer: "Timer"
+        case .home: String(localized: "Home")
+        case .shelf: String(localized: "Shelf")
+        case .clipboard: String(localized: "Clipboard")
+        case .stats: String(localized: "System")
+        case .timer: String(localized: "Timer")
+        case .notes: String(localized: "Notes")
+        case .tools: String(localized: "Tools")
         }
     }
 }
@@ -65,6 +69,15 @@ final class NotchViewModel {
     private(set) var isHovering = false
     var isDropTargeted = false
     var isPinned = false
+    /// The panel is key because a text field is being edited (Notes): keep the island open.
+    private(set) var isEditingText = false
+    /// The colour sampler is up: the pointer leaves the island on purpose.
+    var isSampling = false
+    var holdsOpen: Bool { isPinned || isEditingText || isSampling }
+
+    /// Wired by the window controller: make the panel key / hand keyboard focus back.
+    @ObservationIgnored var requestKey: (() -> Void)?
+    @ObservationIgnored var relinquishKey: (() -> Void)?
 
     @ObservationIgnored private var hoverWork: DispatchWorkItem?
     @ObservationIgnored private var requiresExitBeforeHoverOpen = false
@@ -216,6 +229,8 @@ final class NotchViewModel {
         phase = .closed
         log.info("close")
         isPinned = false
+        isSampling = false
+        if isEditingText { relinquishKey?() }
         // Closed deliberately while the pointer is still on the notch (swipe, hotkey, click):
         // don't hover-reopen until the pointer has left and come back.
         if isHovering { requiresExitBeforeHoverOpen = true }
@@ -248,11 +263,21 @@ final class NotchViewModel {
             armHoverOpen()
         } else {
             requiresExitBeforeHoverOpen = false
-            guard phase == .open, prefs.closeOnMouseExit, !isPinned else { return }
+            guard phase == .open, prefs.closeOnMouseExit, !holdsOpen else { return }
             schedule(after: 0.22) { [weak self] in
-                guard let self, !self.isHovering, !self.isPinned else { return }
+                guard let self, !self.isHovering, !self.holdsOpen else { return }
                 self.close()
             }
+        }
+    }
+
+    /// Called by the panel when it gains / loses key status (text editing). Losing it means
+    /// the user clicked elsewhere: close if the pointer is no longer on the island.
+    func panelKeyChanged(_ isKey: Bool) {
+        guard isKey != isEditingText else { return }
+        isEditingText = isKey
+        if !isKey, phase == .open, !isHovering, prefs.closeOnMouseExit, !isPinned, !isSampling {
+            close()
         }
     }
 

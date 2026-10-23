@@ -340,6 +340,16 @@ private struct ModulesPane: View {
                 Text("A long break follows every fourth focus session.")
                     .font(.caption).foregroundStyle(.secondary)
             }
+            Section {
+                Toggle("Notes tab", isOn: tabVisible(.notes))
+                Toggle("Tools tab (colour picker, Keep Awake)", isOn: tabVisible(.tools))
+                Button("Clear colour history") { ColorPickerService.shared.clearHistory() }
+            } header: {
+                Text("Notes & Tools")
+            } footer: {
+                Text("Notes and snippets are saved in ~/Library/Application Support/Blinko. Keep Awake stops when Blinko quits.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             Section("Shelf") {
                 Toggle("Open shelf when dragging files onto the notch", isOn: $p.shelfAutoOpenOnDrag)
                 Button("Clear shelf") { ShelfService.shared.clear() }
@@ -357,6 +367,15 @@ private struct ModulesPane: View {
         }
         .formStyle(.grouped)
     }
+}
+
+/// Shows / hides a tab (same rule as the Layout pane: one tab always stays visible).
+@MainActor
+private func tabVisible(_ tab: NotchTab) -> Binding<Bool> {
+    let p = Preferences.shared
+    return Binding(get: { !p.hiddenTabs.contains(tab) }, set: { visible in
+        if visible { p.hiddenTabs.remove(tab) } else if p.visibleTabs.count > 1 { p.hiddenTabs.insert(tab) }
+    })
 }
 
 private struct WorldClocksSection: View {

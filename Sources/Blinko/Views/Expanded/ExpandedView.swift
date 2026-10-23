@@ -7,7 +7,7 @@ struct ExpandedView: View {
         VStack(spacing: 0) {
             ExpandedHeader(vm: vm)
                 .frame(height: max(vm.geometry.notchSize.height, 30))
-            TabContent(tab: Preferences.shared.visibleTabs.contains(vm.tab) ? vm.tab : Preferences.shared.visibleTabs[0])
+            TabContent(vm: vm, tab: Preferences.shared.visibleTabs.contains(vm.tab) ? vm.tab : Preferences.shared.visibleTabs[0])
                 .padding(.horizontal, Metrics.openTopRadius + 12)
                 .padding(.top, 10)
                 .padding(.bottom, Preferences.shared.showCredit ? 8 : 16)
@@ -50,6 +50,7 @@ private struct CreditFooter: View {
 }
 
 private struct TabContent: View {
+    let vm: NotchViewModel
     let tab: NotchTab
 
     var body: some View {
@@ -60,6 +61,8 @@ private struct TabContent: View {
             case .clipboard: ClipboardView()
             case .stats: StatsView()
             case .timer: TimerView()
+            case .notes: NotesView(vm: vm)
+            case .tools: ToolsView(vm: vm)
             }
         }
         .id(tab)
@@ -90,6 +93,7 @@ private struct ExpandedHeader: View {
             Spacer(minLength: vm.geometry.hasNotch ? vm.geometry.notchSize.width + 16 : 16)
 
             HStack(spacing: 4) {
+                KeepAwakeIndicator { withAnimation(Motion.micro) { vm.tab = .tools } }
                 // Home shows weather next to its clock already.
                 if !(vm.tab == .home && Preferences.shared.showClock) {
                     HeaderWeather()
@@ -143,6 +147,19 @@ private struct TabButton: View {
         .buttonStyle(PressableStyle(scale: 0.92))
         .onHover { hovering = $0 }
         .help(tab.title)
+    }
+}
+
+/// Small cup while Keep Awake holds the display on; opens the Tools tab.
+private struct KeepAwakeIndicator: View {
+    let action: () -> Void
+
+    var body: some View {
+        if KeepAwakeService.shared.isActive {
+            IslandIconButton(symbol: "cup.and.saucer.fill", size: 11, plate: 24, tint: .orange,
+                             help: String(localized: "Keep Awake is on"), action: action)
+                .transition(.opacity.combined(with: .scale(scale: 0.8)))
+        }
     }
 }
 
