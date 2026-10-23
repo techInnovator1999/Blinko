@@ -4,6 +4,7 @@
 # Prereqs: gh auth login · Developer ID cert · NOTARY_PROFILE (see release.sh) ·
 #          Sparkle private key in the keychain (generate_keys --account blinko).
 # Usage:   NOTARY_PROFILE=blinko-notary scripts/publish.sh [release-notes.md]
+#          BLINKO_ALLOW_UNNOTARIZED=1 scripts/publish.sh [notes.md]   (until a Developer ID exists)
 # Bump CFBundleShortVersionString / CFBundleVersion in Resources/Info.plist first.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -19,8 +20,19 @@ if gh release view "$TAG" -R "$GITHUB_REPO" >/dev/null 2>&1; then
 fi
 [[ -n "$(git status --porcelain)" ]] && { echo "error: commit your changes first" >&2; exit 1; }
 
-scripts/release.sh
 DMG="dist/Blinko-$VERSION.dmg"
+if security find-identity -v -p codesigning | grep -q "Developer ID Application"; then
+  scripts/release.sh                      # signed + notarized + stapled
+elif [[ -n "${BLINKO_ALLOW_UNNOTARIZED:-}" ]]; then
+  # No Developer ID yet: ship the Apple Development-signed build. Sparkle still verifies the
+  # EdDSA signature; first-time installs need "Open Anyway" once (see the DMG's note).
+  echo "warning: publishing WITHOUT notarization (no Developer ID certificate)" >&2
+  scripts/share-dmg.sh
+  mv -f "dist/Blinko-$VERSION-share.dmg" "$DMG"
+else
+  echo "error: no Developer ID certificate. Set BLINKO_ALLOW_UNNOTARIZED=1 to publish an un-notarized build." >&2
+  exit 1
+fi
 
 # Keep appcast history: start from the appcast of the current latest release.
 UPDATES="dist/updates"
