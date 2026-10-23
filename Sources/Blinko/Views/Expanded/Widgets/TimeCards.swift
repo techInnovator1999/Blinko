@@ -146,7 +146,12 @@ struct AgendaListWidget: View {
                     VStack(alignment: .leading, spacing: 5) {
                         ForEach(cal.items.prefix(8)) { item in AgendaRow(item: item) }
                     }
+                    .padding(.bottom, 8)
                 }
+                // Rows that run past the island fade out instead of being cut.
+                .mask(LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.8),
+                                             .init(color: cal.items.count > 3 ? .clear : .black, location: 1)],
+                                     startPoint: .top, endPoint: .bottom))
             }
         }
     }

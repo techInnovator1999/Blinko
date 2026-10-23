@@ -215,7 +215,7 @@ private struct HomeSlotView: View {
         if editing {
             HomeWidgetContent(slot: slot, vm: vm)
                 .allowsHitTesting(false)
-                .opacity(0.5)
+                .opacity(0.4)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .overlay { HomeSlotEditor(slot: slot, index: index) }
         } else {
@@ -322,7 +322,7 @@ private struct HomeSlotEditor: View {
         let layout = HomeLayouts.current
         let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
         ZStack {
-            shape.fill(Color.black.opacity(targeted ? 0.4 : 0.62))
+            shape.fill(Color.black.opacity(targeted ? 0.5 : 0.72))
             shape.strokeBorder(targeted ? accent : Color.white.opacity(hovering ? 0.5 : 0.28),
                                style: StrokeStyle(lineWidth: targeted ? 2.5 : 1.5, dash: targeted ? [] : [6, 4]))
             VStack(spacing: 4) {
