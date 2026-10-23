@@ -56,5 +56,7 @@ echo "Built $APP (signed with: ${IDENTITY:-ad-hoc})"
 
 if [[ "${2:-}" == "--run" ]]; then
   pkill -x Blinko 2>/dev/null || true
+  # Wait for the old instance to exit, or LaunchServices refuses the open (error -600).
+  for _ in {1..30}; do pgrep -x Blinko >/dev/null || break; sleep 0.1; done
   open "$APP"
 fi
