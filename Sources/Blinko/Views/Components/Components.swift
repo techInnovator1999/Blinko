@@ -190,6 +190,12 @@ final class VisualizerNSView: NSView {
 
         guard playing != self.playing else { return }
         self.playing = playing
+        Self.applyClassic(to: bars, playing: playing)
+    }
+
+    /// Installs the looping "eq" animation (playing) or settles the bars (paused).
+    /// Shared with `SpectrumNSView`, which falls back to it without live audio.
+    static func applyClassic(to bars: [CALayer], playing: Bool) {
         for (i, bar) in bars.enumerated() {
             bar.removeAllAnimations()
             if playing {

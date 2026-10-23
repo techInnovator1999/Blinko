@@ -140,6 +140,16 @@ final class Preferences {
     var agentFinishedAlert: Bool { didSet { store.set(agentFinishedAlert, forKey: "agentFinishedAlert") } }
     var agentNotifications: Bool { didSet { store.set(agentNotifications, forKey: "agentNotifications") } }
 
+    // Visualizer (v0.5). `showVisualizer` mirrors `visualizerMode != .off` for older call sites.
+    var visualizerMode: VisualizerMode {
+        didSet {
+            store.set(visualizerMode.rawValue, forKey: "visualizerMode")
+            if showVisualizer != (visualizerMode != .off) { showVisualizer = visualizerMode != .off }
+        }
+    }
+    /// Thin spectrum along the bottom of the player's artwork (Real mode only).
+    var expandedSpectrum: Bool { didSet { store.set(expandedSpectrum, forKey: "expandedSpectrum") } }
+
     private init() {
         store.register(defaults: [
             "displayMode": DisplayMode.notchedOnly.rawValue,
@@ -216,6 +226,7 @@ final class Preferences {
             "agentCompact": true,
             "agentFinishedAlert": true,
             "agentNotifications": true,
+            "expandedSpectrum": true,
         ])
         hasCompletedOnboarding = store.bool(forKey: "hasCompletedOnboarding")
         displayMode = DisplayMode(rawValue: store.string(forKey: "displayMode") ?? "") ?? .notchedOnly
@@ -295,5 +306,9 @@ final class Preferences {
         agentCompact = store.bool(forKey: "agentCompact")
         agentFinishedAlert = store.bool(forKey: "agentFinishedAlert")
         agentNotifications = store.bool(forKey: "agentNotifications")
+        // No stored mode yet: carry over the old on/off toggle (on → Classic).
+        visualizerMode = VisualizerMode(rawValue: store.string(forKey: "visualizerMode") ?? "")
+            ?? (store.bool(forKey: "showVisualizer") ? .classic : .off)
+        expandedSpectrum = store.bool(forKey: "expandedSpectrum")
     }
 }

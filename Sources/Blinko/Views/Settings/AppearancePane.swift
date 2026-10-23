@@ -148,7 +148,7 @@ private struct AppearanceForm: View {
 
             Section("Details") {
                 Toggle("Tint the player with album artwork colour", isOn: $p.artworkTint)
-                Toggle("Music visualizer", isOn: $p.showVisualizer)
+                VisualizerSettings()
                 Toggle("Shadow under the open island", isOn: $p.openShadow)
                 Toggle("Battery in island header", isOn: $p.showBatteryInHeader)
                 Toggle("“Designed by OptimaGeeks” credit", isOn: $p.showCredit)
