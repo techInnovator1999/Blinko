@@ -36,6 +36,7 @@ Lyrics come from [LRCLIB](https://lrclib.net), weather from [Open-Meteo](https:/
 - **Settings → Appearance** themes the island with a live preview: an accent colour (presets, custom, or matched to the album art or your wallpaper), a style (Classic, Minimal, Glass, Glow), a size (Compact, Default, Large), corner roundness and SF Pro or SF Pro Rounded numbers. Pick one of the built-in themes (Midnight, Aurora, Paper, Neon), or export yours as a JSON file and import it on another Mac.
 - Press **⌥Space** for the command bar: calculate (`(12+4)*3^2`), convert (`10 km to mi`, `100 usd in eur`), launch apps, run Shortcuts, find clipboard and shelf items, start a timer (`t 25m`) or search the web. ↑↓ choose, ↩ runs, ⎋ closes.
 - During a call (Zoom, Teams, Meet, FaceTime, Slack, Discord, Webex) the closed island shows the call's length and your microphone; open it for mute and leave controls.
+- The first launch opens a one-minute guided tour (skip it any time); replay it from Settings → About → **Show Tour**.
 
 ### AI coding agents (Agent Hub)
 
@@ -93,8 +94,27 @@ Helper/       BlinkoMedia.m + blinko-media.pl: MediaRemote bridge hosted by Appl
 Resources/    Info.plist, entitlements, icon, Localizable.xcstrings (String Catalog)
 ```
 
-**Localisation:** user-facing strings live in `Resources/Localizable.xcstrings`. Run `scripts/extract-strings.sh` after changing UI text to sync the catalog with the code; `build.sh` compiles translations into the app bundle.
+## Localisation
+
+Blinko ships in English, Spanish (`es`), German (`de`), French (`fr`), Japanese (`ja`), Simplified Chinese (`zh-Hans`) and Urdu (`ur`, right-to-left). It follows the macOS language order; try another language without changing yours with `open build/Blinko.app --args -AppleLanguages '(de)'`.
+
+- UI strings live in `Resources/Localizable.xcstrings` (String Catalog, English keys). Permission prompts (Info.plist usage descriptions) live in `Resources/InfoPlist.xcstrings`.
+- After changing UI text run `scripts/extract-strings.sh`: it syncs the catalog with the code. New keys show in English until translated.
+- `build.sh` compiles both catalogs into `<lang>.lproj/Localizable.strings` and `InfoPlist.strings` in the app bundle.
+- Identifiers (SF Symbol names), numbers and product names are marked *Don't translate* (`shouldTranslate: false`).
+
+**Adding a language:** open the two catalogs in Xcode (or edit the JSON) and add the language with a translation for every key, keeping format specifiers (`%@`, `%lld`; use `%1$@`, `%2$@` to reorder) and product names (Blinko, AirDrop, Spotify, Claude Code) as they are. Add the code to `CFBundleLocalizations` in `Resources/Info.plist`, build, and check the snapshots (below) with `--locale xx` for truncation.
+
+**Right-to-left:** layouts use leading/trailing, so Settings, the tour and the island mirror under Urdu like the system does: the wings swap sides around the notch (the leading wing — artwork, app icon — sits on the right), which is how iOS mirrors the Dynamic Island's leading/trailing regions. The notch itself never moves. Media playback (scrubber, previous/play/next) stays left-to-right, as Apple's HIG asks, and so do keyboard shortcuts and the tour's drawings of the physical notch.
+
+## Feedback & crash reports
+
+Nothing leaves your Mac unless you send it. **Send Feedback** (menu bar icon, Settings → About) opens a pre-filled GitHub issue — bug report with version, macOS and Mac model, or feature request — that you review in the browser. At launch Blinko looks for new crash reports macOS wrote for it (`~/Library/Logs/DiagnosticReports/Blinko-*.ips`) and offers once, in a small panel, to open an issue with the exception and the top frames of the crashed thread, with your user name and home folder removed. No SDK, no telemetry. `Blinko --crash-report <file.ips>` prints what would be filled in.
+
+## Landing page
+
+`site/` is a static, dependency-free page (`index.html` + `assets/`). `.github/workflows/pages.yml` deploys it to GitHub Pages on every push to `main` that touches `site/`; enable it once under the repository's Settings → Pages → Source: **GitHub Actions**. Preview locally with `python3 -m http.server -d site`. The island images are real renders: `swift build && .build/debug/Blinko --snapshot /tmp/site-ui --site-only` (transparent PNGs; convert to WebP for the page).
 
 **Logo:** `design/logo.swift` draws the mark in code (the island as an eyelid, mid-blink over an iris). Run `scripts/make-icon.sh` to regenerate `AppIcon.icns`.
 
-**Design QA:** `swift build && .build/debug/Blinko --snapshot /tmp/blinko-snaps` renders every state to PNG, plus a theme matrix (styles, size presets × tabs, accents, built-in themes, the Appearance pane). Add `--themes-only` to render just the theme matrix. `.build/debug/Blinko --selftest` runs the calculator, fuzzy-matcher and parser checks.
+**Design QA:** `swift build && .build/debug/Blinko --snapshot /tmp/blinko-snaps` renders every state to PNG, plus a theme matrix (styles, size presets × tabs, accents, built-in themes, the Appearance pane), the tour pages, the crash prompt and every Settings pane. Add `--themes-only` for just the theme matrix, `--launch-only` for the tour / crash prompt / Settings. `--locale de` renders everything in one language (right-to-left for `ur`); compile the translations next to the binary first: `xcrun xcstringstool compile Resources/Localizable.xcstrings --output-directory .build/debug && mkdir -p .build/debug/en.lproj`. `.build/debug/Blinko --selftest` runs the calculator, fuzzy-matcher and parser checks.
