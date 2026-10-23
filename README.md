@@ -30,13 +30,14 @@ Lyrics come from [LRCLIB](https://lrclib.net) and weather from [Open-Meteo](http
 - Hover over the notch, click it, two-finger swipe down on it, or press **⌃⌥Space** to open it. Swipe up or move the pointer away to close it.
 - Drag files onto the notch to put them on the shelf. From there you can drag them out again (click several to select them, then drag one to move them all) or AirDrop them.
 - The pin in the header keeps the island open. So does typing in Notes; click elsewhere to close it.
+- **Settings → Appearance** themes the island with a live preview: an accent colour (presets, custom, or matched to the album art or your wallpaper), a style (Classic, Minimal, Glass, Glow), a size (Compact, Default, Large), corner roundness and SF Pro or SF Pro Rounded numbers. Pick one of the built-in themes (Midnight, Aurora, Paper, Neon), or export yours as a JSON file and import it on another Mac.
 
 ## Architecture
 
 ```
 Sources/Blinko
   App/        entry point, hotkey, status item, launch-at-login, snapshot renderer
-  Core/       Preferences, NotchViewModel (per display), ActivityCenter, Motion/Metrics
+  Core/       Preferences, Theme + ThemeLibrary, NotchViewModel (per display), ActivityCenter, Motion/Metrics
   Window/     NotchPanel (non-activating NSPanel), NotchWindowController, NotchManager (multi-display, gestures)
   Services/   NowPlaying, Lyrics, MediaKeys/SystemControls, Battery, Bluetooth, Calendar, Shelf, Clipboard, Stats,
               Timer, Camera, Focus, Privacy, Network, Downloads, Weather, Notes, Tools (colour picker, Keep Awake)
@@ -49,4 +50,4 @@ Resources/    Info.plist, entitlements, icon, Localizable.xcstrings (String Cata
 
 **Logo:** `design/logo.swift` draws the mark in code (the island as an eyelid, mid-blink over an iris). Run `scripts/make-icon.sh` to regenerate `AppIcon.icns`.
 
-**Design QA:** `swift build && .build/debug/Blinko --snapshot /tmp/blinko-snaps` renders every state to PNG.
+**Design QA:** `swift build && .build/debug/Blinko --snapshot /tmp/blinko-snaps` renders every state to PNG, plus a theme matrix (styles, size presets × tabs, accents, built-in themes, the Appearance pane). Add `--themes-only` to render just the theme matrix.
