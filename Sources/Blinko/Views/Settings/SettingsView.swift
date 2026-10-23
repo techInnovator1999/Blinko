@@ -371,6 +371,14 @@ private struct AppearancePane: View {
                 Toggle("Battery in island header", isOn: $p.showBatteryInHeader)
                 Toggle("“Designed by OptimaGeeks” credit", isOn: $p.showCredit)
             }
+            Section {
+                Toggle("Reduce motion", isOn: $p.reduceMotion)
+            } header: {
+                Text("Motion")
+            } footer: {
+                Text("Springs become short fades and the island opens without blur or scaling. Blinko also follows System Settings → Accessibility → Display → Reduce motion.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
     }

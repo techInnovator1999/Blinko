@@ -41,11 +41,35 @@ final class Preferences {
     var batteryActivity: Bool { didSet { store.set(batteryActivity, forKey: "batteryActivity") } }
     var bluetoothActivity: Bool { didSet { store.set(bluetoothActivity, forKey: "bluetoothActivity") } }
     var showBatteryInHeader: Bool { didSet { store.set(showBatteryInHeader, forKey: "showBatteryInHeader") } }
+    var focusActivity: Bool { didSet { store.set(focusActivity, forKey: "focusActivity") } }
+    var privacyIndicators: Bool { didSet { store.set(privacyIndicators, forKey: "privacyIndicators") } }
+    var downloadsActivity: Bool { didSet { store.set(downloadsActivity, forKey: "downloadsActivity") } }
+    var networkActivity: Bool { didSet { store.set(networkActivity, forKey: "networkActivity") } }
+    var airPodsBattery: Bool { didSet { store.set(airPodsBattery, forKey: "airPodsBattery") } }
 
     // Appearance
     var artworkTint: Bool { didSet { store.set(artworkTint, forKey: "artworkTint") } }
     var openShadow: Bool { didSet { store.set(openShadow, forKey: "openShadow") } }
     var showVisualizer: Bool { didSet { store.set(showVisualizer, forKey: "showVisualizer") } }
+    /// Forces reduced motion on; the system Accessibility setting is always honoured as well.
+    var reduceMotion: Bool { didSet { store.set(reduceMotion, forKey: "reduceMotion") } }
+
+    // Lyrics
+    var showLyrics: Bool { didSet { store.set(showLyrics, forKey: "showLyrics") } }
+    var compactLyrics: Bool { didSet { store.set(compactLyrics, forKey: "compactLyrics") } }
+
+    // Weather (manual location is used when `weatherUseLocation` is off or Location is denied)
+    var weatherEnabled: Bool { didSet { store.set(weatherEnabled, forKey: "weatherEnabled") } }
+    var weatherUseLocation: Bool { didSet { store.set(weatherUseLocation, forKey: "weatherUseLocation") } }
+    var weatherCity: String { didSet { store.set(weatherCity, forKey: "weatherCity") } }
+    var weatherLatitude: Double { didSet { store.set(weatherLatitude, forKey: "weatherLatitude") } }
+    var weatherLongitude: Double { didSet { store.set(weatherLongitude, forKey: "weatherLongitude") } }
+
+    /// Extra time zones shown under the Home clock (identifiers, at most three).
+    var worldClocks: [String] { didSet { store.set(worldClocks, forKey: "worldClocks") } }
+
+    /// Shelf items older than this are removed (0 = keep forever).
+    var shelfExpiryDays: Int { didSet { store.set(shelfExpiryDays, forKey: "shelfExpiryDays") } }
 
     // Modules
     var showCalendar: Bool { didSet { store.set(showCalendar, forKey: "showCalendar") } }
@@ -103,9 +127,24 @@ final class Preferences {
             "batteryActivity": true,
             "bluetoothActivity": true,
             "showBatteryInHeader": true,
+            "focusActivity": true,
+            "privacyIndicators": true,
+            "downloadsActivity": false, // reading ~/Downloads asks for permission: opt-in
+            "networkActivity": true,
+            "airPodsBattery": true,
             "artworkTint": true,
             "openShadow": true,
             "showVisualizer": true,
+            "reduceMotion": false,
+            "showLyrics": true,
+            "compactLyrics": false,
+            "weatherEnabled": false,
+            "weatherUseLocation": true,
+            "weatherCity": "",
+            "weatherLatitude": 0.0,
+            "weatherLongitude": 0.0,
+            "worldClocks": [String](),
+            "shelfExpiryDays": 0,
             "showCalendar": true,
             "showMirror": true,
             "clipboardHistory": true,
@@ -144,9 +183,24 @@ final class Preferences {
         batteryActivity = store.bool(forKey: "batteryActivity")
         bluetoothActivity = store.bool(forKey: "bluetoothActivity")
         showBatteryInHeader = store.bool(forKey: "showBatteryInHeader")
+        focusActivity = store.bool(forKey: "focusActivity")
+        privacyIndicators = store.bool(forKey: "privacyIndicators")
+        downloadsActivity = store.bool(forKey: "downloadsActivity")
+        networkActivity = store.bool(forKey: "networkActivity")
+        airPodsBattery = store.bool(forKey: "airPodsBattery")
         artworkTint = store.bool(forKey: "artworkTint")
         openShadow = store.bool(forKey: "openShadow")
         showVisualizer = store.bool(forKey: "showVisualizer")
+        reduceMotion = store.bool(forKey: "reduceMotion")
+        showLyrics = store.bool(forKey: "showLyrics")
+        compactLyrics = store.bool(forKey: "compactLyrics")
+        weatherEnabled = store.bool(forKey: "weatherEnabled")
+        weatherUseLocation = store.bool(forKey: "weatherUseLocation")
+        weatherCity = store.string(forKey: "weatherCity") ?? ""
+        weatherLatitude = store.double(forKey: "weatherLatitude")
+        weatherLongitude = store.double(forKey: "weatherLongitude")
+        worldClocks = Array((store.stringArray(forKey: "worldClocks") ?? []).prefix(3))
+        shelfExpiryDays = store.integer(forKey: "shelfExpiryDays")
         showCalendar = store.bool(forKey: "showCalendar")
         showMirror = store.bool(forKey: "showMirror")
         clipboardHistory = store.bool(forKey: "clipboardHistory")

@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         let prefs = Preferences.shared
 
+        Motion.startObservingReducedMotion()
         ServiceHub.shared.start()
         _ = UpdateService.shared // starts Sparkle's scheduled checks
 

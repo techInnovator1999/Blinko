@@ -55,7 +55,12 @@ private struct IslandRevealModifier: ViewModifier {
 extension AnyTransition {
     /// Content blooms out of the notch: blur → sharp, slight scale from the top edge.
     static var islandReveal: AnyTransition {
-        .asymmetric(
+        // Reduced motion: a plain cross-fade, no blur or scale.
+        if Motion.reduced {
+            return .asymmetric(insertion: .opacity.animation(.easeOut(duration: 0.16)),
+                               removal: .opacity.animation(.easeIn(duration: 0.1)))
+        }
+        return .asymmetric(
             insertion: .modifier(active: IslandRevealModifier(blur: 5, opacity: 0, scale: 0.95),
                                  identity: IslandRevealModifier(blur: 0, opacity: 1, scale: 1))
                 .animation(.spring(response: 0.34, dampingFraction: 0.92).delay(0.06)),
@@ -66,7 +71,8 @@ extension AnyTransition {
     }
 
     static var wingReveal: AnyTransition {
-        .modifier(active: IslandRevealModifier(blur: 4, opacity: 0, scale: 0.6),
+        if Motion.reduced { return .opacity }
+        return .modifier(active: IslandRevealModifier(blur: 4, opacity: 0, scale: 0.6),
                   identity: IslandRevealModifier(blur: 0, opacity: 1, scale: 1))
     }
 }
