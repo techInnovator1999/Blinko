@@ -164,6 +164,103 @@ enum SelfTest {
         for _ in 0..<8 { if meter.feed(db: -25, duration: 0.085) { fired += 1 } }
         expect(fired == 2, "a new utterance after a pause fires again")
 
+        spectrumChecks()
         return failed
+    }
+
+    /// Real visualizer DSP: band mapping, FFT levels, gate, normalisation, smoothing, ring.
+    private static func spectrumChecks() {
+        let rate = 48_000.0
+        let analyzer = SpectrumAnalyzer(size: 2048)
+        let bins = analyzer.size / 2
+        for count in [4, 24, 32] {
+            let r = SpectrumBands.bandRanges(count: count, bins: bins, sampleRate: rate)
+            expect(r.count == count, "\(count) bands")
+            expect(r.first!.lowerBound >= 1 && r.last!.upperBound < bins, "\(count) bands inside the spectrum")
+            expect(zip(r, r.dropFirst()).allSatisfy { $0.upperBound < $1.lowerBound }, "\(count) bands ascend without overlap")
+            let hz = { (bin: Int) in Double(bin) * rate / Double(analyzer.size) }
+            expect(hz(r.first!.lowerBound) < 70 && hz(r.last!.upperBound) > 12_000, "\(count) bands span bass to treble")
+        }
+        // Low bands are narrower than high bands (log spacing).
+        let r24 = SpectrumBands.bandRanges(count: 24, bins: bins, sampleRate: rate)
+        expect(r24[20].count > r24[4].count * 4, "log spacing: treble bands are wider")
+
+        func sine(_ freq: Double, amplitude: Float) -> [Float] {
+            (0..<analyzer.size).map { amplitude * Float(sin(2 * .pi * freq * Double($0) / rate)) }
+        }
+        func feed(_ samples: [Float], into bands: inout SpectrumBands, frames: Int = 1) {
+            samples.withUnsafeBufferPointer { analyzer.analyze($0.baseAddress!) }
+            for _ in 0..<frames {
+                analyzer.power.withUnsafeBufferPointer {
+                    bands.ingest(power: $0, peak: analyzer.peak, sampleRate: rate, dt: 1.0 / 30)
+                }
+                bands.smooth(dt: 1.0 / 30)
+            }
+        }
+        // FFT scaling: a sine of amplitude A reads ≈ A² (−6 dB for A = 0.5) summed around its bin.
+        _ = sine(1_000, amplitude: 0.5).withUnsafeBufferPointer { analyzer.analyze($0.baseAddress!) }
+        let k = Int((1_000 / rate * Double(analyzer.size)).rounded())
+        let local = analyzer.power[(k - 3)...(k + 3)].reduce(0, +)
+        let db = 10 * log10(local)
+        expect(Swift.abs(db - (-6.02)) < 1.0, "1 kHz sine at 0.5 reads \(db) dB, expected ≈ −6")
+
+        // The band holding a tone is the loudest; a lower tone lands in a lower band.
+        var bands = SpectrumBands(count: 24)
+        feed(sine(1_000, amplitude: 0.3), into: &bands, frames: 12)
+        let kHzBand = bands.levels.indices.max { bands.levels[$0] < bands.levels[$1] }!
+        expect(bands.ranges[kHzBand].contains(k), "1 kHz drives band \(kHzBand) \(bands.ranges[kHzBand])")
+        expect(bands.levels[kHzBand] > 0.8, "a steady tone fills its bar (\(bands.levels[kHzBand]))")
+        expect(bands.levels.enumerated().filter { abs($0.offset - kHzBand) > 2 }.allSatisfy { $0.element < 0.35 },
+               "distant bands stay low around a pure tone")
+        var low = SpectrumBands(count: 24)
+        feed(sine(110, amplitude: 0.3), into: &low, frames: 12)
+        let lowBand = low.levels.indices.max { low.levels[$0] < low.levels[$1] }!
+        expect(lowBand < kHzBand - 4, "110 Hz band \(lowBand) is well below 1 kHz band \(kHzBand)")
+
+        // Normalisation: a quiet track fills the bars like a loud one once the ceiling adapts.
+        var quiet = SpectrumBands(count: 4)
+        var loud = SpectrumBands(count: 4)
+        feed(sine(440, amplitude: 0.03), into: &quiet, frames: 120)
+        feed(sine(440, amplitude: 0.6), into: &loud, frames: 120)
+        expect(Swift.abs((quiet.levels.max() ?? 0) - (loud.levels.max() ?? 0)) < 0.15,
+               "−26 dB and full-scale tracks normalise alike (\(quiet.levels.max() ?? 0) vs \(loud.levels.max() ?? 0))")
+
+        // Noise gate: digital silence and hiss below −66 dBFS draw nothing.
+        var gated = SpectrumBands(count: 4)
+        feed([Float](repeating: 0, count: analyzer.size), into: &gated, frames: 5)
+        expect(gated.levels.allSatisfy { $0 == 0 }, "silence draws nothing")
+        feed((0..<analyzer.size).map { _ in Float.random(in: -0.0003...0.0003) }, into: &gated, frames: 5)
+        expect(gated.levels.allSatisfy { $0 == 0 }, "hiss under the gate draws nothing")
+
+        // Smoothing: fast attack, slower decay, frame-rate independent.
+        var s = SpectrumBands(count: 4)
+        feed(sine(440, amplitude: 0.5), into: &s, frames: 1)
+        let rise = s.levels.max() ?? 0
+        feed(sine(440, amplitude: 0.5), into: &s, frames: 30)
+        let top = s.levels.max() ?? 0
+        feed([Float](repeating: 0, count: analyzer.size), into: &s, frames: 1)
+        let fall = s.levels.max() ?? 0
+        expect(rise > 0.5 * top, "attack reaches \(rise / top) of the peak in one frame")
+        expect(fall > 0.7 * top, "decay keeps \(fall / top) after one frame")
+        feed([Float](repeating: 0, count: analyzer.size), into: &s, frames: 45)
+        expect(s.isSettled, "bars settle within 1.5 s of silence")
+        var a = SpectrumBands(count: 1), b = SpectrumBands(count: 1)
+        let tone = sine(440, amplitude: 0.5)
+        tone.withUnsafeBufferPointer { analyzer.analyze($0.baseAddress!) }
+        analyzer.power.withUnsafeBufferPointer {
+            a.ingest(power: $0, peak: analyzer.peak, sampleRate: rate, dt: 0.1)
+            b.ingest(power: $0, peak: analyzer.peak, sampleRate: rate, dt: 0.1)
+        }
+        a.smooth(dt: 0.1)
+        b.smooth(dt: 0.05); b.smooth(dt: 0.05)
+        expect(Swift.abs(a.levels[0] - b.levels[0]) < 0.001, "smoothing is frame-rate independent")
+
+        // Ring: interleaved stereo → mono, newest window, across the wrap point.
+        let ring = AudioSampleRing(capacity: 1024)
+        let stereo = (0..<1500).flatMap { [Float($0), Float($0) + 2] }
+        stereo.withUnsafeBufferPointer { ring.write($0.baseAddress!, frames: 1500, channels: 2, stride: 2) }
+        var out = [Float](repeating: 0, count: 8)
+        out.withUnsafeMutableBufferPointer { ring.copyLatest(8, into: $0.baseAddress!) }
+        expect(out == (1492..<1500).map { Float($0) + 1 }, "ring returns the newest mono samples in order: \(out)")
     }
 }
