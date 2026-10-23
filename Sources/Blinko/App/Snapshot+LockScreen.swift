@@ -21,7 +21,7 @@ extension Snapshot {
         func write(_ view: some View, _ size: CGSize, _ name: String, scale: CGFloat = 2) {
             let renderer = ImageRenderer(content: view.frame(width: size.width, height: size.height))
             renderer.scale = scale
-            guard let cg = renderer.cgImage else { return }
+            guard let cg = renderer.cgImage.flatMap(Snapshot.sRGB) else { return }
             try? NSBitmapImageRep(cgImage: cg).representation(using: .png, properties: [:])?
                 .write(to: dir.appendingPathComponent("\(name).png"))
         }

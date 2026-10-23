@@ -110,7 +110,7 @@ extension Snapshot {
     private static func write<V: View>(_ view: V, _ name: String, to dir: URL) {
         let renderer = ImageRenderer(content: localized(view))
         renderer.scale = 2
-        guard let cg = renderer.cgImage else { return }
+        guard let cg = renderer.cgImage.flatMap(Snapshot.sRGB) else { return }
         let rep = NSBitmapImageRep(cgImage: cg)
         try? rep.representation(using: .png, properties: [:])?.write(to: dir.appendingPathComponent("\(name).png"))
     }

@@ -45,7 +45,7 @@ enum Snapshot {
             .frame(width: canvas.width, height: canvas.height)
             let renderer = ImageRenderer(content: localized(view))
             renderer.scale = 2
-            guard let cg = renderer.cgImage else { return }
+            guard let cg = renderer.cgImage.flatMap(Snapshot.sRGB) else { return }
             let rep = NSBitmapImageRep(cgImage: cg)
             try? rep.representation(using: .png, properties: [:])?.write(to: dir.appendingPathComponent("\(name).png"))
         }
@@ -179,6 +179,15 @@ enum Snapshot {
         shot("25c-open-approval-queue") { vm in vm.open(tab: .agents) }
         hub.injectPreview(sessions: [], approvals: [])
         shot("26-open-agents-empty") { vm in vm.open(tab: .agents) }
+        shot("60-slack-channel") { _ in
+            ActivityCenter.shared.show(.appNotification(MirroredNotification(
+                id: "a", app: "Slack", title: "#engineering", subtitle: nil,
+                body: "Ayesha Khan: Build is green and v0.5 is ready to ship 🚀 — can someone review the release notes?")))
+        }
+        shot("61-slack-dm") { _ in
+            ActivityCenter.shared.show(.appNotification(MirroredNotification(
+                id: "b", app: "Slack", title: "Omar Siddiqui", subtitle: nil, body: "Are we still on for the design review at 4?")))
+        }
         shot("27-custom-alert") { _ in
             ActivityCenter.shared.show(.custom(CustomAlert(title: "Build passed", body: "blinko · 42 s",
                                                            symbol: "checkmark.seal.fill", color: "green", duration: 4)))
@@ -269,5 +278,16 @@ enum Snapshot {
             NSBezierPath(ovalIn: rect.insetBy(dx: 80, dy: 80)).fill()
             return true
         }
+    }
+
+
+    /// Flattens a render to 8-bit sRGB. HDR app icons (macOS 26+) otherwise make
+    /// ImageRenderer emit 16-bit PQ images that viewers tone-map into a washed-out look.
+    static func sRGB(_ image: CGImage) -> CGImage? {
+        guard let space = CGColorSpace(name: CGColorSpace.sRGB),
+              let ctx = CGContext(data: nil, width: image.width, height: image.height, bitsPerComponent: 8, bytesPerRow: 0,
+                                  space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return image }
+        ctx.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+        return ctx.makeImage() ?? image
     }
 }
