@@ -70,6 +70,12 @@ blinko claude install   # same as Connect Claude Code (--settings PATH for anoth
 
 In **Shortcuts**, Blinko's own actions appear under Blinko: Show Alert, Start Timer, Start Focus Session, Open Island, Add to Shelf, Keep Mac Awake. "Open URLs" with a `blinko://` link and "Run Shell Script" with the `blinko` tool work as well.
 
+### Lock screen (experimental)
+
+**Settings → Lock Screen** (off by default) shows Blinko on the lock screen: the island at the notch with music, charging and timer / Pomodoro activities, and an optional row of widgets below the middle of the main display (now playing with artwork and previous / play / next, battery, next calendar event, active timer). On the lock screen the island never opens on hover; a tap opens only the music player. Calendar titles are hidden unless you turn on "Show calendar details on lock screen", and the clipboard, shelf, notes, downloads, meetings, custom alerts and (by default) AI agents never appear there.
+
+It uses a private macOS window-server API (a SkyLight space above the lock screen, as boring.notch and other notch apps do), resolved at runtime: if a macOS update removes it, the setting is greyed out. While your Mac is unlocked it only listens for the lock notification.
+
 ## Architecture
 
 ```
@@ -97,4 +103,4 @@ Resources/    Info.plist, entitlements, icon, Localizable.xcstrings (String Cata
 
 **Logo:** `design/logo.swift` draws the mark in code (the island as an eyelid, mid-blink over an iris). Run `scripts/make-icon.sh` to regenerate `AppIcon.icns`.
 
-**Design QA:** `swift build && .build/debug/Blinko --snapshot /tmp/blinko-snaps` renders every state to PNG, plus a theme matrix (styles, size presets × tabs, accents, built-in themes, the Appearance pane). Add `--themes-only` to render just the theme matrix. `.build/debug/Blinko --selftest` runs the calculator, fuzzy-matcher and parser checks.
+**Design QA:** `swift build && .build/debug/Blinko --snapshot /tmp/blinko-snaps` renders every state to PNG, plus a theme matrix (styles, size presets × tabs, accents, built-in themes, the Appearance pane). Add `--themes-only` to render just the theme matrix. `.build/debug/Blinko --selftest` runs the calculator, fuzzy-matcher and parser checks. Lock screen: `--snapshot DIR --lockscreen-only` renders the lock-screen island and widget states (with the privacy-redacted variants); `open -n build/Blinko.app --args --lockscreen-roundtrip-test [report.txt]` moves two test windows into the lock-screen space and back on the unlocked desktop and checks with the window server that they are restored.
