@@ -1,0 +1,429 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSAppleEventsUsageDescription" : {
+      "comment" : "Info.plist NSAppleEventsUsageDescription",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko steuert die Wiedergabe in Musik und Spotify."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko controls playback in Music and Spotify."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko controla la reproducción en Música y Spotify."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko contrôle la lecture dans Musique et Spotify."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko はミュージックと Spotify の再生を操作します。"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko میوزک اور Spotify میں پلے بیک کنٹرول کرتا ہے۔"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko 会控制“音乐”和 Spotify 中的播放。"
+          }
+        }
+      }
+    },
+    "NSBluetoothAlwaysUsageDescription" : {
+      "comment" : "Info.plist NSBluetoothAlwaysUsageDescription",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko zeigt eine Live-Aktivität, wenn sich Bluetooth-Geräte verbinden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko shows a live activity when Bluetooth devices connect."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko muestra una actividad en vivo cuando se conectan dispositivos Bluetooth."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko affiche une activité en direct lorsque des appareils Bluetooth se connectent."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko は Bluetooth デバイスが接続されたときにライブアクティビティを表示します。"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بلوٹوتھ ڈیوائسز کنیکٹ ہونے پر Blinko ایک لائیو سرگرمی دکھاتا ہے۔"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓝牙设备连接时，Blinko 会显示实时活动。"
+          }
+        }
+      }
+    },
+    "NSCalendarsFullAccessUsageDescription" : {
+      "comment" : "Info.plist NSCalendarsFullAccessUsageDescription",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko zeigt deine anstehenden Termine in der Notch."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko shows your upcoming events in the notch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko muestra tus próximos eventos en el notch."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko affiche vos prochains événements dans l’encoche."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko はノッチに今後の予定を表示します。"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko نوچ میں آپ کے آنے والے ایونٹس دکھاتا ہے۔"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko 会在刘海中显示你即将到来的日程。"
+          }
+        }
+      }
+    },
+    "NSCameraUsageDescription" : {
+      "comment" : "Info.plist NSCameraUsageDescription",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko nutzt die Kamera für den schnellen Spiegel."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko uses the camera for the quick mirror."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko usa la cámara para el espejo rápido."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko utilise la caméra pour le miroir rapide."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko はクイックミラーにカメラを使用します。"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko فوری آئینے کے لیے کیمرا استعمال کرتا ہے۔"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko 使用相机实现快速镜子功能。"
+          }
+        }
+      }
+    },
+    "NSFocusStatusUsageDescription" : {
+      "comment" : "Info.plist NSFocusStatusUsageDescription",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko zeigt eine Live-Aktivität, wenn ein Fokus oder „Nicht stören“ ein- oder ausgeschaltet wird."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko shows a live activity when a Focus or Do Not Disturb turns on or off."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko muestra una actividad en vivo cuando se activa o desactiva un modo de Concentración o No molestar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko affiche une activité en direct lorsqu’un mode de concentration ou Ne pas déranger s’active ou se désactive."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko は集中モードやおやすみモードのオン／オフ時にライブアクティビティを表示します。"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جب کوئی فوکس یا ڈسٹرب نہ کریں آن یا بند ہو تو Blinko ایک لائیو سرگرمی دکھاتا ہے۔"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "专注模式或勿扰模式开启或关闭时，Blinko 会显示实时活动。"
+          }
+        }
+      }
+    },
+    "NSLocationUsageDescription" : {
+      "comment" : "Info.plist NSLocationUsageDescription",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko verwendet einmalig deinen ungefähren Standort, um das lokale Wetter anzuzeigen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko uses your approximate location once to show local weather."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko usa tu ubicación aproximada una vez para mostrar el tiempo local."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko utilise une fois votre position approximative pour afficher la météo locale."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko は現地の天気を表示するため、おおよその位置情報を一度だけ使用します。"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مقامی موسم دکھانے کے لیے Blinko ایک بار آپ کا تخمینی مقام استعمال کرتا ہے۔"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko 会使用一次你的大致位置以显示当地天气。"
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription" : {
+      "comment" : "Info.plist NSLocationWhenInUseUsageDescription",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko verwendet einmalig deinen ungefähren Standort, um das lokale Wetter anzuzeigen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko uses your approximate location once to show local weather."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko usa tu ubicación aproximada una vez para mostrar el tiempo local."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko utilise une fois votre position approximative pour afficher la météo locale."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko は現地の天気を表示するため、おおよその位置情報を一度だけ使用します。"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مقامی موسم دکھانے کے لیے Blinko ایک بار آپ کا تخمینی مقام استعمال کرتا ہے۔"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko 会使用一次你的大致位置以显示当地天气。"
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription" : {
+      "comment" : "Info.plist NSMicrophoneUsageDescription",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko hört nur auf deine Stimme, während du in einem Anruf stummgeschaltet bist, um dich darauf hinzuweisen. Audio wird nie aufgenommen oder irgendwohin gesendet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko listens for your voice only while you are muted in a call, to warn you that you're muted. Audio is never recorded or sent anywhere."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko escucha tu voz solo mientras estás silenciado en una llamada, para avisarte de que estás silenciado. El audio nunca se graba ni se envía a ningún sitio."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko n’écoute votre voix que lorsque vous êtes en sourdine pendant un appel, pour vous avertir que vous êtes en sourdine. L’audio n’est jamais enregistré ni envoyé nulle part."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko は、通話中にミュートしているあいだだけ声を検知し、ミュート中であることを警告します。音声が録音されたり、どこかに送信されたりすることはありません。"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko آپ کی آواز صرف اس وقت سنتا ہے جب آپ کال میں میوٹ ہوں، تاکہ آپ کو خبردار کر سکے کہ آپ میوٹ ہیں۔ آڈیو کبھی ریکارڈ یا کہیں بھیجا نہیں جاتا۔"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko 仅在你于通话中静音时聆听你的声音，以提醒你当前处于静音状态。音频绝不会被录制或发送到任何地方。"
+          }
+        }
+      }
+    },
+    "NSRemindersFullAccessUsageDescription" : {
+      "comment" : "Info.plist NSRemindersFullAccessUsageDescription",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko zeigt deine Erinnerungen in der Notch."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko shows your reminders in the notch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko muestra tus recordatorios en el notch."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko affiche vos rappels dans l’encoche."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko はノッチにリマインダーを表示します。"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko نوچ میں آپ کے ریمائنڈرز دکھاتا ہے۔"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinko 会在刘海中显示你的提醒事项。"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

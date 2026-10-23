@@ -70,6 +70,8 @@ final class SettingsWindowController {
     private let selection = SettingsSelection()
 
     func show(pane: SettingsPane? = nil) {
+        // The old Welcome pane is now the guided tour (its own window).
+        if pane == .welcome { OnboardingWindowController.shared.show(); return }
         if let pane { selection.pane = pane }
         if window == nil {
             let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 740, height: 580),
@@ -109,7 +111,7 @@ struct SettingsView: View {
                     }
                 }
             } else {
-            List(SettingsPane.allCases, selection: Binding(get: { selection.pane }, set: { if let p = $0 { selection.pane = p } })) { pane in
+            List(SettingsPane.allCases.filter { $0 != .welcome }, selection: Binding(get: { selection.pane }, set: { if let p = $0 { selection.pane = p } })) { pane in
                 Label {
                     Text(pane.title)
                 } icon: {
@@ -128,7 +130,7 @@ struct SettingsView: View {
         } detail: {
             Group {
                 switch selection.pane {
-                case .welcome: WelcomePane(selection: selection)
+                case .welcome: EmptyView() // never selected: see show(pane:)
                 case .general: GeneralPane()
                 case .activities: ActivitiesPane()
                 case .modules: ModulesPane()
@@ -150,75 +152,6 @@ struct SettingsView: View {
 }
 
 // MARK: - Panes
-
-private struct WelcomePane: View {
-    let selection: SettingsSelection
-    @State private var trusted = MediaKeyService.shared.isTrusted
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 14) {
-                AppIconView(size: 72)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Welcome to Blinko").font(.system(size: 24, weight: .bold))
-                    Text("Your notch, alive. Hover it, swipe down on it, or press ⌃⌥Space.")
-                        .foregroundStyle(.secondary)
-                }
-            }
-            PermissionRow(symbol: "keyboard", title: "Accessibility",
-                          detail: "Needed to replace the volume & brightness HUD.",
-                          granted: trusted) {
-                MediaKeyService.shared.requestPermission()
-            }
-            PermissionRow(symbol: "calendar", title: "Calendar & Reminders",
-                          detail: "Shows your next events and meeting links.",
-                          granted: CalendarService.shared.authorized) {
-                CalendarService.shared.requestAccess()
-            }
-            Spacer()
-            HStack {
-                Spacer()
-                Button("Get Started") {
-                    Preferences.shared.hasCompletedOnboarding = true
-                    selection.pane = .general
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-            }
-        }
-        .padding(28)
-        .onReceive(Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()) { _ in
-            trusted = MediaKeyService.shared.isTrusted
-        }
-    }
-}
-
-private struct PermissionRow: View {
-    let symbol: String
-    let title: LocalizedStringKey
-    let detail: LocalizedStringKey
-    let granted: Bool
-    let action: () -> Void
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: symbol).font(.system(size: 16)).frame(width: 32, height: 32)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(.quaternary))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.headline)
-                Text(detail).font(.subheadline).foregroundStyle(.secondary)
-            }
-            Spacer()
-            if granted {
-                Label("Granted", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
-            } else {
-                Button("Grant…", action: action)
-            }
-        }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(.quinary))
-    }
-}
 
 private struct GeneralPane: View {
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
@@ -689,6 +622,20 @@ private struct AboutPane: View {
             Text("A fast, native Dynamic Island for the Mac.")
                 .foregroundStyle(.secondary)
             UpdatesSection().padding(.top, 12)
+            HStack(spacing: 10) {
+                Button("Show Tour") { OnboardingWindowController.shared.show() }
+                Menu("Send Feedback") {
+                    Button("Report a Bug…") { Feedback.open(.bug) }
+                    Button("Request a Feature…") { Feedback.open(.feature) }
+                }
+                .fixedSize()
+            }
+            .padding(.top, 8)
+            Text("Feedback opens a pre-filled GitHub issue you can review before sending. Blinko collects no analytics.")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 360)
             Spacer()
             Button("Quit Blinko") { NSApp.terminate(nil) }.padding(.bottom, 24)
         }

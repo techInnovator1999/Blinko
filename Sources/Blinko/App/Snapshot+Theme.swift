@@ -108,7 +108,7 @@ extension Snapshot {
     }
 
     private static func write<V: View>(_ view: V, _ name: String, to dir: URL) {
-        let renderer = ImageRenderer(content: view)
+        let renderer = ImageRenderer(content: localized(view))
         renderer.scale = 2
         guard let cg = renderer.cgImage else { return }
         let rep = NSBitmapImageRep(cgImage: cg)
@@ -117,7 +117,7 @@ extension Snapshot {
 
     /// Renders through an offscreen window so Form, Slider and Picker draw as real controls.
     private static func writeHosted<V: View>(_ view: V, _ name: String, to dir: URL) {
-        let host = NSHostingView(rootView: view.environment(\.colorScheme, .dark))
+        let host = NSHostingView(rootView: localized(view).environment(\.colorScheme, .dark))
         host.frame = NSRect(x: 0, y: 0, width: 550, height: 1560)
         let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
         window.appearance = NSAppearance(named: .darkAqua)

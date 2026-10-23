@@ -8,6 +8,7 @@ enum BlinkoMain {
         if Snapshot.runIfRequested() { return }
         if SelfTest.runIfRequested() { return }
         if LockScreenRoundTrip.runIfRequested(app) { return }
+        if CrashReporter.runIfRequested() { return }
         let delegate = AppDelegate()
         app.delegate = delegate
         app.setActivationPolicy(.accessory)
@@ -44,8 +45,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         syncCommandHotkey()
 
         if !prefs.hasCompletedOnboarding {
-            SettingsWindowController.shared.show(pane: .welcome)
+            OnboardingWindowController.shared.show()
         }
+        CrashReporter.checkOnLaunch()
     }
 
     /// Re-registers the global shortcut whenever it is edited in Settings.

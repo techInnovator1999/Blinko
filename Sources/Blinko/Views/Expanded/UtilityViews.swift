@@ -317,10 +317,10 @@ struct StatsView: View {
         let stats = SystemStatsService.shared
         HStack(spacing: 10) {
             StatCard(title: "CPU", value: "\(Int((stats.cpu * 100).rounded()))%",
-                     detail: "\(ProcessInfo.processInfo.activeProcessorCount) cores",
+                     detail: String(localized: "\(ProcessInfo.processInfo.activeProcessorCount) cores"),
                      history: stats.cpuHistory, tint: .cyan, normalize: false)
             StatCard(title: "Memory", value: Format.bytes(stats.memoryUsed),
-                     detail: "of " + Format.bytes(stats.memoryTotal),
+                     detail: String(localized: "of \(Format.bytes(stats.memoryTotal))", comment: "Memory: used of total"),
                      history: stats.memHistory, tint: .purple, normalize: false)
             StatCard(title: "Network", value: "↓ " + Format.rate(stats.downRate),
                      detail: "↑ " + Format.rate(stats.upRate),
@@ -397,10 +397,10 @@ private struct BatteryCard: View {
 
     private func status(_ b: BatteryService) -> String {
         var parts: [String] = []
-        if b.isCharging { parts.append("Charging") } else if b.isPluggedIn { parts.append("Plugged in") }
-        if let m = b.minutesRemaining { parts.append("\(m / 60)h \(m % 60)m") }
-        if b.isLowPowerMode { parts.append("Low Power") }
-        return parts.isEmpty ? "On battery" : parts.joined(separator: " · ")
+        if b.isCharging { parts.append(String(localized: "Charging")) } else if b.isPluggedIn { parts.append(String(localized: "Plugged in")) }
+        if let m = b.minutesRemaining { parts.append(String(localized: "\(m / 60)h \(m % 60)m", comment: "Battery time remaining: hours, minutes")) }
+        if b.isLowPowerMode { parts.append(String(localized: "Low Power")) }
+        return parts.isEmpty ? String(localized: "On battery") : parts.joined(separator: " · ")
     }
 }
 
