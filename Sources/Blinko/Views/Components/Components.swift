@@ -10,7 +10,7 @@ struct IslandIconButton: View {
     var size: CGFloat = 13
     var plate: CGFloat = 28
     var tint: Color = .primaryText
-    var help: String = ""
+    var help: LocalizedStringKey = ""
     let action: () -> Void
 
     @State private var hovering = false
@@ -44,7 +44,7 @@ struct PressableStyle: ButtonStyle {
 
 /// Rounded "pill" button for text actions.
 struct PillButton: View {
-    let title: String
+    let title: LocalizedStringKey
     var symbol: String?
     var prominent = false
     let action: () -> Void
@@ -258,6 +258,32 @@ enum Format {
         return s >= 3600 ? String(format: "%d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60)
                          : String(format: "%d:%02d", s / 60, s % 60)
     }
+
+    /// "5 min", "1 hr" — readable timer names.
+    static func duration(_ seconds: TimeInterval) -> String {
+        durationFormatter.string(from: seconds) ?? time(seconds)
+    }
+
+    /// "5m", "1h" — compact preset labels.
+    static func shortDuration(_ seconds: TimeInterval) -> String {
+        shortDurationFormatter.string(from: seconds) ?? time(seconds)
+    }
+
+    private static let durationFormatter: DateComponentsFormatter = {
+        let f = DateComponentsFormatter()
+        f.allowedUnits = [.hour, .minute, .second]
+        f.unitsStyle = .short
+        f.maximumUnitCount = 2
+        return f
+    }()
+
+    private static let shortDurationFormatter: DateComponentsFormatter = {
+        let f = DateComponentsFormatter()
+        f.allowedUnits = [.hour, .minute, .second]
+        f.unitsStyle = .abbreviated
+        f.maximumUnitCount = 1
+        return f
+    }()
 
     private static let byteFormatter: ByteCountFormatter = {
         let f = ByteCountFormatter()

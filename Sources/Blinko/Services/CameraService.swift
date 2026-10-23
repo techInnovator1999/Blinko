@@ -21,11 +21,14 @@ final class CameraService {
     }()
 
     @ObservationIgnored private let queue = DispatchQueue(label: "app.blinko.camera")
+    /// Our own mirror session, so the privacy indicator can ignore it.
+    @ObservationIgnored private(set) var isMirrorRunning = false
 
     func start() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
             status = .authorized
+            isMirrorRunning = true
             let s = session
             queue.async { if !s.isRunning { s.startRunning() } }
         case .notDetermined:
@@ -42,6 +45,7 @@ final class CameraService {
 
     func stop() {
         guard status == .authorized else { return }
+        isMirrorRunning = false
         let s = session
         queue.async { if s.isRunning { s.stopRunning() } }
     }

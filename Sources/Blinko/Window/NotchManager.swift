@@ -218,7 +218,7 @@ final class NotchManager {
                 self.gestureConsumed = true // one track per swipe
             } else if !horizontalDominant, self.scrollAccumulator > 18, !vm.isOpen {
                 vm.open(); self.scrollAccumulator = 0
-            } else if !horizontalDominant, self.scrollAccumulator < -18, vm.isOpen, vm.tab != .clipboard {
+            } else if !horizontalDominant, self.scrollAccumulator < -18, vm.isOpen, vm.tab != .clipboard, vm.tab != .notes {
                 vm.close(); self.scrollAccumulator = 0
             }
             return event

@@ -5,7 +5,7 @@ import os
 private let log = Logger(subsystem: "app.blinko.Blinko", category: "island")
 
 enum NotchTab: String, CaseIterable, Identifiable {
-    case home, shelf, clipboard, stats, timer
+    case home, shelf, clipboard, stats, timer, notes, tools
     var id: String { rawValue }
 
     var symbol: String {
@@ -15,16 +15,20 @@ enum NotchTab: String, CaseIterable, Identifiable {
         case .clipboard: "doc.on.clipboard.fill"
         case .stats: "gauge.with.dots.needle.67percent"
         case .timer: "timer"
+        case .notes: "note.text"
+        case .tools: "eyedropper.halffull"
         }
     }
 
     var title: String {
         switch self {
-        case .home: "Home"
-        case .shelf: "Shelf"
-        case .clipboard: "Clipboard"
-        case .stats: "System"
-        case .timer: "Timer"
+        case .home: String(localized: "Home")
+        case .shelf: String(localized: "Shelf")
+        case .clipboard: String(localized: "Clipboard")
+        case .stats: String(localized: "System")
+        case .timer: String(localized: "Timer")
+        case .notes: String(localized: "Notes")
+        case .tools: String(localized: "Tools")
         }
     }
 }
@@ -33,16 +37,20 @@ enum NotchTab: String, CaseIterable, Identifiable {
 enum CompactContent: Equatable {
     case idle
     case activity(TransientActivity)
+    case download
     case music
     case timer
+    case privacy
     case clock
 
     var key: String {
         switch self {
         case .idle: "idle"
         case .activity(let a): "activity-\(a.kind)"
+        case .download: "download"
         case .music: "music"
         case .timer: "timer"
+        case .privacy: "privacy"
         case .clock: "clock"
         }
     }
@@ -61,6 +69,15 @@ final class NotchViewModel {
     private(set) var isHovering = false
     var isDropTargeted = false
     var isPinned = false
+    /// The panel is key because a text field is being edited (Notes): keep the island open.
+    private(set) var isEditingText = false
+    /// The colour sampler is up: the pointer leaves the island on purpose.
+    var isSampling = false
+    var holdsOpen: Bool { isPinned || isEditingText || isSampling }
+
+    /// Wired by the window controller: make the panel key / hand keyboard focus back.
+    @ObservationIgnored var requestKey: (() -> Void)?
+    @ObservationIgnored var relinquishKey: (() -> Void)?
 
     @ObservationIgnored private var hoverWork: DispatchWorkItem?
     @ObservationIgnored private var requiresExitBeforeHoverOpen = false
@@ -76,18 +93,41 @@ final class NotchViewModel {
 
     var compact: CompactContent {
         if let activity = ActivityCenter.shared.current { return .activity(activity) }
-        if TimerService.shared.isRunning { return .timer }
+        if DownloadsService.shared.active != nil { return .download }
+        if TimerService.shared.hasRunning { return .timer }
         if prefs.musicActivity, NowPlayingService.shared.isPlaying { return .music }
+        if prefs.privacyIndicators, PrivacyService.shared.anyInUse { return .privacy }
         if prefs.showClockWhenIdle { return .clock }
         return .idle
     }
 
+    /// Camera / mic dots shown at the trailing edge on top of other compact content.
+    var showsPrivacyEdge: Bool {
+        let content = compact
+        if case .activity(.privacy) = content { return false } // already shows them
+        return content != .idle && content != .privacy
+            && prefs.privacyIndicators && PrivacyService.shared.anyInUse
+    }
+
+    /// "Lyrics in closed island": the music wing widens once the track's lyrics are loaded.
+    var showsCompactLyrics: Bool {
+        guard prefs.compactLyrics, compact == .music else { return false }
+        let np = NowPlayingService.shared
+        return LyricsService.shared.hasLyrics(for: LyricsService.key(title: np.title, artist: np.artist))
+    }
+
     var wingWidth: CGFloat {
+        baseWingWidth + (showsPrivacyEdge ? 7 : 0)
+    }
+
+    private var baseWingWidth: CGFloat {
         let h = geometry.notchSize.height
         switch compact {
         case .idle: return 0
-        case .music: return h + 10
-        case .timer: return 66
+        case .music: return showsCompactLyrics ? 150 : h + 10
+        case .download: return 76
+        case .timer: return TimerService.shared.othersRunning > 0 ? 86 : 66
+        case .privacy: return 40
         case .clock: return 76
         case .activity(let a):
             switch a {
@@ -95,10 +135,14 @@ final class NotchViewModel {
             case .capsLock: return 100
             case .focusSession: return 96
             case .power, .lowBattery: return 86
-            case .bluetooth: return 116
+            case .bluetooth(_, _, _, let battery): return battery == nil ? 116 : 138
             case .shelf: return 58
             case .timerFinished: return 78
             case .nowPlayingChanged: return h + 10
+            case .focusMode: return 116
+            case .privacy: return 108
+            case .network: return 124
+            case .downloadFinished: return 128
             }
         }
     }
@@ -165,7 +209,12 @@ final class NotchViewModel {
 
     func open(tab: NotchTab? = nil) {
         hoverWork?.cancel()
-        if let tab { self.tab = tab }
+        if let tab {
+            self.tab = tab
+        } else if phase == .closed, case .activity(.downloadFinished) = compact, prefs.visibleTabs.contains(.shelf) {
+            // Opening on a finished download lands on the shelf, where it can be added.
+            self.tab = .shelf
+        }
         guard phase != .open else { return }
         phase = .open
         log.info("open")
@@ -180,6 +229,8 @@ final class NotchViewModel {
         phase = .closed
         log.info("close")
         isPinned = false
+        isSampling = false
+        if isEditingText { relinquishKey?() }
         // Closed deliberately while the pointer is still on the notch (swipe, hotkey, click):
         // don't hover-reopen until the pointer has left and come back.
         if isHovering { requiresExitBeforeHoverOpen = true }
@@ -212,11 +263,21 @@ final class NotchViewModel {
             armHoverOpen()
         } else {
             requiresExitBeforeHoverOpen = false
-            guard phase == .open, prefs.closeOnMouseExit, !isPinned else { return }
+            guard phase == .open, prefs.closeOnMouseExit, !holdsOpen else { return }
             schedule(after: 0.22) { [weak self] in
-                guard let self, !self.isHovering, !self.isPinned else { return }
+                guard let self, !self.isHovering, !self.holdsOpen else { return }
                 self.close()
             }
+        }
+    }
+
+    /// Called by the panel when it gains / loses key status (text editing). Losing it means
+    /// the user clicked elsewhere: close if the pointer is no longer on the island.
+    func panelKeyChanged(_ isKey: Bool) {
+        guard isKey != isEditingText else { return }
+        isEditingText = isKey
+        if !isKey, phase == .open, !isHovering, prefs.closeOnMouseExit, !isPinned, !isSampling {
+            close()
         }
     }
 

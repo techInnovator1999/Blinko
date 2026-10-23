@@ -7,7 +7,7 @@ struct ExpandedView: View {
         VStack(spacing: 0) {
             ExpandedHeader(vm: vm)
                 .frame(height: max(vm.geometry.notchSize.height, 30))
-            TabContent(tab: Preferences.shared.visibleTabs.contains(vm.tab) ? vm.tab : Preferences.shared.visibleTabs[0])
+            TabContent(vm: vm, tab: Preferences.shared.visibleTabs.contains(vm.tab) ? vm.tab : Preferences.shared.visibleTabs[0])
                 .padding(.horizontal, Metrics.openTopRadius + 12)
                 .padding(.top, 10)
                 .padding(.bottom, Preferences.shared.showCredit ? 8 : 16)
@@ -50,6 +50,7 @@ private struct CreditFooter: View {
 }
 
 private struct TabContent: View {
+    let vm: NotchViewModel
     let tab: NotchTab
 
     var body: some View {
@@ -60,6 +61,8 @@ private struct TabContent: View {
             case .clipboard: ClipboardView()
             case .stats: StatsView()
             case .timer: TimerView()
+            case .notes: NotesView(vm: vm)
+            case .tools: ToolsView(vm: vm)
             }
         }
         .id(tab)
@@ -89,28 +92,46 @@ private struct ExpandedHeader: View {
 
             Spacer(minLength: vm.geometry.hasNotch ? vm.geometry.notchSize.width + 16 : 16)
 
-            HStack(spacing: 4) {
-                // Hidden on Home when the big clock is already showing.
-                if Preferences.shared.showClockInHeader, !(vm.tab == .home && Preferences.shared.showClock) {
-                    TimelineView(.everyMinute) { ctx in
-                        Text(ctx.date, format: .dateTime.hour().minute())
-                            .font(.system(size: 11.5, weight: .semibold).monospacedDigit())
-                            .foregroundStyle(Color.secondaryText)
-                            .padding(.trailing, 8)
-                    }
-                }
-                HeaderBattery()
-                IslandIconButton(symbol: vm.isPinned ? "pin.fill" : "pin", size: 11, plate: 24,
-                                 tint: vm.isPinned ? .orange : .secondaryText,
-                                 help: "Keep open") { vm.isPinned.toggle() }
-                IslandIconButton(symbol: "gearshape.fill", size: 11, plate: 24, tint: .secondaryText, help: "Settings") {
-                    vm.close()
-                    SettingsWindowController.shared.show()
-                }
+            // With many tabs and every status item on, a 700 pt island runs out of room:
+            // drop the weather first, then the time, rather than squeezing text.
+            ViewThatFits(in: .horizontal) {
+                statusItems(weather: true, time: true)
+                statusItems(weather: false, time: true)
+                statusItems(weather: false, time: false)
             }
+            .layoutPriority(1)
         }
         .padding(.horizontal, Metrics.openTopRadius + 8)
         .padding(.top, 2)
+    }
+
+    private func statusItems(weather: Bool, time: Bool) -> some View {
+        // Home shows the clock and weather in its own layout already.
+        let homeClock = vm.tab == .home && Preferences.shared.showClock
+        return HStack(spacing: 4) {
+            KeepAwakeIndicator { withAnimation(Motion.micro) { vm.tab = .tools } }
+            if weather, !homeClock {
+                HeaderWeather()
+            }
+            if time, Preferences.shared.showClockInHeader, !homeClock {
+                TimelineView(.everyMinute) { ctx in
+                    Text(ctx.date, format: .dateTime.hour().minute())
+                        .font(.system(size: 11.5, weight: .semibold).monospacedDigit())
+                        .foregroundStyle(Color.secondaryText)
+                        .fixedSize()
+                        .padding(.trailing, 8)
+                }
+            }
+            HeaderBattery()
+            IslandIconButton(symbol: vm.isPinned ? "pin.fill" : "pin", size: 11, plate: 24,
+                             tint: vm.isPinned ? .orange : .secondaryText,
+                             help: "Keep open") { vm.isPinned.toggle() }
+            IslandIconButton(symbol: "gearshape.fill", size: 11, plate: 24, tint: .secondaryText, help: "Settings") {
+                vm.close()
+                SettingsWindowController.shared.show()
+            }
+        }
+        .fixedSize()
     }
 }
 
@@ -139,6 +160,36 @@ private struct TabButton: View {
         .buttonStyle(PressableStyle(scale: 0.92))
         .onHover { hovering = $0 }
         .help(tab.title)
+    }
+}
+
+/// Small cup while Keep Awake holds the display on; opens the Tools tab.
+private struct KeepAwakeIndicator: View {
+    let action: () -> Void
+
+    var body: some View {
+        if KeepAwakeService.shared.isActive {
+            IslandIconButton(symbol: "cup.and.saucer.fill", size: 11, plate: 24, tint: .orange,
+                             help: "Keep Awake is on", action: action)
+                .transition(.opacity.combined(with: .scale(scale: 0.8)))
+        }
+    }
+}
+
+private struct HeaderWeather: View {
+    var body: some View {
+        if Preferences.shared.weatherEnabled, let report = WeatherService.shared.report {
+            HStack(spacing: 4) {
+                Image(systemName: WeatherCode.symbol(report.code, isDay: report.isDay))
+                    .symbolRenderingMode(.multicolor)
+                    .font(.system(size: 11))
+                Text(Temperature.format(report.temperature))
+                    .font(.system(size: 11.5, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(Color.secondaryText)
+            }
+            .padding(.trailing, 8)
+            .help(WeatherCode.description(report.code))
+        }
     }
 }
 

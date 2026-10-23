@@ -16,6 +16,30 @@ enum BluetoothDeviceKind: Equatable {
     }
 }
 
+/// Battery levels reported by headphones (AirPods & co.). Any of them may be missing.
+struct DeviceBattery: Equatable {
+    var left: Int?
+    var right: Int?
+    var caseLevel: Int?
+    var single: Int?
+
+    var isEmpty: Bool { left == nil && right == nil && caseLevel == nil && single == nil }
+    var hasBuds: Bool { left != nil || right != nil }
+}
+
+enum PrivacySensor: Equatable {
+    case camera, microphone
+
+    var symbol: String { self == .camera ? "video.fill" : "mic.fill" }
+    var title: String { self == .camera ? String(localized: "Camera") : String(localized: "Microphone") }
+}
+
+enum NetworkEvent: Equatable {
+    case wifi(connected: Bool, ssid: String?)
+    case vpn(on: Bool)
+    case hotspot(name: String?)
+}
+
 /// Short-lived events that briefly take over the closed island.
 enum TransientActivity: Equatable {
     case volume(level: Float, muted: Bool)
@@ -26,13 +50,17 @@ enum TransientActivity: Equatable {
     case focusSession(title: String, isBreak: Bool)
     case power(level: Int, charging: Bool, pluggedIn: Bool)
     case lowBattery(level: Int)
-    case bluetooth(name: String, kind: BluetoothDeviceKind, connected: Bool)
+    case bluetooth(name: String, kind: BluetoothDeviceKind, connected: Bool, battery: DeviceBattery? = nil)
     case shelf(count: Int)
-    case timerFinished
+    case timerFinished(label: String = "")
     case nowPlayingChanged
+    case focusMode(on: Bool, name: String?, symbol: String?)
+    case privacy(sensor: PrivacySensor)
+    case network(NetworkEvent)
+    case downloadFinished(name: String, url: URL)
 
     /// Updates of the same kind morph in place instead of re-running the entrance transition.
-    enum Kind: Equatable { case hud, capsLock, power, lowBattery, bluetooth, shelf, timer, nowPlaying }
+    enum Kind: Equatable { case hud, capsLock, power, lowBattery, bluetooth, shelf, timer, nowPlaying, focusMode, privacy, network, download }
 
     var kind: Kind {
         switch self {
@@ -45,6 +73,10 @@ enum TransientActivity: Equatable {
         case .shelf: .shelf
         case .timerFinished: .timer
         case .nowPlayingChanged: .nowPlaying
+        case .focusMode: .focusMode
+        case .privacy: .privacy
+        case .network: .network
+        case .downloadFinished: .download
         }
     }
 
@@ -52,11 +84,13 @@ enum TransientActivity: Equatable {
         switch kind {
         case .hud: 1.6
         case .capsLock: 1.3
-        case .power, .bluetooth: 2.6
+        case .power, .focusMode, .privacy, .network: 2.6
+        case .bluetooth: 3.2
         case .lowBattery: 4
         case .shelf: 1.8
         case .timer: 6
         case .nowPlaying: 2.2
+        case .download: 5
         }
     }
 }

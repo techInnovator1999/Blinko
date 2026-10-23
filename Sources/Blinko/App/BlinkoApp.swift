@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         let prefs = Preferences.shared
 
+        Motion.startObservingReducedMotion()
         ServiceHub.shared.start()
         _ = UpdateService.shared // starts Sparkle's scheduled checks
 
@@ -51,6 +52,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } onChange: { [weak self] in
             DispatchQueue.main.async { self?.syncHotkey() }
         }
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        KeepAwakeService.shared.stop()
+        NotesService.shared.flush()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

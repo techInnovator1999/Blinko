@@ -24,6 +24,16 @@ final class NotchWindowController {
         hosting.onPointerEntered = { [weak self] in self?.onPointerEntered?() }
         panel.contentView = hosting
 
+        panel.onKeyChange = { [weak self] isKey in self?.viewModel.panelKeyChanged(isKey) }
+        viewModel.requestKey = { [weak self] in self?.panel.makeKey() }
+        // Closing while typing: drop key status so keystrokes go back to the app in front
+        // (ordering a key window out is the only way to resign it; it is shown again at once).
+        viewModel.relinquishKey = { [weak self] in
+            guard let panel = self?.panel, panel.isKeyWindow else { return }
+            panel.orderOut(nil)
+            panel.orderFrontRegardless()
+        }
+
         applyCanvas(viewModel.canvasSize, immediately: true)
         panel.orderFrontRegardless()
         trackCanvasSize()

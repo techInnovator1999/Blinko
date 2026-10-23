@@ -49,7 +49,15 @@ private struct IslandBody: View {
         }
         .contentShape(shape)
         .onTapGesture {
-            if !vm.isOpen { vm.open() }
+            guard !vm.isOpen else { return }
+            // Clicking a "Downloaded" activity puts the file straight on the shelf.
+            if case .activity(.downloadFinished(_, let url)) = vm.compact {
+                ShelfService.shared.add([url])
+                DownloadsService.shared.clearRecent()
+                vm.open(tab: .shelf)
+            } else {
+                vm.open()
+            }
         }
         .onDrop(of: [.fileURL], isTargeted: $dropTargeted) { providers in
             loadFileURLs(from: providers) { ShelfService.shared.add($0) }
