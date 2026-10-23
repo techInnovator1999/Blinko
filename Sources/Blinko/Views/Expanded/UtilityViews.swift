@@ -49,6 +49,7 @@ struct ShelfView: View {
             }
             .frame(width: 96)
         }
+        .onAppear { shelf.purgeExpired() }
     }
 }
 
@@ -131,7 +132,11 @@ private struct ShelfTile: View {
         .onTapGesture {
             if shelf.selection.contains(item.id) { shelf.selection.remove(item.id) } else { shelf.selection.insert(item.id) }
         }
-        .onDrag { NSItemProvider(contentsOf: item.url) ?? NSItemProvider() }
+        // AppKit drag session instead of .onDrag, which can only carry one file: dragging a
+        // selected tile drags the whole selection.
+        .gesture(DragGesture(minimumDistance: 4).onChanged { _ in
+            ShelfDrag.begin(urls: shelf.dragURLs(for: item), thumbnail: thumbnail)
+        })
         .contextMenu {
             Button("Open") { shelf.open(item) }
             Button("Show in Finder") { shelf.reveal(item) }
@@ -142,6 +147,47 @@ private struct ShelfTile: View {
         .task(id: item.url) {
             shelf.thumbnail(for: item.url, size: 52) { thumbnail = $0 }
         }
+    }
+}
+
+/// Starts a multi-item file drag from the island. Called from a SwiftUI DragGesture: the
+/// current event is the mouse-drag that AppKit needs to begin the session.
+@MainActor
+enum ShelfDrag {
+    private static var active = false
+
+    static func begin(urls: [URL], thumbnail: NSImage?) {
+        guard !active, !urls.isEmpty, let event = NSApp.currentEvent,
+              event.type == .leftMouseDragged || event.type == .leftMouseDown,
+              let view = event.window?.contentView else { return }
+        active = true
+        let point = view.convert(event.locationInWindow, from: nil)
+        let items = urls.enumerated().map { index, url -> NSDraggingItem in
+            let item = NSDraggingItem(pasteboardWriter: url as NSURL)
+            let image = index == 0 ? (thumbnail ?? NSWorkspace.shared.icon(forFile: url.path))
+                                   : NSWorkspace.shared.icon(forFile: url.path)
+            let offset = CGFloat(min(index, 4)) * 5 // a small fanned stack
+            item.setDraggingFrame(NSRect(x: point.x - 26 + offset, y: point.y - 26 - offset, width: 52, height: 52),
+                                  contents: image)
+            return item
+        }
+        let session = view.beginDraggingSession(with: items, event: event, source: ShelfDragSource.shared)
+        session.animatesToStartingPositionsOnCancelOrFail = true
+        session.draggingFormation = .pile
+    }
+
+    fileprivate static func ended() { active = false }
+}
+
+private final class ShelfDragSource: NSObject, NSDraggingSource {
+    static let shared = ShelfDragSource()
+
+    func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
+        context == .outsideApplication ? [.copy, .move, .generic, .link] : .copy
+    }
+
+    func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
+        MainActor.assumeIsolated { ShelfDrag.ended() }
     }
 }
 

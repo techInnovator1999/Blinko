@@ -350,9 +350,19 @@ private struct ModulesPane: View {
                 Text("Notes and snippets are saved in ~/Library/Application Support/Blinko. Keep Awake stops when Blinko quits.")
                     .font(.caption).foregroundStyle(.secondary)
             }
-            Section("Shelf") {
+            Section {
                 Toggle("Open shelf when dragging files onto the notch", isOn: $p.shelfAutoOpenOnDrag)
+                Picker("Remove items from the shelf", selection: $p.shelfExpiryDays) {
+                    Text("Never").tag(0)
+                    Text("After 1 day").tag(1)
+                    Text("After 1 week").tag(7)
+                }
                 Button("Clear shelf") { ShelfService.shared.clear() }
+            } header: {
+                Text("Shelf")
+            } footer: {
+                Text("Click files to select several, then drag any selected file to move them all. Only the shelf entries expire — your files stay where they are.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Section {
                 Toggle("Keep clipboard history", isOn: $p.clipboardHistory)

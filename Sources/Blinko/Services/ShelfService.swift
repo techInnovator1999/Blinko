@@ -28,6 +28,25 @@ final class ShelfService {
            let saved = try? JSONDecoder().decode([ShelfItem].self, from: data) {
             items = saved.filter { FileManager.default.fileExists(atPath: $0.url.path) }
         }
+        purgeExpired()
+    }
+
+    /// Optional auto-expiry. Runs at launch and whenever the shelf is shown — no timers.
+    func purgeExpired() {
+        let days = Preferences.shared.shelfExpiryDays
+        guard days > 0 else { return }
+        let cutoff = Date().addingTimeInterval(-Double(days) * 86_400)
+        let kept = items.filter { $0.addedAt >= cutoff }
+        guard kept.count != items.count else { return }
+        items = kept
+        selection.formIntersection(kept.map(\.id))
+        persist()
+    }
+
+    /// What dragging `item` carries: every selected file when it is part of a multi-selection.
+    func dragURLs(for item: ShelfItem) -> [URL] {
+        guard selection.contains(item.id), selection.count > 1 else { return [item.url] }
+        return items.filter { selection.contains($0.id) }.map(\.url)
     }
 
     func add(_ urls: [URL]) {
