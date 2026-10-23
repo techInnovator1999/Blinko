@@ -1049,6 +1049,18 @@
         }
       }
     },
+    "AI Agents" : {
+
+    },
+    "AI agent finished a task" : {
+
+    },
+    "AI agent needs your permission" : {
+
+    },
+    "AI agent notification" : {
+
+    },
     "About" : {
       "localizations" : {
         "de" : {
@@ -2132,6 +2144,9 @@
         }
       }
     },
+    "Alerts from Shortcuts, URL scheme or CLI" : {
+
+    },
     "All day" : {
       "localizations" : {
         "de" : {
@@ -3212,6 +3227,9 @@
         }
       }
     },
+    "Blink" : {
+
+    },
     "Blinko" : {
       "shouldTranslate" : false
     },
@@ -3494,6 +3512,12 @@
           }
         }
       }
+    },
+    "Bloom" : {
+
+    },
+    "Bluetooth device connects" : {
+
     },
     "Bluetooth devices" : {
       "localizations" : {
@@ -4617,6 +4641,9 @@
           }
         }
       }
+    },
+    "Charger connected" : {
+
     },
     "Charging" : {
       "localizations" : {
@@ -7581,6 +7608,9 @@
         }
       }
     },
+    "Download finished" : {
+
+    },
     "Download progress" : {
       "localizations" : {
         "de" : {
@@ -7780,6 +7810,9 @@
           }
         }
       }
+    },
+    "Drop" : {
+
     },
     "Drop a widget" : {
       "localizations" : {
@@ -8581,6 +8614,9 @@
         }
       }
     },
+    "File added to Shelf" : {
+
+    },
     "Files" : {
       "localizations" : {
         "de" : {
@@ -8860,6 +8896,9 @@
           }
         }
       }
+    },
+    "Focus session changes (work ↔ break)" : {
+
     },
     "Focus: %lld min" : {
       "localizations" : {
@@ -9389,6 +9428,9 @@
     },
     "HUD" : {
       "shouldTranslate" : false
+    },
+    "Halo" : {
+
     },
     "Haptic feedback" : {
       "localizations" : {
@@ -12156,6 +12198,9 @@
         }
       }
     },
+    "Low battery" : {
+
+    },
     "Lyrics" : {
       "localizations" : {
         "de" : {
@@ -14197,6 +14242,9 @@
         }
       }
     },
+    "None" : {
+
+    },
     "Not Now" : {
       "localizations" : {
         "de" : {
@@ -15960,6 +16008,12 @@
         }
       }
     },
+    "Orbit" : {
+
+    },
+    "Other" : {
+
+    },
     "Other agents" : {
       "localizations" : {
         "de" : {
@@ -16120,6 +16174,9 @@
         }
       }
     },
+    "Permission requests, “you’re muted” and low battery still sound during Focus." : {
+
+    },
     "Pick" : {
       "localizations" : {
         "de" : {
@@ -16239,6 +16296,9 @@
           }
         }
       }
+    },
+    "Play notification sounds" : {
+
     },
     "Play something" : {
       "localizations" : {
@@ -16399,6 +16459,9 @@
           }
         }
       }
+    },
+    "Power" : {
+
     },
     "Power adapter" : {
       "localizations" : {
@@ -16599,6 +16662,9 @@
           }
         }
       }
+    },
+    "Pulse" : {
+
     },
     "Pure black, one with the notch" : {
       "localizations" : {
@@ -19447,6 +19513,9 @@
         }
       }
     },
+    "Silence sounds while Focus is on" : {
+
+    },
     "Size" : {
       "localizations" : {
         "de" : {
@@ -19772,6 +19841,12 @@
           }
         }
       }
+    },
+    "Sound library" : {
+
+    },
+    "Sounds" : {
+
     },
     "Space" : {
       "comment" : "The space bar key",
@@ -21060,6 +21135,9 @@
         }
       }
     },
+    "Tap" : {
+
+    },
     "The Notes scratchpad" : {
       "localizations" : {
         "de" : {
@@ -21619,6 +21697,12 @@
           }
         }
       }
+    },
+    "Timer ends" : {
+
+    },
+    "Timer or focus starts" : {
+
     },
     "Timers" : {
       "localizations" : {
@@ -22983,6 +23067,9 @@
         }
       }
     },
+    "Volume" : {
+
+    },
     "Wait for an answer" : {
       "localizations" : {
         "de" : {
@@ -23865,6 +23952,9 @@
           }
         }
       }
+    },
+    "You're talking while muted" : {
+
     },
     "Your notch, alive. Music, volume and brightness, your calendar, files and timers live where the notch is — and fold away when you don't need them." : {
       "localizations" : {
