@@ -127,32 +127,6 @@ private struct PlayerLyricLine: View {
     }
 }
 
-/// One lyric line; a new line slides up and fades in while the old one fades out.
-struct LyricText: View {
-    let index: Int?
-    let size: CGFloat
-    var alignment: Alignment = .leading
-
-    var body: some View {
-        let lines = LyricsService.shared.lines
-        let text = index.flatMap { lines.indices.contains($0) ? lines[$0].text : nil } ?? ""
-        ZStack(alignment: alignment) {
-            Text(text.isEmpty ? "♪" : text)
-                .font(.system(size: size, weight: .medium))
-                .foregroundStyle(Color.white.opacity(0.78))
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .id(index ?? -1)
-                .transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: 5)),
-                                        removal: .opacity.combined(with: .offset(y: -5))))
-        }
-        .frame(maxWidth: .infinity, alignment: alignment)
-        .frame(height: size + 4)
-        .clipped()
-        .animation(Motion.content, value: index)
-    }
-}
-
 /// Hovering the artwork reveals ±10 s seek zones; clicking the centre opens the source app.
 private struct ArtworkSeekOverlay: View {
     @State private var hovering = false

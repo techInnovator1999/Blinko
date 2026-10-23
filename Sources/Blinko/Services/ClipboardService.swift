@@ -43,24 +43,79 @@ final class ClipboardService {
     ]
 
     func refresh() {
+        observeSystemState()
         Preferences.shared.clipboardHistory ? start() : stop()
     }
 
     private func start() {
-        guard timer == nil else { return }
-        lastChange = NSPasteboard.general.changeCount
-        let t = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
+        guard timer == nil, !isSuspended else { return }
+        // Slower in Low Power Mode; tolerance lets macOS coalesce the wakeup with others.
+        let interval: TimeInterval = ProcessInfo.processInfo.isLowPowerModeEnabled ? 3 : 1
+        let t = Timer(timeInterval: interval, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.check() }
         }
-        t.tolerance = 0.5
+        t.tolerance = interval / 2
         RunLoop.main.add(t, forMode: .common)
         timer = t
     }
 
     private func stop() {
+        pause()
+        items.removeAll()
+        lastChange = NSPasteboard.general.changeCount // re-enabling must not import old copies
+    }
+
+    private func pause() {
         timer?.invalidate()
         timer = nil
-        items.removeAll()
+    }
+
+    // MARK: Power gating
+    //
+    // Nobody copies while the display sleeps, the screen is locked or another user is active,
+    // so the only periodic check in Blinko stops entirely then. A change made meanwhile is
+    // still caught on resume (changeCount moved), it just isn't attributed to a source app.
+
+    @ObservationIgnored private var observingSystem = false
+    @ObservationIgnored private var displayAsleep = false
+    @ObservationIgnored private var screenLocked = false
+    @ObservationIgnored private var sessionInactive = false
+    private var isSuspended: Bool { displayAsleep || screenLocked || sessionInactive }
+
+    private func observeSystemState() {
+        guard !observingSystem else { return }
+        observingSystem = true
+        let ws = NSWorkspace.shared.notificationCenter
+        let dnc = DistributedNotificationCenter.default()
+        let pairs: [(NotificationCenter, Notification.Name, ReferenceWritableKeyPath<ClipboardService, Bool>, Bool)] = [
+            (ws, NSWorkspace.screensDidSleepNotification, \.displayAsleep, true),
+            (ws, NSWorkspace.screensDidWakeNotification, \.displayAsleep, false),
+            (ws, NSWorkspace.sessionDidResignActiveNotification, \.sessionInactive, true),
+            (ws, NSWorkspace.sessionDidBecomeActiveNotification, \.sessionInactive, false),
+            (dnc, Notification.Name("com.apple.screenIsLocked"), \.screenLocked, true),
+            (dnc, Notification.Name("com.apple.screenIsUnlocked"), \.screenLocked, false),
+        ]
+        for (center, name, keyPath, value) in pairs {
+            center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    guard let self else { return }
+                    self[keyPath: keyPath] = value
+                    self.applyGate()
+                }
+            }
+        }
+        NotificationCenter.default.addObserver(forName: .NSProcessInfoPowerStateDidChange, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, self.timer != nil else { return }
+                self.pause()
+                self.start() // re-create with the new interval
+            }
+        }
+    }
+
+    private func applyGate() {
+        guard Preferences.shared.clipboardHistory else { return }
+        if isSuspended { pause() } else { start() }
     }
 
     private func check() {
