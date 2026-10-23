@@ -60,6 +60,17 @@ final class NotchManager {
 
     /// Every island's view model (one per display), for app-level routing (URL scheme, Agent Hub).
     var viewModels: [NotchViewModel] { controllers.values.map(\.viewModel) }
+    /// Every island's window controller (lock-screen widgets move their panels).
+    var islandControllers: [NotchWindowController] { Array(controllers.values) }
+    /// Called after displays changed and islands were added / recreated.
+    var onIslandsRebuilt: (() -> Void)?
+
+    /// Last-resort recovery: replaces every island with a fresh window.
+    func recreateIslands() {
+        for controller in controllers.values { controller.tearDown() }
+        controllers.removeAll()
+        rebuild()
+    }
 
     // MARK: Displays
 
@@ -104,6 +115,7 @@ final class NotchManager {
             }
         }
         updateFullscreenVisibility()
+        onIslandsRebuilt?()
     }
 
     private func observePreferences() {
@@ -123,6 +135,8 @@ final class NotchManager {
     /// Runs only on space/app switches. Checks whether the frontmost app owns a
     /// window covering a whole display — the signature of a fullscreen space.
     private func updateFullscreenVisibility() {
+        // On the lock screen the islands stay visible; their pre-lock state is restored on unlock.
+        guard !LockScreenController.shared.isEngaged else { return }
         guard prefs.hideInFullscreen,
               let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier,
               pid != ProcessInfo.processInfo.processIdentifier

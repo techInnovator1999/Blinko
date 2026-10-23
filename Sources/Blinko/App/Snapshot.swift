@@ -10,6 +10,7 @@ enum Snapshot {
         guard let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count else { return false }
         let dir = URL(fileURLWithPath: args[i + 1], isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        if args.contains("--lockscreen-only") { renderLockScreen(to: dir); return true }
         if !args.contains("--themes-only") { render(to: dir) }
         renderThemes(to: dir)
         return true
@@ -182,6 +183,7 @@ enum Snapshot {
         }
         ActivityCenter.shared.dismiss()
         renderV04(shot: shot)
+        renderLockScreen(to: dir)
     }
 
     /// v0.4: Meeting mode and the command bar.

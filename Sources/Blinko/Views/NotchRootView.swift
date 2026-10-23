@@ -23,7 +23,11 @@ private struct IslandBody: View {
         let shape = NotchShape(topRadius: vm.topRadius, bottomRadius: vm.bottomRadius)
 
         ZStack(alignment: .top) {
-            if isOpen {
+            if isOpen, vm.lockScreenMode {
+                LockScreenPlayerView(vm: vm)
+                    .frame(width: size.width, height: size.height, alignment: .top)
+                    .transition(.islandReveal)
+            } else if isOpen {
                 ExpandedView(vm: vm)
                     .frame(width: size.width, height: size.height, alignment: .top)
                     .transition(.islandReveal)

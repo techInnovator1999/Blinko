@@ -65,6 +65,9 @@
     "+%lld" : {
 
     },
+    "+%lld more" : {
+
+    },
     "0.6s" : {
 
     },
@@ -92,6 +95,9 @@
     "A long break follows every fourth focus session." : {
 
     },
+    "A row of cards below the middle of your main display. Each card appears only when it has something to show." : {
+
+    },
     "A theme sets the accent, style, size, corners and type. Export saves yours as a small JSON file to share or keep." : {
 
     },
@@ -111,6 +117,9 @@
 
     },
     "Accessibility permission required" : {
+
+    },
+    "Active timer" : {
 
     },
     "Add" : {
@@ -164,6 +173,9 @@
     "Album art" : {
 
     },
+    "All day" : {
+
+    },
     "All displays" : {
 
     },
@@ -177,6 +189,9 @@
 
     },
     "Answer in the terminal" : {
+
+    },
+    "Anyone near your Mac can see the lock screen. Without details, the next event shows only its time. Clipboard, shelf, notes, downloads, meetings and custom alerts are never shown there." : {
 
     },
     "Appearance" : {
@@ -219,6 +234,9 @@
 
     },
     "BATTERY" : {
+
+    },
+    "Battery" : {
 
     },
     "Battery & charging" : {
@@ -371,6 +389,9 @@
     "Clock on Home" : {
 
     },
+    "Close" : {
+
+    },
     "Close when the pointer leaves" : {
 
     },
@@ -515,10 +536,16 @@
     "Drop files here" : {
 
     },
+    "Event" : {
+
+    },
     "Exchange rates come from open.er-api.com, fetched at most once a day and only when you type a currency. Apps and Shortcuts are listed the first time you open the bar." : {
 
     },
     "Exchange rates unavailable" : {
+
+    },
+    "Experimental" : {
 
     },
     "Export Theme" : {
@@ -629,6 +656,9 @@
     "Import…" : {
 
     },
+    "In %lld min" : {
+
+    },
     "In Shortcuts, use “Open URLs” with a blinko:// link, or “Run Shell Script” with the blinko tool. alert also takes body, color (a name or #RRGGBB) and duration (seconds)." : {
 
     },
@@ -650,7 +680,13 @@
     "Interaction" : {
 
     },
+    "Island" : {
+
+    },
     "Island Tab" : {
+
+    },
+    "Island at the notch" : {
 
     },
     "Island size" : {
@@ -698,6 +734,9 @@
     "Large" : {
 
     },
+    "Later today" : {
+
+    },
     "Launch" : {
 
     },
@@ -729,6 +768,9 @@
 
     },
     "Location access is off — the city below is used instead." : {
+
+    },
+    "Lock Screen" : {
 
     },
     "Long Break" : {
@@ -839,6 +881,9 @@
     "Next" : {
 
     },
+    "Next calendar event" : {
+
+    },
     "No Access" : {
 
     },
@@ -852,6 +897,9 @@
 
     },
     "Not a number" : {
+
+    },
+    "Not available on this version of macOS" : {
 
     },
     "Not connected" : {
@@ -872,6 +920,9 @@
     "Notes tab" : {
 
     },
+    "Nothing Playing" : {
+
+    },
     "Nothing copied yet" : {
 
     },
@@ -879,6 +930,12 @@
 
     },
     "Now Playing" : {
+
+    },
+    "Now Playing (tap to expand the player)" : {
+
+    },
+    "Now Playing with controls" : {
 
     },
     "Number too large" : {
@@ -900,6 +957,9 @@
 
     },
     "On Battery" : {
+
+    },
+    "On the lock screen the island never opens on hover; a tap opens only the music player. Volume, brightness, Caps Lock and battery alerts still appear." : {
 
     },
     "On the shelf · ⌘↩ shows in Finder" : {
@@ -983,6 +1043,9 @@
     "Previous" : {
 
     },
+    "Privacy" : {
+
+    },
     "Pure black, one with the notch" : {
 
     },
@@ -999,6 +1062,9 @@
 
     },
     "Reduce motion" : {
+
+    },
+    "Reminder" : {
 
     },
     "Remove" : {
@@ -1097,13 +1163,22 @@
     "Show" : {
 
     },
+    "Show AI agent status on lock screen" : {
+
+    },
     "Show Alert in Island" : {
+
+    },
+    "Show Blinko on the lock screen" : {
 
     },
     "Show Names…" : {
 
     },
     "Show agent activity" : {
+
+    },
+    "Show calendar details on lock screen" : {
 
     },
     "Show in Finder" : {
@@ -1241,6 +1316,9 @@
     "Timer" : {
 
     },
+    "Timers & Pomodoro" : {
+
+    },
     "Tint the player with album artwork colour" : {
 
     },
@@ -1248,6 +1326,9 @@
 
     },
     "Toggle island" : {
+
+    },
+    "Tomorrow" : {
 
     },
     "Tool" : {
@@ -1301,10 +1382,16 @@
     "Used for the selected tab, progress bars, the scrubber and timers. Battery, camera and microphone keep their own colours. “Wallpaper” samples your desktop picture when you switch spaces or displays." : {
 
     },
+    "Uses a private macOS window-server feature (the one other notch apps use) to draw the island and widgets above the lock screen. Apple may change or remove it in any update; Blinko then simply turns this off. Nothing runs while your Mac is unlocked." : {
+
+    },
     "VPN" : {
 
     },
     "Version %@" : {
+
+    },
+    "Vertical position" : {
 
     },
     "Violet" : {
@@ -1341,6 +1428,12 @@
 
     },
     "Wi-Fi, VPN & Personal Hotspot" : {
+
+    },
+    "Widget panel" : {
+
+    },
+    "Widgets" : {
 
     },
     "Width" : {
